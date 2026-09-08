@@ -3,9 +3,20 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
+def _paths(routes):
+    paths = set()
+    for route in routes:
+        path = getattr(route, "path", None)
+        if path is not None:
+            paths.add(path)
+        nested = getattr(route, "routes", None)
+        if nested:
+            paths.update(_paths(nested))
+    return paths
+
+
 def test_experiment_001_route_is_registered():
-    paths = {route.path for route in app.routes}
-    assert "/experiments/EXP-001/run" in paths
+    assert "/experiments/EXP-001/run" in _paths(app.routes)
 
 
 def test_experiment_001_endpoint_rejects_empty_dataset():
