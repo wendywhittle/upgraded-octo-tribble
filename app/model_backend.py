@@ -3,8 +3,7 @@
 This module provides the smallest practical bridge from an external model runtime
 into the existing provider contract. It intentionally accepts a caller-supplied
 callable rather than importing a vendor SDK. The callable has no access to tools
-through this boundary; its output is validated by AgentRunner before it can enter
-the reasoning pipeline.
+through this boundary; its output is validated by AgentRunner before it can enter the reasoning pipeline.
 """
 
 from __future__ import annotations
@@ -55,7 +54,7 @@ class CallableModelBackend:
         }
         try:
             result = self._invoke(context)
-        except Exception as exc:  # backend errors must not escape as model authority
+        except Exception as exc:
             raise ModelBackendError(f"model backend failed: {exc}") from exc
         if not isinstance(result, dict):
             raise ModelBackendError("model backend must return a dictionary")
