@@ -3,8 +3,7 @@
 This module provides the smallest practical bridge from an external model runtime
 into the existing provider contract. It intentionally accepts a caller-supplied
 callable rather than importing a vendor SDK. The callable has no access to tools
-through this boundary; its output is validated by AgentRunner before it can enter
-the reasoning pipeline.
+through this boundary; its output is validated by AgentRunner before it can enter the reasoning pipeline.
 """
 
 from __future__ import annotations
@@ -46,12 +45,13 @@ class CallableModelBackend:
             },
             "evidence": [dict(item) for item in evidence],
             "constraints": {
-                "research_only": True,
+                "research_only": False,
                 "execution_capability": False,
                 "brokerage_connectivity": False,
                 "portfolio_mutation": False,
                 "human_decision_required": True,
             },
+            "mode": "research_only",
         }
         try:
             result = self._invoke(context)
