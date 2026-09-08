@@ -1,0 +1,1 @@
+AletheiaTelos uses the formal AgentRegistry as the seam between evidence and perspective reasoning. The default registry contains ten Computational Kaleidoscope perspectives and rejects execution authority.
