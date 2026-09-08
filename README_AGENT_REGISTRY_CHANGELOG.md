@@ -1,0 +1,1 @@
+Agent registry v1 adds a formal seam for Computational Kaleidoscope perspectives and routes /simulate through it. No verified evidence means NO_DATA; execution and brokerage capabilities are prohibited.
