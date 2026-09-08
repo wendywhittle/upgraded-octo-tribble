@@ -1,0 +1,1 @@
+Registry boundary remains research-only and non-executable.
