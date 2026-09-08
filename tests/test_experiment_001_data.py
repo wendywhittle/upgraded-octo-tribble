@@ -4,17 +4,12 @@ from app.experiment_001_data import HistoricalPoint, build_experiment_observatio
 def _points(count=20):
     points = []
     for i in range(count):
-        points.append(
-            HistoricalPoint(
-                observed_at=f"2025-01-{i + 1:02d}T21:00:00+00:00",
-                spx_close=5000 + i * 10,
-                vix_level=20 + i * 0.1,
-                skew_level=120 + i * 0.2,
-                available_at=f"2025-01-{i + 1:02d}T21:00:00+00:00",
-                source_id="fixture",
-                content_hash=f"hash-{i}",
-            )
-        )
+        points.append(HistoricalPoint(
+            observed_at=f"2025-01-{i + 1:02d}T21:00:00+00:00", spx_close=5000 + i * 10,
+            vix_level=20 + i * 0.1, skew_level=120 + i * 0.2,
+            available_at=f"2025-01-{i + 1:02d}T21:00:00+00:00",
+            source_id="fixture", content_hash=f"hash-{i}",
+        ))
     return points
 
 
@@ -80,16 +75,16 @@ def test_timestamps_are_normalized_to_utc_and_timezone_required():
     points = _points()
     points[0] = HistoricalPoint(
         observed_at="2025-01-01T13:00:00-08:00", spx_close=5000,
-        vix_level=20, skew_level=120,
-        available_at="2025-01-01T13:00:00-08:00", source_id="fixture", content_hash="hash-0",
+        vix_level=20, skew_level=120, available_at="2025-01-01T13:00:00-08:00",
+        source_id="fixture", content_hash="hash-0",
     )
     validated = validate_points(points)
-    assert validated[0].observed_at == "2025-01-01T13:00:00-08:00"
+    assert validated[0].observed_at == "2025-01-01T21:00:00+00:00"
+    assert validated[0].available_at == "2025-01-01T21:00:00+00:00"
 
     naive = _points()
     naive[0] = HistoricalPoint(
-        observed_at="2025-01-01T21:00:00", spx_close=5000,
-        vix_level=20, skew_level=120,
+        observed_at="2025-01-01T21:00:00", spx_close=5000, vix_level=20, skew_level=120,
         available_at="2025-01-01T21:00:00+00:00", source_id="fixture", content_hash="hash-0",
     )
     try:
@@ -104,8 +99,8 @@ def test_equivalent_timezone_instants_are_duplicate_observations():
     points = _points()
     points[1] = HistoricalPoint(
         observed_at="2025-01-01T13:00:00-08:00", spx_close=5010,
-        vix_level=20.1, skew_level=120.2,
-        available_at="2025-01-01T13:00:00-08:00", source_id="fixture", content_hash="hash-1",
+        vix_level=20.1, skew_level=120.2, available_at="2025-01-01T13:00:00-08:00",
+        source_id="fixture", content_hash="hash-1",
     )
     try:
         validate_points(points)
