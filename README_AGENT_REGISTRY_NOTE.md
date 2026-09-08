@@ -1,0 +1,1 @@
+Agent registry v1 is the orchestration seam for the ten Computational Kaleidoscope perspectives. It enforces research-only capabilities and NO_DATA when verified evidence is absent.
