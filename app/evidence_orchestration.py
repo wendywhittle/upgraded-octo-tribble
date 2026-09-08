@@ -34,14 +34,15 @@ def run_evidence_fed_agents(
         raise ValueError("Question cannot be empty.")
 
     evidence_list = [dict(item) for item in evidence]
-    validation = [
-        validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
-        for item in evidence_list
-    ]
-    usable = [
-        item for item, report in zip(evidence_list, validation)
-        if report["decision_usable"]
-    ]
+    validation = []
+    usable = []
+    for item in evidence_list:
+        report = validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
+        validation.append(report)
+        # An upstream block is authoritative: integrity validation must never
+        # silently re-enable evidence that was explicitly marked unusable.
+        if report["decision_usable"] and item.get("decision_usable", True):
+            usable.append(item)
 
     registry = build_default_registry()
     evidence_by_agent = distribute_evidence(usable, registry.ids())
@@ -57,6 +58,7 @@ def run_evidence_fed_agents(
         "agents": agents,
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
+        "blocked_evidence_count": len(evidence_list) - len(usable),
         "validation": validation,
         "provider": runner.provider.name,
         "research_only": True,
