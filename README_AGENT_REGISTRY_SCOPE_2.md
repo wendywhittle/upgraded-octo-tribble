@@ -1,0 +1,1 @@
+Agent registry scope is limited to evidence-informed research assessments. Downstream risk, skepticism, synthesis, observation, memory, and governance are not controlled by agents.
