@@ -1,24 +1,23 @@
 """Evidence-fed research orchestration boundary.
 
-This module connects already-acquired, integrity-checked evidence to the registered
-Computational Kaleidoscope perspectives. It deliberately does not fetch external data,
-run the risk engine, synthesize investment decisions, or execute anything.
+Validated evidence is distributed to the canonical Computational Kaleidoscope and
+executed through AgentRunner so provider substitution remains explicit and auditable.
+No execution, brokerage, credential, or portfolio-mutation capability is introduced.
 """
 
 from typing import Any, Dict, Iterable
 
 from app.agent_registry import build_default_registry
+from app.agent_runner import AgentRunner
 from app.evidence import validate_evidence
+from app.model_provider import ModelProvider
 
 
 def distribute_evidence(
     evidence: Iterable[Dict[str, Any]],
     agent_ids: Iterable[str],
 ) -> Dict[str, list[Dict[str, Any]]]:
-    """Provide the same evidence context to each perspective after integrity validation.
-
-    Invalid evidence is retained in the audit result but never passed to agents.
-    """
+    """Provide the same validated evidence context to each perspective."""
     items = [dict(item) for item in evidence]
     return {agent_id: list(items) for agent_id in agent_ids}
 
@@ -28,6 +27,7 @@ def run_evidence_fed_agents(
     evidence: Iterable[Dict[str, Any]],
     now=None,
     max_age_seconds: float = 24 * 60 * 60,
+    provider: ModelProvider | None = None,
 ) -> Dict[str, Any]:
     """Run the canonical roster using only evidence that passes integrity checks."""
     if not question.strip():
@@ -45,7 +45,11 @@ def run_evidence_fed_agents(
 
     registry = build_default_registry()
     evidence_by_agent = distribute_evidence(usable, registry.ids())
-    agents = registry.run_all(question, evidence_by_agent)
+    runner = AgentRunner(provider)
+    agents = [
+        runner.run(registry.get(agent_id), question, evidence_by_agent.get(agent_id, []))
+        for agent_id in registry.ids()
+    ]
 
     return {
         "question": question,
@@ -54,6 +58,7 @@ def run_evidence_fed_agents(
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
         "validation": validation,
+        "provider": runner.provider.name,
         "research_only": True,
         "execution_capability": False,
         "brokerage_connectivity": False,
