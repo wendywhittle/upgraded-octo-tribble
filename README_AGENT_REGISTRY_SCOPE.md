@@ -1,0 +1,1 @@
+Scope: research-only agent orchestration. Out of scope: orders, brokerage, credentials, capital transfer, portfolio mutation, and autonomous execution.
