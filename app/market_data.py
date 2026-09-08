@@ -21,6 +21,7 @@ class MarketObservation:
     timeframe: str | None = None
     source_identity: str | None = None
     point_in_time: bool = True
+    retrieved_at: str | None = None
 
     def normalized(self) -> Dict[str, Any]:
         observed = self.observed_at
@@ -29,7 +30,13 @@ class MarketObservation:
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             observed = parsed.astimezone(timezone.utc).isoformat()
-        return {**asdict(self), "symbol": self.symbol.upper(), "observed_at": observed}
+        retrieved = self.retrieved_at
+        if retrieved:
+            parsed = datetime.fromisoformat(retrieved.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            retrieved = parsed.astimezone(timezone.utc).isoformat()
+        return {**asdict(self), "symbol": self.symbol.upper(), "observed_at": observed, "retrieved_at": retrieved}
 
 
 class MarketDataSource(Protocol):
@@ -52,7 +59,7 @@ def observations_to_evidence(observations: Iterable[MarketObservation]) -> list[
                 "source": item["source"],
                 "claim": f"{item['symbol']} price observed at {item['price']}",
                 "observed_at": item["observed_at"],
-                "retrieved_at": item["observed_at"],
+                "retrieved_at": item.get("retrieved_at") or item["observed_at"],
                 "provenance": {
                     "type": "market_data",
                     "point_in_time": item["point_in_time"],
