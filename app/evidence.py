@@ -116,32 +116,30 @@ def validate_agent_evidence(agent: Dict[str, Any], now: datetime | None = None,
 
 def corroborate_evidence(evidence: List[Dict[str, Any]], now: datetime | None = None,
                          max_age_seconds: float = DEFAULT_MAX_AGE_SECONDS) -> Dict[str, Any]:
-    """Measure corroboration without treating syndication as independent evidence."""
+    """Measure corroboration without treating explicit syndication as independent."""
     groups: Dict[str, List[Dict[str, Any]]] = {}
-    source_ids = set()
-    dependent_ids: List[str] = []
     usable_ids: List[str] = []
+    dependent_ids: List[str] = []
 
     for item in evidence:
         report = validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
         if not report["decision_usable"]:
             continue
         usable_ids.append(item.get("evidence_id"))
-        source_ids.add(report["source_identity"])
         groups.setdefault(_normalize(item.get("claim")), []).append(item)
-        parent_id = (item.get("provenance") or {}).get("parent_evidence_id")
-        if parent_id:
+        if (item.get("provenance") or {}).get("parent_evidence_id"):
             dependent_ids.append(item.get("evidence_id"))
 
     independent_ids = [eid for eid in usable_ids if eid not in dependent_ids]
-    independent_sources = set()
-    for item in evidence:
-        if item.get("evidence_id") in independent_ids:
-            independent_sources.add(_source_identity(item))
+    independent_sources = {
+        _source_identity(item)
+        for item in evidence
+        if item.get("evidence_id") in independent_ids
+    }
 
     return {
         "claim_group_count": len(groups),
-        "unique_source_count": len(source_ids),
+        "unique_source_count": len(independent_sources),
         "independent_source_count": len(independent_sources),
         "independent_evidence_count": len(independent_ids),
         "usable_evidence_count": len(usable_ids),
