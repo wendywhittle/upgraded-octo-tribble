@@ -1,0 +1,1 @@
+Formal registry scope finalized: evidence-informed research only, with human decision authority and no execution capability.
