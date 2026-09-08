@@ -45,17 +45,16 @@ class CallableModelBackend:
             },
             "evidence": [dict(item) for item in evidence],
             "constraints": {
-                "research_only": False,
+                "research_only": True,
                 "execution_capability": False,
                 "brokerage_connectivity": False,
                 "portfolio_mutation": False,
                 "human_decision_required": True,
             },
-            "mode": "research_only",
         }
         try:
             result = self._invoke(context)
-        except Exception as exc:  # backend errors must not escape as model authority
+        except Exception as exc:
             raise ModelBackendError(f"model backend failed: {exc}") from exc
         if not isinstance(result, dict):
             raise ModelBackendError("model backend must return a dictionary")
