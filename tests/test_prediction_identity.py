@@ -33,11 +33,21 @@ def test_changed_evidence_context_creates_new_prediction_id():
         name = "test-model"
 
         def assess(self, agent, question, evidence):
-            return {"direction": "LONG", "confidence": 0.7, "predicted_probability": 0.8, "model_version": "test-1"}
+            return {
+                "direction": "LONG",
+                "confidence": 0.7,
+                "predicted_probability": 0.8,
+                "model_version": "test-1",
+                "evidence": [],
+                "assumptions": [],
+                "invalidation_conditions": [],
+            }
 
     runner = AgentRunner(Provider())
-    first = runner.run(agent, "Question", [{"evidence_id": "E-1"}])
-    second = runner.run(agent, "Question", [{"evidence_id": "E-2"}])
+    evidence_a = [{"evidence_id": "E-1", "source": "test", "claim": "first"}]
+    evidence_b = [{"evidence_id": "E-2", "source": "test", "claim": "second"}]
+    first = runner.run(agent, "Question", evidence_a)
+    second = runner.run(agent, "Question", evidence_b)
     assert first["prediction_id"] != second["prediction_id"]
 
 
