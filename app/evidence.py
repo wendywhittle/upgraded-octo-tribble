@@ -1,11 +1,12 @@
-"""Evidence integrity, provenance, and freshness controls.
+"""Evidence integrity, provenance, freshness, and independence controls.
 
-This module deliberately separates evidence validation from agent reasoning.
-Synthetic/demo evidence is allowed to exist for architecture demonstrations, but
-it is never considered decision-usable evidence.
+Evidence validation is deliberately separated from agent reasoning. Synthetic/demo
+material may be used to exercise the architecture, but is never decision-usable.
 """
 
 from datetime import datetime, timezone
+import hashlib
+import re
 from typing import Any, Dict, List
 
 
@@ -22,6 +23,25 @@ def _parse_timestamp(value: Any) -> datetime | None:
         return parsed.astimezone(timezone.utc)
     except ValueError:
         return None
+
+
+def _normalize(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip().lower())
+
+
+def _source_identity(evidence: Dict[str, Any]) -> str:
+    provenance = evidence.get("provenance") or {}
+    return _normalize(
+        provenance.get("publisher")
+        or provenance.get("source_id")
+        or evidence.get("source")
+    )
+
+
+def claim_fingerprint(evidence: Dict[str, Any]) -> str:
+    """Create a stable fingerprint for grouping materially identical claims."""
+    payload = f"{_normalize(evidence.get('claim'))}|{_source_identity(evidence)}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
 def validate_evidence(evidence: Dict[str, Any], now: datetime | None = None,
@@ -72,6 +92,8 @@ def validate_evidence(evidence: Dict[str, Any], now: datetime | None = None,
         "warnings": warnings,
         "freshness_seconds": freshness_seconds,
         "freshness_limit_seconds": max_age_seconds,
+        "claim_fingerprint": claim_fingerprint(evidence),
+        "source_identity": _source_identity(evidence),
     }
 
 
@@ -81,12 +103,50 @@ def validate_agent_evidence(agent: Dict[str, Any], now: datetime | None = None,
     evidence = agent.get("evidence") or []
     reports = [validate_evidence(item, now=now, max_age_seconds=max_age_seconds) for item in evidence]
     usable = bool(reports) and all(report["decision_usable"] for report in reports)
+    corroboration = corroborate_evidence(evidence, now=now, max_age_seconds=max_age_seconds)
     return {
         "agent_id": agent.get("agent_id"),
         "evidence_count": len(reports),
         "usable": usable,
         "reports": reports,
+        "corroboration": corroboration,
         "status": "verified" if usable else ("missing" if not reports else "blocked"),
+    }
+
+
+def corroborate_evidence(evidence: List[Dict[str, Any]], now: datetime | None = None,
+                         max_age_seconds: float = DEFAULT_MAX_AGE_SECONDS) -> Dict[str, Any]:
+    """Measure corroboration without treating syndication as independent evidence."""
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    source_ids = set()
+    dependent_ids: List[str] = []
+    usable_ids: List[str] = []
+
+    for item in evidence:
+        report = validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
+        if not report["decision_usable"]:
+            continue
+        usable_ids.append(item.get("evidence_id"))
+        source_ids.add(report["source_identity"])
+        groups.setdefault(_normalize(item.get("claim")), []).append(item)
+        parent_id = (item.get("provenance") or {}).get("parent_evidence_id")
+        if parent_id:
+            dependent_ids.append(item.get("evidence_id"))
+
+    independent_ids = [eid for eid in usable_ids if eid not in dependent_ids]
+    independent_sources = set()
+    for item in evidence:
+        if item.get("evidence_id") in independent_ids:
+            independent_sources.add(_source_identity(item))
+
+    return {
+        "claim_group_count": len(groups),
+        "unique_source_count": len(source_ids),
+        "independent_source_count": len(independent_sources),
+        "independent_evidence_count": len(independent_ids),
+        "usable_evidence_count": len(usable_ids),
+        "dependent_evidence_ids": dependent_ids,
+        "independence_rule": "Explicit parent/syndication relationships are not counted as independent corroboration.",
     }
 
 
