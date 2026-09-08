@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from fastapi import FastAPI
 
+from app.evidence import apply_evidence_gate
 from app.memory import append_record, build_record, read_records
 from app.observer import observe
 from app.schemas import SimulationRequest
@@ -10,7 +11,7 @@ from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
 
 
-app = FastAPI(title="AletheiaTelos", version="1.4.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.5.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
@@ -71,7 +72,7 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
 
 
 @app.get("/")
-def root(): return {"system": "AletheiaTelos", "status": "operational", "version": "1.4.0"}
+def root(): return {"system": "AletheiaTelos", "status": "operational", "version": "1.5.0"}
 
 @app.get("/health")
 def health(): return {"status": "healthy", "timestamp": timestamp()}
@@ -81,7 +82,8 @@ def memory(): return {"count": len(read_records()), "records": read_records()}
 
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
-    agents = generate_agents(request.question)
+    raw_agents = generate_agents(request.question)
+    agents, evidence_validation = apply_evidence_gate(raw_agents)
     conflict_data = detect_conflicts(agents)
     simulation = run_monte_carlo(request.initial_value, request.horizon_steps, request.paths, request.seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
     skeptic = skeptic_review(agents, simulation)
@@ -90,9 +92,9 @@ def simulate(request: SimulationRequest):
     observer = observe(request.question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(request.question, agents, conflict_data, simulation, skeptic, synthesis, governance, request.seed)
     append_record(record)
-    return {"system": "AletheiaTelos", "version": "1.4.0", "question": request.question, "timestamp": timestamp(), "agents": agents,
-            "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation,
+    return {"system": "AletheiaTelos", "version": "1.5.0", "question": request.question, "timestamp": timestamp(), "agents": agents,
+            "evidence_validation": evidence_validation, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation,
             "skeptic": skeptic, "observer": observer, "breaker": {"status": "pending", "decision": "pending", "human_decision_required": True},
             "meta_intelligence": {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."},
             "synthesis": synthesis, "governance": governance,
-            "audit": {"reproducible": True, "simulation_seed": request.seed, "point_in_time_evidence_required": True, "memory_recorded": True}}
+            "audit": {"reproducible": True, "simulation_seed": request.seed, "point_in_time_evidence_required": True, "evidence_gate": "active", "memory_recorded": True}}
