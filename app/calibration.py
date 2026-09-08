@@ -7,15 +7,12 @@ records are treated as immutable inputs; this module produces a new report.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Any, Dict, Iterable, List
 
 
 def calibrate_predictions(records: Iterable[Dict[str, Any]], bins: int = 5) -> Dict[str, Any]:
-    """Return calibration metrics for records containing explicit probabilities.
-
-    Each usable record must contain ``predicted_probability`` in [0, 1] and a
-    boolean ``outcome``. Records without both fields are reported as excluded.
-    """
+    """Return calibration metrics for records with explicit probabilities."""
     if bins < 1 or bins > 20:
         raise ValueError("bins must be between 1 and 20")
 
@@ -30,7 +27,12 @@ def calibrate_predictions(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
         if not 0.0 <= float(probability) <= 1.0 or not isinstance(outcome, bool):
             excluded += 1
             continue
-        usable.append({"probability": float(probability), "outcome": int(outcome)})
+        usable.append({
+            "prediction_id": record.get("prediction_id"),
+            "agent_id": record.get("agent_id"),
+            "probability": float(probability),
+            "outcome": int(outcome),
+        })
 
     if not usable:
         return {
@@ -39,8 +41,14 @@ def calibrate_predictions(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
             "excluded_count": excluded,
             "brier_score": None,
             "calibration_bins": [],
+            "agent_metrics": {},
             "lesson": "No explicit probabilistic predictions have resolved outcomes yet.",
+            "historical_records_mutated": False,
             "research_only": True,
+            "human_decision_required": True,
+            "execution_capability": False,
+            "brokerage_connectivity": False,
+            "portfolio_mutation": False,
         }
 
     brier = sum((item["probability"] - item["outcome"]) ** 2 for item in usable) / len(usable)
@@ -48,10 +56,7 @@ def calibrate_predictions(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
     for index in range(bins):
         low = index / bins
         high = (index + 1) / bins
-        members = [
-            item for item in usable
-            if (low <= item["probability"] < high) or (index == bins - 1 and item["probability"] == high)
-        ]
+        members = [item for item in usable if (low <= item["probability"] < high) or (index == bins - 1 and item["probability"] == high)]
         if not members:
             continue
         calibration_bins.append({
@@ -63,16 +68,26 @@ def calibrate_predictions(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
             "observed_frequency": round(sum(x["outcome"] for x in members) / len(members), 4),
         })
 
-    lesson = "Calibration is promising but requires more resolved outcomes." if len(usable) < 30 else (
-        "Review bins with the largest prediction-frequency gap before trusting the probability estimates."
-    )
+    grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for item in usable:
+        grouped[str(item["agent_id"] or "unknown")].append(item)
+    agent_metrics = {
+        agent_id: {
+            "sample_count": len(items),
+            "brier_score": round(sum((x["probability"] - x["outcome"]) ** 2 for x in items) / len(items), 6),
+        }
+        for agent_id, items in grouped.items()
+    }
+
     return {
         "status": "calculated",
         "sample_count": len(usable),
         "excluded_count": excluded,
         "brier_score": round(brier, 6),
         "calibration_bins": calibration_bins,
-        "lesson": lesson,
+        "agent_metrics": agent_metrics,
+        "prediction_ids_present": sum(item["prediction_id"] is not None for item in usable),
+        "lesson": "Calibration is promising but requires more resolved outcomes." if len(usable) < 30 else "Review bins and agent-level error before trusting probability estimates.",
         "historical_records_mutated": False,
         "research_only": True,
         "human_decision_required": True,
