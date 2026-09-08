@@ -1,0 +1,1 @@
+Agent registry is a research boundary only. It provides structured assessments and never grants autonomous execution authority.
