@@ -13,8 +13,8 @@ import xml.etree.ElementTree as ET
 
 from app.evidence_sources import SourceDocument
 
-
 FetchBytes = Callable[[str], bytes]
+ATOM = "{http://www.w3.org/2005/Atom}"
 
 
 def _default_fetch(url: str) -> bytes:
@@ -38,13 +38,16 @@ def _parse_date(value: Optional[str]) -> Optional[str]:
     return parsed.astimezone(timezone.utc).isoformat()
 
 
-def _text(element: Optional[ET.Element], tag: str) -> str:
+def _text(element: Optional[ET.Element], *tags: str) -> str:
     if element is None:
         return ""
-    child = element.find(tag)
-    if child is None:
-        return ""
-    return "".join(child.itertext()).strip()
+    for tag in tags:
+        child = element.find(tag)
+        if child is not None:
+            value = "".join(child.itertext()).strip()
+            if value:
+                return value
+    return ""
 
 
 class RSSFeedEvidenceSource:
@@ -72,21 +75,33 @@ class RSSFeedEvidenceSource:
 
         for feed_url in self._feed_urls:
             root = ET.fromstring(self._fetcher(feed_url))
-            channel_title = _text(root, "./channel/title") or feed_url
+            channel_title = _text(root, "./channel/title", f"{ATOM}title") or feed_url
 
             entries = list(root.findall("./channel/item"))
             if not entries:
-                entries = list(root.findall("{http://www.w3.org/2005/Atom}entry"))
+                entries = list(root.findall(f"{ATOM}entry"))
 
             for entry in entries:
-                title = _text(entry, "title") or "Untitled"
-                description = _text(entry, "description") or _text(entry, "summary") or _text(entry, "content")
+                title = _text(entry, "title", f"{ATOM}title") or "Untitled"
+                description = _text(
+                    entry,
+                    "description",
+                    "summary",
+                    "content",
+                    f"{ATOM}summary",
+                    f"{ATOM}content",
+                )
                 link = _text(entry, "link")
                 if not link:
-                    atom_link = entry.find("{http://www.w3.org/2005/Atom}link")
+                    atom_link = entry.find(f"{ATOM}link")
                     if atom_link is not None:
                         link = atom_link.attrib.get("href", "")
-                observed_raw = _text(entry, "pubDate") or _text(entry, "published") or _text(entry, "updated")
+                observed_raw = _text(
+                    entry,
+                    "pubDate",
+                    f"{ATOM}published",
+                    f"{ATOM}updated",
+                )
                 observed_at = _parse_date(observed_raw)
                 haystack = f"{title} {description}".lower()
                 if terms and not any(term in haystack for term in terms):
@@ -94,16 +109,6 @@ class RSSFeedEvidenceSource:
 
                 source_id = link or f"{feed_url}#{len(documents) + 1}"
                 documents.append(SourceDocument(
-                    source=channel_title,
-                    title=title,
-                    content=description,
-                    retrieved_at=retrieved_at,
-                    observed_at=observed_at,
-                    url=link or feed_url,
-                    source_id=source_id,
-                    provenance_type="rss",
-                    point_in_time=observed_at is not None,
-                ).normalized() and SourceDocument(
                     source=channel_title,
                     title=title,
                     content=description,
