@@ -1,0 +1,1 @@
+The registered Computational Kaleidoscope roster is now the simulation agent seam. Verified evidence remains mandatory; no evidence produces NO_DATA. Agents cannot execute, broker, or mutate portfolios.
