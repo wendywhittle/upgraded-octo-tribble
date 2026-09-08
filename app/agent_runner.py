@@ -1,5 +1,6 @@
 """Provider-agnostic agent runner for AletheiaTelos."""
 
+from hashlib import sha256
 from typing import Any, Dict, Iterable
 
 from app.agent_contract import Agent
@@ -12,6 +13,11 @@ class AgentRunner:
 
     def __init__(self, provider: ModelProvider | None = None):
         self.provider = provider or ContractModelProvider()
+
+    @staticmethod
+    def _prediction_id(agent_id: str, question: str, model_version: str) -> str:
+        material = f"{agent_id}|{model_version}|{question.strip()}".encode("utf-8")
+        return f"pred-{sha256(material).hexdigest()[:16]}"
 
     def run(
         self,
@@ -38,6 +44,11 @@ class AgentRunner:
         result.setdefault("evidence", [])
         result.setdefault("assumptions", [])
         result.setdefault("invalidation_conditions", [])
+        if result.get("predicted_probability") is not None:
+            result.setdefault(
+                "prediction_id",
+                self._prediction_id(agent.spec.agent_id, question, str(result["model_version"])),
+            )
         try:
             validated = AgentOutput(**result)
         except Exception as exc:
@@ -48,7 +59,6 @@ class AgentRunner:
         else:
             validated_data = validated.dict()
 
-        # Keep useful provider metadata while making the validated AgentOutput canonical.
         output = dict(result)
         output.update(validated_data)
         output["capability_profile"] = dict(capabilities)
