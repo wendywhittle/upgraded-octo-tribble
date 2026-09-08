@@ -95,6 +95,12 @@ class AgentRegistry:
                 raise ValueError("Agent portfolio mutation is prohibited.")
             self._agents[agent.spec.agent_id] = agent
 
+    def get(self, agent_id: str) -> Agent:
+        try:
+            return self._agents[agent_id]
+        except KeyError as exc:
+            raise KeyError(f"Unknown agent_id: {agent_id}") from exc
+
     def run_all(
         self,
         question: str,
