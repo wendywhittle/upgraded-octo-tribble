@@ -15,16 +15,16 @@ class AgentRunner:
         self.provider = provider or ContractModelProvider()
 
     @staticmethod
-    def _prediction_id(agent_id: str, question: str, model_version: str) -> str:
-        material = f"{agent_id}|{model_version}|{question.strip()}".encode("utf-8")
+    def _prediction_id(agent_id: str, question: str, model_version: str, evidence: Iterable[Dict[str, Any]]) -> str:
+        evidence_ids = sorted(
+            str(item.get("evidence_id"))
+            for item in evidence
+            if item.get("evidence_id")
+        )
+        material = f"{agent_id}|{model_version}|{question.strip()}|{','.join(evidence_ids)}".encode("utf-8")
         return f"pred-{sha256(material).hexdigest()[:16]}"
 
-    def run(
-        self,
-        agent: Agent,
-        question: str,
-        evidence: Iterable[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+    def run(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
         capabilities = agent.spec.capability_profile
         if capabilities.get("execute", False):
             raise ValueError("Agent execution capability is prohibited.")
@@ -33,7 +33,8 @@ class AgentRunner:
         if capabilities.get("portfolio_mutation", False):
             raise ValueError("Agent portfolio mutation is prohibited.")
 
-        result = self.provider.assess(agent, question, evidence)
+        evidence_list = [dict(item) for item in evidence]
+        result = self.provider.assess(agent, question, evidence_list)
         if not isinstance(result, dict):
             raise ValueError("Model provider must return a dictionary.")
         result = dict(result)
@@ -41,24 +42,17 @@ class AgentRunner:
         result.setdefault("strategy", agent.spec.role)
         result.setdefault("horizon", agent.spec.default_horizon)
         result.setdefault("model_version", f"{self.provider.name}-provider")
-        result.setdefault("evidence", [])
+        result.setdefault("evidence", evidence_list)
         result.setdefault("assumptions", [])
         result.setdefault("invalidation_conditions", [])
         if result.get("predicted_probability") is not None:
-            result.setdefault(
-                "prediction_id",
-                self._prediction_id(agent.spec.agent_id, question, str(result["model_version"])),
-            )
+            result.setdefault("prediction_id", self._prediction_id(agent.spec.agent_id, question, str(result["model_version"]), evidence_list))
         try:
             validated = AgentOutput(**result)
         except Exception as exc:
             raise ValueError(f"Model provider returned invalid AgentOutput: {exc}") from exc
 
-        if hasattr(validated, "model_dump"):
-            validated_data = validated.model_dump()
-        else:
-            validated_data = validated.dict()
-
+        validated_data = validated.model_dump() if hasattr(validated, "model_dump") else validated.dict()
         output = dict(result)
         output.update(validated_data)
         output["capability_profile"] = dict(capabilities)
