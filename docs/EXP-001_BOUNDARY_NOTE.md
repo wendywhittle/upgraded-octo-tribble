@@ -1,0 +1,1 @@
+The repository-side EXP-001 boundary is complete. Empirical evidence requires an authorized historical SPX/VIX/SKEW dataset and successful provenance validation.
