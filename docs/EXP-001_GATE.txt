@@ -1,0 +1,1 @@
+Empirical gate: authorized historical SPX/VIX/SKEW data required. Synthetic data is mechanics-only and not evidence.
