@@ -40,7 +40,18 @@ class AgentRunner:
             raise ValueError("Agent portfolio mutation capability is prohibited.")
 
         evidence_list = [dict(item) for item in evidence]
-        result = self.provider.assess(agent, question, evidence_list, learning_context=learning_context)
+        # Preserve compatibility with existing provider implementations when no
+        # institutional-learning context is available. New providers can opt in
+        # by accepting the learning_context keyword defined by ModelProvider.
+        if learning_context is None:
+            result = self.provider.assess(agent, question, evidence_list)
+        else:
+            result = self.provider.assess(
+                agent,
+                question,
+                evidence_list,
+                learning_context=learning_context,
+            )
         if not isinstance(result, dict):
             raise ValueError("Model provider must return a dictionary.")
         result = dict(result)
