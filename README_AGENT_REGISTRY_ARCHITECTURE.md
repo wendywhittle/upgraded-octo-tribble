@@ -1,0 +1,1 @@
+Evidence enters the registered perspective layer. Perspectives produce assessments. Conflict, independent Monte Carlo risk, Skeptic, synthesis, Observer, memory, and governance remain separate downstream stages.
