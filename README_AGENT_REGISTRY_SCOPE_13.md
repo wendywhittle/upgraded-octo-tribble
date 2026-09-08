@@ -1,0 +1,1 @@
+Research-only agent registry; human decision authority required.
