@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from app.experiment_001_runner import run_experiment_001_from_csv
 
 
@@ -5,10 +7,11 @@ def _csv(rows=40):
     lines = [
         "observed_at,available_at,source_id,source_version,methodology_version,content_hash,spx_close,vix_close,skew_close"
     ]
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
     for i in range(rows):
-        day = i + 1
+        stamp = (start + timedelta(days=i)).isoformat()
         lines.append(
-            f"2020-01-{day:02d}T00:00:00+00:00,2020-01-{day:02d}T00:00:00+00:00,fixture,v1,m1,{'a'*64},{3000+i},{15+i/10},{120+i/10}"
+            f"{stamp},{stamp},fixture,v1,m1,{'a'*64},{3000+i},{15+i/10},{120+i/10}"
         )
     return "\n".join(lines)
 
