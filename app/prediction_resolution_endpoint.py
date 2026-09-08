@@ -7,6 +7,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.memory import append_record, read_records
 from app.prediction_resolution import resolve_prediction
 
 
@@ -22,13 +23,22 @@ def build_prediction_resolution_router() -> APIRouter:
 
     @router.post("/predictions/resolve")
     def resolve(request: PredictionResolutionRequest) -> Dict[str, Any]:
+        prediction_id = request.prediction.get("prediction_id")
+        if any(
+            record.get("record_type") == "prediction_resolution"
+            and record.get("prediction_id") == prediction_id
+            for record in read_records()
+        ):
+            raise HTTPException(status_code=409, detail="prediction_id has already been resolved")
         try:
-            return resolve_prediction(
+            result = resolve_prediction(
                 request.prediction,
                 request.outcome,
                 request.resolved_at,
                 request.outcome_source,
             )
+            append_record(result)
+            return result
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
