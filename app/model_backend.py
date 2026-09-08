@@ -34,6 +34,7 @@ class CallableModelBackend:
         agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         context = {
             "question": question,
@@ -44,6 +45,7 @@ class CallableModelBackend:
                 "capability_profile": dict(agent.spec.capability_profile),
             },
             "evidence": [dict(item) for item in evidence],
+            "institutional_learning": dict(learning_context or {}),
             "constraints": {
                 "research_only": True,
                 "execution_capability": False,
@@ -76,5 +78,6 @@ class CallableModelProvider(ModelProvider):
         agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
-        return self.backend.assess(agent, question, evidence)
+        return self.backend.assess(agent, question, evidence, learning_context=learning_context)
