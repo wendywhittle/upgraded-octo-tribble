@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 from app.evidence_sources import SourceDocument
 
 FetchBytes = Callable[[str], bytes]
+Clock = Callable[[], datetime]
 ATOM = "{http://www.w3.org/2005/Atom}"
 
 
@@ -24,6 +25,10 @@ def _default_fetch(url: str) -> bytes:
     request = Request(url, headers={"User-Agent": "AletheiaTelos/1.0"}, method="GET")
     with urlopen(request, timeout=10) as response:  # nosec B310 - scheme is checked above
         return response.read()
+
+
+def _default_clock() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 def _parse_date(value: Optional[str]) -> Optional[str]:
@@ -55,7 +60,12 @@ class RSSFeedEvidenceSource:
 
     name = "rss_feed"
 
-    def __init__(self, feed_urls: Iterable[str], fetcher: FetchBytes = _default_fetch):
+    def __init__(
+        self,
+        feed_urls: Iterable[str],
+        fetcher: FetchBytes = _default_fetch,
+        clock: Clock = _default_clock,
+    ):
         urls = list(feed_urls)
         if not urls:
             raise ValueError("At least one feed URL is required.")
@@ -65,13 +75,14 @@ class RSSFeedEvidenceSource:
                 raise ValueError("All RSS feed URLs must be valid HTTPS URLs.")
         self._feed_urls = urls
         self._fetcher = fetcher
+        self._clock = clock
 
     def acquire(self, query: str, limit: int = 10) -> List[SourceDocument]:
         if limit < 1:
             return []
         terms = [term.lower() for term in query.split() if term.strip()]
         documents: List[SourceDocument] = []
-        retrieved_at = datetime.now(timezone.utc).isoformat()
+        retrieved_at = self._clock().astimezone(timezone.utc).isoformat()
 
         for feed_url in self._feed_urls:
             root = ET.fromstring(self._fetcher(feed_url))

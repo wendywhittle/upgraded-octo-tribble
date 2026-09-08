@@ -3,15 +3,17 @@ from typing import Any, Dict, List
 
 from fastapi import FastAPI
 
+from app.config import research_feed_urls
 from app.evidence import apply_evidence_gate
 from app.memory import append_record, build_record, read_records
 from app.observer import observe
+from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
 
 
-app = FastAPI(title="AletheiaTelos", version="1.5.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.6.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
@@ -72,13 +74,19 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
 
 
 @app.get("/")
-def root(): return {"system": "AletheiaTelos", "status": "operational", "version": "1.5.0"}
+def root(): return {"system": "AletheiaTelos", "status": "operational", "version": "1.6.0"}
 
 @app.get("/health")
 def health(): return {"status": "healthy", "timestamp": timestamp()}
 
 @app.get("/memory")
 def memory(): return {"count": len(read_records()), "records": read_records()}
+
+
+feed_urls = research_feed_urls()
+if feed_urls:
+    app.include_router(build_research_router(feed_urls))
+
 
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
@@ -92,7 +100,7 @@ def simulate(request: SimulationRequest):
     observer = observe(request.question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(request.question, agents, conflict_data, simulation, skeptic, synthesis, governance, request.seed)
     append_record(record)
-    return {"system": "AletheiaTelos", "version": "1.5.0", "question": request.question, "timestamp": timestamp(), "agents": agents,
+    return {"system": "AletheiaTelos", "version": "1.6.0", "question": request.question, "timestamp": timestamp(), "agents": agents,
             "evidence_validation": evidence_validation, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation,
             "skeptic": skeptic, "observer": observer, "breaker": {"status": "pending", "decision": "pending", "human_decision_required": True},
             "meta_intelligence": {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."},
