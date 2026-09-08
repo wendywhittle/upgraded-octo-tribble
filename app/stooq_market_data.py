@@ -1,7 +1,7 @@
 """Read-only Stooq CSV market-data provider.
 
 Stooq is used here as an external observation source only. The adapter fetches
-historical/daily quote data and converts it into the existing MarketObservation
+historical/daily quote data and converts them into the existing MarketObservation
 contract. It cannot place orders, access brokerage credentials, or mutate
 remote market state.
 """
@@ -12,6 +12,7 @@ from typing import Callable, Iterable
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 import csv
+import math
 
 from app.market_data import MarketObservation
 
@@ -63,6 +64,8 @@ class StooqMarketDataSource:
             observed_date = datetime.strptime(date_value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         except ValueError as exc:
             raise ValueError(f"Invalid Stooq observation for {symbol}.") from exc
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError(f"Invalid Stooq price for {symbol}.")
         return MarketObservation(
             symbol=symbol,
             price=price,
