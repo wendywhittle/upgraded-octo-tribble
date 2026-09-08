@@ -1,0 +1,1 @@
+Empirical execution is blocked only on the authorized historical SPX/VIX/SKEW dataset. Once supplied, the existing locked experiment and provenance boundary can be executed without changing the preregistered specification.
