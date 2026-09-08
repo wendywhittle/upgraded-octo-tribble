@@ -29,9 +29,9 @@ def detect_conflicts(agents: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, A
         for right in agents[i + 1:]:
             if left.get("direction") in {"LONG", "SHORT"} and right.get("direction") in {"LONG", "SHORT"} and left.get("direction") != right.get("direction"):
                 if left.get("horizon") == right.get("horizon"):
-                    conflicts.append({"agents": [left.get("agent_id"), right.get("agent_id")], "horizon": left.get("horizon"), "directions": [left.get("direction"), right.get("direction")]})
+                    conflicts.append({"type": "same_horizon_conflict", "agents": [left.get("agent_id"), right.get("agent_id")], "horizon": left.get("horizon"), "directions": [left.get("direction"), right.get("direction")]})
                 else:
-                    horizon_divergences.append({"agents": [left.get("agent_id"), right.get("agent_id")], "horizons": [left.get("horizon"), right.get("horizon")], "directions": [left.get("direction"), right.get("direction")]})
+                    horizon_divergences.append({"type": "horizon_divergence", "agents": [left.get("agent_id"), right.get("agent_id")], "horizons": [left.get("horizon"), right.get("horizon")], "directions": [left.get("direction"), right.get("direction")]})
     return {"conflicts": conflicts, "horizon_divergences": horizon_divergences}
 
 
