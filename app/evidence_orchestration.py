@@ -1,11 +1,10 @@
 """Evidence-fed research orchestration boundary.
 
-This module connects already-acquired evidence to the registered Computational
-Kaleidoscope perspectives. It deliberately does not fetch external data, run the
-risk engine, synthesize investment decisions, or execute anything.
+This module connects already-acquired, integrity-checked evidence to the registered
+Computational Kaleidoscope perspectives. It deliberately does not fetch external data,
+run the risk engine, synthesize investment decisions, or execute anything.
 """
 
-from datetime import datetime
 from typing import Any, Dict, Iterable
 
 from app.agent_registry import build_default_registry
@@ -16,11 +15,9 @@ def distribute_evidence(
     evidence: Iterable[Dict[str, Any]],
     agent_ids: Iterable[str],
 ) -> Dict[str, list[Dict[str, Any]]]:
-    """Provide the same validated evidence context to each perspective.
+    """Provide the same evidence context to each perspective after integrity validation.
 
-    The current distribution is intentionally transparent: no hidden agent-specific
-    filtering or weighting is performed. Future specialization may narrow context,
-    but must remain explicit and auditable.
+    Invalid evidence is retained in the audit result but never passed to agents.
     """
     items = [dict(item) for item in evidence]
     return {agent_id: list(items) for agent_id in agent_ids}
@@ -29,7 +26,7 @@ def distribute_evidence(
 def run_evidence_fed_agents(
     question: str,
     evidence: Iterable[Dict[str, Any]],
-    now: datetime | None = None,
+    now=None,
     max_age_seconds: float = 24 * 60 * 60,
 ) -> Dict[str, Any]:
     """Run the canonical roster using only evidence that passes integrity checks."""
@@ -42,8 +39,7 @@ def run_evidence_fed_agents(
         for item in evidence_list
     ]
     usable = [
-        item
-        for item, report in zip(evidence_list, validation)
+        item for item, report in zip(evidence_list, validation)
         if report["decision_usable"]
     ]
 
@@ -57,7 +53,6 @@ def run_evidence_fed_agents(
         "agents": agents,
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
-        "blocked_evidence_count": len(evidence_list) - len(usable),
         "validation": validation,
         "research_only": True,
         "execution_capability": False,
