@@ -1,0 +1,1 @@
+The agent registry separates perspective reasoning from evidence acquisition, risk simulation, Skeptic review, synthesis, memory, and governance. The current roster has ten research-only perspectives.
