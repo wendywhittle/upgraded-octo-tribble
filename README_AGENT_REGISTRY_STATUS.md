@@ -1,0 +1,1 @@
+Registry status: ten perspectives, research-only capability profile, verified-evidence requirement, and simulation endpoint integration.
