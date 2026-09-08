@@ -11,7 +11,7 @@ import csv
 import hashlib
 import io
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Iterable
 
 
@@ -43,9 +43,12 @@ class HistoricalRow:
 
 def _timestamp(value: str, field: str) -> datetime:
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError(f"invalid {field}: {value!r}") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"invalid {field}: timezone is required")
+    return parsed.astimezone(timezone.utc)
 
 
 def parse_csv(text: str) -> tuple[HistoricalRow, ...]:
@@ -57,7 +60,7 @@ def parse_csv(text: str) -> tuple[HistoricalRow, ...]:
         raise ValueError(f"missing required columns: {', '.join(missing)}")
 
     rows: list[HistoricalRow] = []
-    seen: set[str] = set()
+    seen: set[datetime] = set()
     for number, raw in enumerate(reader, start=2):
         if any(not (raw.get(column) or "").strip() for column in REQUIRED_COLUMNS):
             raise ValueError(f"row {number} has missing required provenance/data")
@@ -65,9 +68,9 @@ def parse_csv(text: str) -> tuple[HistoricalRow, ...]:
         available = _timestamp(raw["available_at"], "available_at")
         if available > observed:
             raise ValueError(f"row {number} violates point-in-time availability")
-        if raw["observed_at"] in seen:
+        if observed in seen:
             raise ValueError(f"duplicate observed_at at row {number}")
-        seen.add(raw["observed_at"])
+        seen.add(observed)
         try:
             values = tuple(float(raw[name]) for name in ("spx_close", "vix_close", "skew_close"))
         except ValueError as exc:
@@ -75,9 +78,9 @@ def parse_csv(text: str) -> tuple[HistoricalRow, ...]:
         if any(value <= 0 for value in values):
             raise ValueError(f"row {number} contains a non-positive market value")
         rows.append(HistoricalRow(
-            observed_at=raw["observed_at"], available_at=raw["available_at"],
-            source_id=raw["source_id"], source_version=raw["source_version"],
-            methodology_version=raw["methodology_version"], content_hash=raw["content_hash"],
+            observed_at=observed.isoformat(), available_at=available.isoformat(),
+            source_id=raw["source_id"].strip(), source_version=raw["source_version"].strip(),
+            methodology_version=raw["methodology_version"].strip(), content_hash=raw["content_hash"].strip(),
             spx_close=values[0], vix_close=values[1], skew_close=values[2],
         ))
     rows.sort(key=lambda row: _timestamp(row.observed_at, "observed_at"))
@@ -90,8 +93,9 @@ def canonical_csv(rows: Iterable[HistoricalRow]) -> str:
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(REQUIRED_COLUMNS)
     for row in ordered:
-        writer.writerow([row.observed_at, row.available_at, row.source_id,
-                         row.source_version, row.methodology_version, row.content_hash,
+        writer.writerow([_timestamp(row.observed_at, "observed_at").isoformat(),
+                         _timestamp(row.available_at, "available_at").isoformat(),
+                         row.source_id, row.source_version, row.methodology_version, row.content_hash,
                          f"{row.spx_close:.12g}", f"{row.vix_close:.12g}", f"{row.skew_close:.12g}"])
     return output.getvalue()
 
