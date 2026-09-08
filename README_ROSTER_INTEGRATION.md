@@ -1,0 +1,1 @@
+The simulation endpoint uses the registered Computational Kaleidoscope roster. No verified evidence means `NO_DATA`; synthetic demo assumptions are not treated as decision-usable evidence. The registry is a stable seam for future model-backed perspectives.
