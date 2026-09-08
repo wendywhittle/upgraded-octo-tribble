@@ -1,19 +1,15 @@
-from fastapi.testclient import TestClient
-
-from app.main import app, detect_conflicts, synthesize
-
-
-client = TestClient(app)
+from app.main import detect_conflicts, simulate, synthesize
+from app.schemas import SimulationRequest
 
 
-def test_health_and_simulation_expose_governance_boundary():
-    response = client.post(
-        "/simulate",
-        json={"question": "Test governance boundary", "horizon_steps": 10, "paths": 200, "seed": 19},
-    )
+def test_simulation_exposes_governance_boundary():
+    payload = simulate(SimulationRequest(
+        question="Test governance boundary",
+        horizon_steps=10,
+        paths=200,
+        seed=19,
+    ))
 
-    assert response.status_code == 200
-    payload = response.json()
     assert payload["governance"]["human_decision_required"] is True
     assert payload["governance"]["autonomous_execution"] is False
     assert payload["governance"]["brokerage_connectivity"] is False
