@@ -7,7 +7,7 @@ aware, and independent of a particular data vendor.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Iterable, List, Sequence
 
@@ -38,13 +38,14 @@ def _parse_timestamp(value: str) -> datetime:
 
 
 def validate_points(points: Sequence[HistoricalPoint]) -> List[HistoricalPoint]:
-    """Validate ordering, provenance, timestamps, and numeric market values."""
+    """Validate and canonicalize ordering, provenance, timestamps, and values."""
     if not points:
         raise ValueError("Historical dataset cannot be empty.")
 
     parsed_points = [(_parse_timestamp(point.observed_at), point) for point in points]
     ordered_pairs = sorted(parsed_points, key=lambda item: item[0])
     seen = set()
+    validated: List[HistoricalPoint] = []
     for observed, point in ordered_pairs:
         if observed in seen:
             raise ValueError(f"Duplicate observation timestamp: {point.observed_at}")
@@ -58,7 +59,16 @@ def validate_points(points: Sequence[HistoricalPoint]) -> List[HistoricalPoint]:
             raise ValueError("SPX, VIX, and SKEW levels must be positive.")
         if not point.source_id.strip() or not point.content_hash.strip():
             raise ValueError("Every historical point requires source_id and content_hash.")
-    return [point for _, point in ordered_pairs]
+        validated.append(
+            replace(
+                point,
+                observed_at=observed.isoformat(),
+                available_at=available.isoformat(),
+                source_id=point.source_id.strip(),
+                content_hash=point.content_hash.strip(),
+            )
+        )
+    return validated
 
 
 def build_experiment_observations(
