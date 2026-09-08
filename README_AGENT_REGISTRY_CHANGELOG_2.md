@@ -1,0 +1,1 @@
+Registry iteration: the formal ten-perspective roster is now used by simulation orchestration, while risk and governance remain outside agent authority.
