@@ -15,6 +15,12 @@ import csv
 
 from app.market_data import MarketObservation
 
+Clock = Callable[[], datetime]
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
 
 class StooqMarketDataSource:
     name = "stooq"
@@ -23,10 +29,12 @@ class StooqMarketDataSource:
         self,
         symbol_map: dict[str, str] | None = None,
         fetch: Callable[[str], str] | None = None,
+        clock: Clock = _utc_now,
         timeout_seconds: float = 10.0,
     ):
         self._symbol_map = {k.upper(): v for k, v in (symbol_map or {}).items()}
         self._fetch = fetch or self._http_get
+        self._clock = clock
         self._timeout_seconds = timeout_seconds
 
     def _http_get(self, url: str) -> str:
@@ -41,8 +49,7 @@ class StooqMarketDataSource:
     def _url(self, provider_symbol: str) -> str:
         return "https://stooq.com/q/d/l/?s=" + quote(provider_symbol, safe="") + "&i=d"
 
-    @staticmethod
-    def _parse_latest(symbol: str, source_url: str, text: str) -> MarketObservation:
+    def _parse_latest(self, symbol: str, source_url: str, text: str) -> MarketObservation:
         rows = list(csv.DictReader(StringIO(text)))
         if not rows:
             raise ValueError(f"Stooq returned no rows for {symbol}.")
@@ -66,6 +73,7 @@ class StooqMarketDataSource:
             timeframe="1d",
             source_identity="stooq.com",
             point_in_time=True,
+            retrieved_at=self._clock().astimezone(timezone.utc).isoformat(),
         )
 
     def snapshot(self, symbols: Iterable[str]) -> list[MarketObservation]:
