@@ -28,8 +28,9 @@ def run_evidence_fed_agents(
     now=None,
     max_age_seconds: float = 24 * 60 * 60,
     provider: ModelProvider | None = None,
+    learning_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Run the canonical roster using only evidence that passes integrity checks."""
+    """Run the canonical roster using integrity-checked evidence and prior learning."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
@@ -39,8 +40,6 @@ def run_evidence_fed_agents(
     for item in evidence_list:
         report = validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
         validation.append(report)
-        # An upstream block is authoritative: integrity validation must never
-        # silently re-enable evidence that was explicitly marked unusable.
         if report["decision_usable"] and item.get("decision_usable", True):
             usable.append(item)
 
@@ -48,7 +47,12 @@ def run_evidence_fed_agents(
     evidence_by_agent = distribute_evidence(usable, registry.ids())
     runner = AgentRunner(provider)
     agents = [
-        runner.run(registry.get(agent_id), question, evidence_by_agent.get(agent_id, []))
+        runner.run(
+            registry.get(agent_id),
+            question,
+            evidence_by_agent.get(agent_id, []),
+            learning_context=learning_context,
+        )
         for agent_id in registry.ids()
     ]
 
@@ -61,6 +65,7 @@ def run_evidence_fed_agents(
         "blocked_evidence_count": len(evidence_list) - len(usable),
         "validation": validation,
         "provider": runner.provider.name,
+        "learning_context_supplied": bool(learning_context),
         "research_only": True,
         "execution_capability": False,
         "brokerage_connectivity": False,

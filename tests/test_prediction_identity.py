@@ -8,7 +8,7 @@ def test_explicit_probability_gets_stable_prediction_id():
     class Provider:
         name = "test-model"
 
-        def assess(self, agent, question, evidence):
+        def assess(self, agent, question, evidence, learning_context=None):
             return {
                 "direction": "LONG",
                 "confidence": 0.7,
@@ -32,7 +32,7 @@ def test_changed_evidence_context_creates_new_prediction_id():
     class Provider:
         name = "test-model"
 
-        def assess(self, agent, question, evidence):
+        def assess(self, agent, question, evidence, learning_context=None):
             return {
                 "direction": "LONG",
                 "confidence": 0.7,
@@ -57,7 +57,7 @@ def test_confidence_alone_does_not_create_prediction_id():
     class Provider:
         name = "test-model"
 
-        def assess(self, agent, question, evidence):
+        def assess(self, agent, question, evidence, learning_context=None):
             return {"direction": "LONG", "confidence": 0.9, "model_version": "test-1"}
 
     result = AgentRunner(Provider()).run(agent, "Question", [])

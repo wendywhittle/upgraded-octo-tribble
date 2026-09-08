@@ -54,6 +54,7 @@ def resolve_prediction(
         "agent_id": prediction.get("agent_id"),
         "model_version": prediction.get("model_version"),
         "question": prediction.get("question"),
+        "horizon": prediction.get("horizon"),
         "predicted_probability": probability,
         "outcome": outcome,
         "brier_error": round((probability - int(outcome)) ** 2, 6),
