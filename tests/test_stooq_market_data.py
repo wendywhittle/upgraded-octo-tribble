@@ -39,6 +39,14 @@ def test_stooq_adapter_rejects_malformed_payload():
         source.snapshot(["SPX"])
 
 
+@pytest.mark.parametrize("close_value", ["nan", "inf", "-inf", "0", "-1"])
+def test_stooq_adapter_rejects_invalid_prices(close_value):
+    payload = f"Date,Open,High,Low,Close,Volume\n2026-09-08,1,1,1,{close_value},100\n"
+    source = StooqMarketDataSource(fetch=lambda url: payload, clock=lambda: NOW)
+    with pytest.raises(ValueError, match="Invalid Stooq price"):
+        source.snapshot(["SPX"])
+
+
 def test_stooq_adapter_is_read_only():
     source = StooqMarketDataSource(fetch=lambda url: CSV, clock=lambda: NOW)
     status = source_status(source)
