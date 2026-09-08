@@ -1,51 +1,38 @@
 """Provider boundary for model-backed AletheiaTelos reasoning.
 
-Providers receive a question, an agent role, and already validated evidence. They
-return structured research output. Providers never receive execution, brokerage,
-credential, or portfolio-mutation capabilities.
+A provider may change how an Agent's reasoning is produced, but it cannot widen
+the Agent's capability profile. The default implementation delegates to the
+existing Agent contract, keeping the system deterministic until a real model
+backend is deliberately introduced.
 """
 
 from typing import Any, Dict, Iterable, Protocol
 
+from app.agent_contract import Agent
+
 
 class ModelProvider(Protocol):
-    """Minimal interface implemented by any trusted model backend."""
+    """Interface for replaceable model/reasoning backends."""
 
     name: str
 
     def assess(
         self,
-        *,
-        agent_id: str,
-        role: str,
+        agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
     ) -> Dict[str, Any]: ...
 
 
 class ContractModelProvider:
-    """Deterministic fallback proving the provider boundary without an API call."""
+    """Reference provider that delegates to the formal Agent contract."""
 
     name = "contract"
 
     def assess(
         self,
-        *,
-        agent_id: str,
-        role: str,
+        agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        items = list(evidence)
-        return {
-            "agent_id": agent_id,
-            "role": role,
-            "question": question,
-            "evidence": items,
-            "direction": "NO_DATA" if not items else "NEUTRAL",
-            "confidence": 0.0 if not items else 0.1,
-            "thesis": "Insufficient evidence for a directional conclusion." if not items else "Evidence received; further model-specific analysis is required.",
-            "horizon": "medium",
-            "assumptions": ["Provider output is research-only and depends on supplied evidence."],
-            "invalidation_conditions": ["Material evidence contradicts the assessment."],
-        }
+        return agent.assess(question, evidence)
