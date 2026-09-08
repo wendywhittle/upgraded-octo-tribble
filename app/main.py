@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from app.agent_registry import run_default_agents
 from app.analysis_endpoint import build_analysis_router
+from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
 from app.live_market_endpoint import build_live_market_router
@@ -59,6 +60,7 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
 
 
 app.include_router(build_analysis_router())
+app.include_router(build_calibration_router())
 
 @app.get("/")
 def root():
