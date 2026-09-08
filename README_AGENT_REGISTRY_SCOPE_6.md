@@ -1,0 +1,1 @@
+Registry boundary: research assessment only; no brokerage, order, credential, capital-transfer, or portfolio-mutation capability.
