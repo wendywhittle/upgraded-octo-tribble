@@ -1,0 +1,1 @@
+Agent registry v1 scope: evidence-informed research assessments only; no autonomous execution.
