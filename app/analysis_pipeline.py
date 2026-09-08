@@ -1,14 +1,16 @@
 """Full evidence-to-decision-intelligence pipeline.
 
 Evidence integrity precedes reasoning. Risk simulation is independent of agent
-conclusions. No execution capability exists in this module.
+conclusions. Institutional learning is advisory context only. No execution
+capability exists in this module.
 """
 
 from typing import Any, Dict, Iterable
 
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
-from app.memory import append_record, build_record
+from app.learning import build_learning_report
+from app.memory import append_record, build_record, read_records
 from app.model_provider import ModelProvider
 from app.observer import observe
 from app.simulator import run_monte_carlo
@@ -52,7 +54,16 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
 
 def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None) -> Dict[str, Any]:
     """Run the complete research loop and persist an auditable learning record."""
-    agent_stage = run_evidence_fed_agents(question, evidence, now=now, max_age_seconds=max_age_seconds, provider=provider)
+    prior_records = read_records()
+    learning_context = build_learning_report(prior_records)
+    agent_stage = run_evidence_fed_agents(
+        question,
+        evidence,
+        now=now,
+        max_age_seconds=max_age_seconds,
+        provider=provider,
+        learning_context=learning_context,
+    )
     agents = agent_stage["agents"]
     conflict_data = detect_conflicts(agents)
     simulation = run_monte_carlo(initial_value, horizon_steps, paths, seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
@@ -61,6 +72,13 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False}
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed)
+    record["institutional_learning_context"] = {
+        "resolved_prediction_count": learning_context.get("resolved_prediction_count", 0),
+        "lessons": learning_context.get("lessons", []),
+        "agent_metrics_ranked": learning_context.get("agent_metrics_ranked", []),
+        "horizon_metrics": learning_context.get("horizon_metrics", {}),
+        "informational_only": True,
+    }
     append_record(record)
     kaleidoscope = build_kaleidoscope_view(
         agents=agents,
@@ -73,4 +91,4 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         observer=observer,
         governance=governance,
     )
-    return {"system": "AletheiaTelos", "question": question, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "synthesis": synthesis, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "evidence->agents->conflict->independent_risk->skeptic->synthesis->governance->observer->memory->kaleidoscope", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "provider": agent_stage["provider"]}}
+    return {"system": "AletheiaTelos", "question": question, "institutional_learning": learning_context, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "synthesis": synthesis, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->agents->conflict->independent_risk->skeptic->synthesis->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"]}}
