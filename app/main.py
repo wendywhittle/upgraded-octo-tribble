@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from fastapi import FastAPI
 
 from app.agent_registry import run_default_agents
+from app.analysis_endpoint import build_analysis_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
 from app.live_market_endpoint import build_live_market_router
@@ -15,7 +16,7 @@ from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
 
 
-app = FastAPI(title="AletheiaTelos", version="1.8.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.9.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
@@ -60,7 +61,7 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
 
 @app.get("/")
 def root():
-    return {"system": "AletheiaTelos", "status": "operational", "version": "1.8.0", "live_market_data": live_market_enabled()}
+    return {"system": "AletheiaTelos", "status": "operational", "version": "1.9.0", "live_market_data": live_market_enabled()}
 
 
 @app.get("/health")
@@ -81,17 +82,14 @@ if feed_urls:
 if live_market_enabled():
     app.include_router(build_live_market_router(market_symbol_map()))
 
+app.include_router(build_analysis_router())
+
 
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
-    # The demo route deliberately supplies no decision-usable evidence. The formal
-    # registry therefore returns NO_DATA rather than manufacturing investment evidence.
     raw_agents = run_default_agents(request.question)
     agents, evidence_validation = apply_evidence_gate(raw_agents)
     conflict_data = detect_conflicts(agents)
-
-    # Monte Carlo remains an independent risk engine. Agent assumptions are recorded
-    # as audit context only and do not control path generation.
     simulation = run_monte_carlo(
         request.initial_value,
         request.horizon_steps,
@@ -101,14 +99,14 @@ def simulate(request: SimulationRequest):
     )
     skeptic = skeptic_review(agents, simulation)
     synthesis = synthesize(agents, conflict_data, skeptic)
-    governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False}
+    governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False}
     observer = observe(request.question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(request.question, agents, conflict_data, simulation, skeptic, synthesis, governance, request.seed)
     append_record(record)
 
     return {
         "system": "AletheiaTelos",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "question": request.question,
         "timestamp": timestamp(),
         "agents": agents,
@@ -122,13 +120,5 @@ def simulate(request: SimulationRequest):
         "meta_intelligence": {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."},
         "synthesis": synthesis,
         "governance": governance,
-        "audit": {
-            "reproducible": True,
-            "simulation_seed": request.seed,
-            "point_in_time_evidence_required": True,
-            "evidence_gate": "active",
-            "memory_recorded": True,
-            "agent_registry": "active",
-            "agent_runner": "active",
-        },
+        "audit": {"reproducible": True, "simulation_seed": request.seed, "point_in_time_evidence_required": True, "evidence_gate": "active", "memory_recorded": True, "agent_registry": "active", "agent_runner": "active"},
     }
