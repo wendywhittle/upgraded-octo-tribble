@@ -21,6 +21,7 @@ class ModelProvider(Protocol):
         agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]: ...
 
 
@@ -34,5 +35,8 @@ class ContractModelProvider:
         agent: Agent,
         question: str,
         evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
+        # Deterministic contract agents do not consume learned guidance, but the
+        # boundary accepts it so model-backed providers can reason over it.
         return agent.assess(question, evidence)
