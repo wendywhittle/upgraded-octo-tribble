@@ -1,0 +1,1 @@
+Research agents can assess evidence; they cannot execute trades or mutate portfolios. Human authorization remains mandatory.
