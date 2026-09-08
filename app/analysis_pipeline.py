@@ -7,6 +7,7 @@ conclusions. No execution capability exists in this module.
 from typing import Any, Dict, Iterable
 
 from app.evidence_orchestration import run_evidence_fed_agents
+from app.kaleidoscope_view import build_kaleidoscope_view
 from app.memory import append_record, build_record
 from app.model_provider import ModelProvider
 from app.observer import observe
@@ -61,4 +62,15 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed)
     append_record(record)
-    return {"system": "AletheiaTelos", "question": question, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "synthesis": synthesis, "observer": observer, "governance": governance, "audit": {"pipeline": "evidence->agents->conflict->independent_risk->skeptic->synthesis->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "provider": agent_stage["provider"]}}
+    kaleidoscope = build_kaleidoscope_view(
+        agents=agents,
+        evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        conflicts=conflict_data["conflicts"],
+        horizon_divergences=conflict_data["horizon_divergences"],
+        simulation=simulation,
+        skeptic=skeptic,
+        synthesis=synthesis,
+        observer=observer,
+        governance=governance,
+    )
+    return {"system": "AletheiaTelos", "question": question, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "synthesis": synthesis, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "evidence->agents->conflict->independent_risk->skeptic->synthesis->governance->observer->memory->kaleidoscope", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "provider": agent_stage["provider"]}}

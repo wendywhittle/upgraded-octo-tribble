@@ -27,6 +27,8 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     assert result["synthesis"]["verdict"] == "NO_DATA"
     assert result["audit"]["simulation_independent_of_agents"] is True
     assert result["governance"]["human_decision_required"] is True
+    assert result["kaleidoscope"]["read_only"] is True
+    assert result["kaleidoscope"]["perspective_count"] == 10
 
 
 def test_full_pipeline_feeds_only_validated_evidence_to_agents():
@@ -38,6 +40,11 @@ def test_full_pipeline_feeds_only_validated_evidence_to_agents():
     assert all(agent["evidence"] for agent in result["agents"])
     assert result["simulation"]["independent_of_agents"] is True
     assert result["governance"]["autonomous_execution"] is False
+    assert result["kaleidoscope"]["expected_perspective_count"] == 10
+    assert result["kaleidoscope"]["human_decision_required"] is True
+    assert result["kaleidoscope"]["execution_capability"] is False
+    assert result["kaleidoscope"]["brokerage_connectivity"] is False
+    assert result["kaleidoscope"]["portfolio_mutation"] is False
 
 
 def test_full_pipeline_blocks_stale_evidence():
