@@ -14,13 +14,25 @@ from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
-from app.orchestrator import detect_conflicts
 
 app = FastAPI(title="AletheiaTelos", version="1.9.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def detect_conflicts(agents: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    conflicts: List[Dict[str, Any]] = []
+    horizon_divergences: List[Dict[str, Any]] = []
+    for i, left in enumerate(agents):
+        for right in agents[i + 1:]:
+            if left.get("direction") in {"LONG", "SHORT"} and right.get("direction") in {"LONG", "SHORT"} and left.get("direction") != right.get("direction"):
+                if left.get("horizon") == right.get("horizon"):
+                    conflicts.append({"agents": [left.get("agent_id"), right.get("agent_id")], "horizon": left.get("horizon"), "directions": [left.get("direction"), right.get("direction")]})
+                else:
+                    horizon_divergences.append({"agents": [left.get("agent_id"), right.get("agent_id")], "horizons": [left.get("horizon"), right.get("horizon")], "directions": [left.get("direction"), right.get("direction")]})
+    return {"conflicts": conflicts, "horizon_divergences": horizon_divergences}
 
 
 def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[str, Any]]], skeptic: Dict[str, Any]) -> Dict[str, Any]:
@@ -74,8 +86,6 @@ if live_market_enabled():
 
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
-    # No evidence is injected into this demo route. The formal registry therefore
-    # returns NO_DATA instead of manufacturing decision-usable investment evidence.
     raw_agents = run_default_agents(request.question)
     agents, evidence_validation = apply_evidence_gate(raw_agents)
     conflict_data = detect_conflicts(agents)
