@@ -7,8 +7,8 @@ aware, and independent of a particular data vendor.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, replace
+from datetime import datetime, timezone
 from typing import Iterable, List, Sequence
 
 from .experiment_001 import Observation
@@ -29,23 +29,27 @@ class HistoricalPoint:
 
 def _parse_timestamp(value: str) -> datetime:
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError(f"Invalid timestamp: {value!r}") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("Timestamp timezone is required.")
+    return parsed.astimezone(timezone.utc)
 
 
 def validate_points(points: Sequence[HistoricalPoint]) -> List[HistoricalPoint]:
-    """Validate ordering, provenance, timestamps, and numeric market values."""
+    """Validate and canonicalize ordering, provenance, timestamps, and values."""
     if not points:
         raise ValueError("Historical dataset cannot be empty.")
 
-    ordered = sorted(points, key=lambda point: point.observed_at)
+    parsed_points = [(_parse_timestamp(point.observed_at), point) for point in points]
+    ordered_pairs = sorted(parsed_points, key=lambda item: item[0])
     seen = set()
-    for point in ordered:
-        if point.observed_at in seen:
+    validated: List[HistoricalPoint] = []
+    for observed, point in ordered_pairs:
+        if observed in seen:
             raise ValueError(f"Duplicate observation timestamp: {point.observed_at}")
-        seen.add(point.observed_at)
-        observed = _parse_timestamp(point.observed_at)
+        seen.add(observed)
         available = _parse_timestamp(point.available_at)
         if available > observed:
             raise ValueError(
@@ -55,7 +59,16 @@ def validate_points(points: Sequence[HistoricalPoint]) -> List[HistoricalPoint]:
             raise ValueError("SPX, VIX, and SKEW levels must be positive.")
         if not point.source_id.strip() or not point.content_hash.strip():
             raise ValueError("Every historical point requires source_id and content_hash.")
-    return ordered
+        validated.append(
+            replace(
+                point,
+                observed_at=observed.isoformat(),
+                available_at=available.isoformat(),
+                source_id=point.source_id.strip(),
+                content_hash=point.content_hash.strip(),
+            )
+        )
+    return validated
 
 
 def build_experiment_observations(

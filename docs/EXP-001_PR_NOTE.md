@@ -1,0 +1,1 @@
+Implementation on kaleidoscope-final3 is ready for review. Real empirical execution requires authorized historical SPX/VIX/SKEW data.
