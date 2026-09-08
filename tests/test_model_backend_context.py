@@ -19,5 +19,8 @@ def test_backend_context_contains_only_research_capabilities():
         "portfolio_mutation",
         "human_decision_required",
     }
-    assert all(value is False for key, value in seen["constraints"].items() if key != "human_decision_required")
+    assert seen["constraints"]["research_only"] is True
+    assert seen["constraints"]["execution_capability"] is False
+    assert seen["constraints"]["brokerage_connectivity"] is False
+    assert seen["constraints"]["portfolio_mutation"] is False
     assert seen["constraints"]["human_decision_required"] is True
