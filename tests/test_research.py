@@ -17,7 +17,9 @@ NOW = datetime(2026, 9, 8, 14, 0, tzinfo=timezone.utc)
 
 def test_research_query_preserves_research_only_boundary():
     source = RSSFeedEvidenceSource(
-        ["https://feeds.example.com/news"], fetcher=lambda _: RSS
+        ["https://feeds.example.com/news"],
+        fetcher=lambda _: RSS,
+        clock=lambda: NOW,
     )
     result = research_query(
         source,
