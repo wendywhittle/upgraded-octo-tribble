@@ -1,14 +1,15 @@
 """Evidence-fed research orchestration boundary.
 
-This module connects already-acquired, integrity-checked evidence to the registered
-Computational Kaleidoscope perspectives. It deliberately does not fetch external data,
-run the risk engine, synthesize investment decisions, or execute anything.
+This module connects already-acquired evidence to the registered Computational
+Kaleidoscope perspectives. It deliberately does not fetch external data, run the
+risk engine, synthesize investment decisions, or execute anything.
 """
 
+from datetime import datetime
 from typing import Any, Dict, Iterable
 
 from app.agent_registry import build_default_registry
-from app.evidence import validate_agent_evidence
+from app.evidence import validate_evidence
 
 
 def distribute_evidence(
@@ -28,17 +29,22 @@ def distribute_evidence(
 def run_evidence_fed_agents(
     question: str,
     evidence: Iterable[Dict[str, Any]],
+    now: datetime | None = None,
+    max_age_seconds: float = 24 * 60 * 60,
 ) -> Dict[str, Any]:
-    """Run the canonical roster using only evidence supplied to this boundary."""
+    """Run the canonical roster using only evidence that passes integrity checks."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
     evidence_list = [dict(item) for item in evidence]
-    validation = [validate_agent_evidence(evidence_list)] if evidence_list else []
+    validation = [
+        validate_evidence(item, now=now, max_age_seconds=max_age_seconds)
+        for item in evidence_list
+    ]
     usable = [
         item
-        for item in evidence_list
-        if item.get("decision_usable", True)
+        for item, report in zip(evidence_list, validation)
+        if report["decision_usable"]
     ]
 
     registry = build_default_registry()
@@ -51,6 +57,7 @@ def run_evidence_fed_agents(
         "agents": agents,
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
+        "blocked_evidence_count": len(evidence_list) - len(usable),
         "validation": validation,
         "research_only": True,
         "execution_capability": False,
