@@ -1,0 +1,1 @@
+Research agent registry: structured evidence assessment only; human authorization remains mandatory.
