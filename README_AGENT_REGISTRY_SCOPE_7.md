@@ -1,0 +1,1 @@
+The agent registry is intentionally incapable of autonomous execution and is subject to human decision authority.
