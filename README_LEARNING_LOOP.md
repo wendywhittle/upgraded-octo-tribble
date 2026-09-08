@@ -11,3 +11,5 @@ AletheiaTelos treats forecasts as auditable research artifacts rather than ephem
 7. Learning is informational only: authority, weights, execution permissions, brokerage access, and portfolio state are never changed automatically.
 
 This preserves the distinction between **learning from history** and **changing the system's governing authority**.
+
+CI verification: all changes to `main` must arrive through the protected pull-request workflow.
