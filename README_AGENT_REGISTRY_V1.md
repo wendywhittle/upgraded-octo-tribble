@@ -1,0 +1,1 @@
+AletheiaTelos agent registry v1: ten Computational Kaleidoscope perspectives behind a formal research-only contract. The simulation endpoint consumes the registry; absent verified evidence yields NO_DATA rather than synthetic investment claims.
