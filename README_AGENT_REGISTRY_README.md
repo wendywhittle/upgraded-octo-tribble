@@ -1,0 +1,1 @@
+AletheiaTelos AgentRegistry v1: ten Computational Kaleidoscope perspectives; research-only; no brokerage, execution, or portfolio mutation; NO_DATA without verified evidence.
