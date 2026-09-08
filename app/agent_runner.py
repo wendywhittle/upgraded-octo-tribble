@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable
 
 from app.agent_contract import Agent
 from app.model_provider import ContractModelProvider, ModelProvider
+from app.schemas import AgentOutput
 
 
 class AgentRunner:
@@ -26,21 +27,27 @@ class AgentRunner:
         if capabilities.get("portfolio_mutation", False):
             raise ValueError("Agent portfolio mutation is prohibited.")
 
-        result = self.provider.assess(
-            agent_id=agent.spec.agent_id,
-            role=agent.spec.role,
-            question=question,
-            evidence=evidence,
-        )
+        result = self.provider.assess(agent, question, evidence)
         if not isinstance(result, dict):
             raise ValueError("Model provider must return a dictionary.")
         result = dict(result)
         result.setdefault("agent_id", agent.spec.agent_id)
-        result.setdefault("role", agent.spec.role)
-        result["agent_runner"] = self.__class__.__name__
-        result["provider"] = self.provider.name
-        result["execution_capability"] = False
-        result["brokerage_connectivity"] = False
-        result["portfolio_mutation"] = False
-        result["human_decision_required"] = True
-        return result
+        result.setdefault("strategy", agent.spec.role)
+        result.setdefault("horizon", agent.spec.default_horizon)
+        result.setdefault("model_version", f"{self.provider.name}-provider")
+        result.setdefault("evidence", [])
+        result.setdefault("assumptions", [])
+        result.setdefault("invalidation_conditions", [])
+        try:
+            validated = AgentOutput(**result)
+        except Exception as exc:
+            raise ValueError(f"Model provider returned invalid AgentOutput: {exc}") from exc
+
+        output = validated.model_dump()
+        output["agent_runner"] = self.__class__.__name__
+        output["provider"] = self.provider.name
+        output["execution_capability"] = False
+        output["brokerage_connectivity"] = False
+        output["portfolio_mutation"] = False
+        output["human_decision_required"] = True
+        return output
