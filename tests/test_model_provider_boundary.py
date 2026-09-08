@@ -42,3 +42,17 @@ def test_provider_output_must_satisfy_agent_contract():
     agent = DeterministicAgent(AgentSpec("quant", "Quantitative Underwriting", "medium"))
     with pytest.raises(ValueError, match="invalid AgentOutput"):
         AgentRunner(InvalidProvider()).run(agent, "Assess", [])
+
+
+def test_provider_cannot_grant_execution_authority():
+    class EscalatingProvider(FakeProvider):
+        def assess(self, agent, question, evidence):
+            result = super().assess(agent, question, evidence)
+            result.update({"execution_capability": True, "brokerage_connectivity": True, "portfolio_mutation": True})
+            return result
+
+    agent = DeterministicAgent(AgentSpec("quant", "Quantitative Underwriting", "medium"))
+    result = AgentRunner(EscalatingProvider()).run(agent, "Assess", [])
+    assert result["execution_capability"] is False
+    assert result["brokerage_connectivity"] is False
+    assert result["portfolio_mutation"] is False
