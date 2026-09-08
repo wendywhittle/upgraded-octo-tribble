@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AletheiaTelos — Full Vertical Slice Simulator</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    html {
+      background: #05070a;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(75, 120, 255, .08), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(120, 80, 255, .06), transparent 28%),
+        #05070a;
+      color: #e7edf5;
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        "Liberation Mono",
+        monospace;
+    }
+
+    .panel {
+      background: rgba(11, 15, 21, .94);
+      border: 1px solid #26303c;
+      box-shadow: 0 15px 45px rgba(0,0,0,.18);
+    }
+
+    .panel:hover {
+      border-color: #344253;
+    }
+
+    .muted {
+      color: #7f8da0;
+    }
+
+    .tiny {
+      font-size: 10px;
+      letter-spacing: .12em;
+    }
+
+    .status {
+      border: 1px solid #2c3745;
+      background: #0d131b;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 10px;
+    }
+
+    .bar {
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #18202b;
+    }
+
+    .bar > div {
+      height: 100%;
+      background: #8ea9ff;
+      transition: width .35s ease;
+    }
+
+    .agent {
+      transition: all .2s ease;
+    }
+
+    .agent.active {
+      border-color: #667fff;
+      box-shadow: 0 0 24px rgba(102,127,255,.09);
+    }
+
+    .timeline-line {
+      position: absolute;
+      top: 17px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #28323e;
+      z-index: 0;
+    }
+
+    .timeline-item {
+      position: relative;
+      z-index: 1;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #354151;
+      background: #080c11;
+      margin: 0 auto 8px;
+    }
+
+    .dot.active {
+      border-color: #9bb1ff;
+      background: #8ea9ff;
+      box-shadow: 0 0 16px rgba(142,169,255,.5);
+    }
+
+    .dot.complete {
+      border-color: #91c8a0;
+      background: #4c7f5b;
+    }
+
+    button {
+      transition: all .15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .direction-long {
+      color: #9bd3aa;
+      border-color: #345a40;
+      background: #0d1b12;
+    }
+
+    .direction-short {
+      color: #e6a0a0;
+      border-color: #633c3c;
+      background: #1c1010;
+    }
+
+    .direction-neutral {
+      color: #c3ccd8;
+      border-color: #3a4552;
+      background: #11161d;
+    }
+
+    .warning {
+      border-color: #66502a;
+      background: #18130a;
+    }
+
+    .danger {
+      border-color: #663737;
+      background: #1a0e0e;
+    }
+
+    .success {
+      border-color: #35583e;
+      background: #0c1710;
+    }
+
+    .memory {
+      border-left: 2px solid #748eff;
+    }
+
+    textarea, input {
+      color: #e7edf5;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<script>
+
+const AGENTS = [
+  {
+    id: "researcher",
+    name: "Researcher",
+    role: "Evidence",
+    description: "Market facts, comparable evidence, documents and freshness.",
+    direction: "LONG",
+    confidence: .78,
+    thesis: "The opportunity has enough observable market support to justify deeper underwriting.",
+    evidence: [
+      "Comparable transactions support the basic market thesis.",
+      "Demand indicators are directionally supportive.",
+      "The opportunity can be investigated with available evidence."
+    ],
+    contradictory: [
+      "Comparable data may lag current financing conditions.",
+      "Some assumptions remain sponsor-supplied."
+    ]
+  },
+
+  {
+    id: "quant",
+    name: "Quant",
+    role: "Economics",
+    description: "Returns, sensitivities, distributions and numerical fragility.",
+    direction: "NEUTRAL",
+    confidence: .63,
+    thesis: "The base case is plausible, but return quality is highly dependent on entry price and financing.",
+    evidence: [
+      "Base-case return profile is positive.",
+      "Sensitivity analysis identifies a viable operating range."
+    ],
+    contradictory: [
+      "Small changes in exit assumptions materially alter returns.",
+      "Debt costs can compress equity returns quickly."
+    ]
+  },
+
+  {
+    id: "investor",
+    name: "Investor",
+    role: "Capital",
+    description: "Risk-adjusted return, price discipline and capital allocation.",
+    direction: "LONG",
+    confidence: .74,
+    thesis: "There may be an attractive risk-adjusted opportunity if the basis remains disciplined.",
+    evidence: [
+      "Potential upside exists relative to the proposed basis.",
+      "There is a recognizable path to value creation."
+    ],
+    contradictory: [
+      "A good asset can become a bad investment at the wrong price.",
+      "Liquidity assumptions require verification."
+    ]
+  },
+
+  {
+    id: "scientist",
+    name: "Scientist",
+    role: "Causality",
+    description: "Tests causal mechanisms rather than accepting correlations.",
+    direction: "NEUTRAL",
+    confidence: .57,
+    thesis: "The causal story is coherent but several links remain hypotheses rather than demonstrated facts.",
+    evidence: [
+      "Operating assumptions have plausible causal mechanisms.",
+      "Value creation logic can be decomposed."
+    ],
+    contradictory: [
+      "Historical correlation does not establish future causality.",
+      "Some projected improvements have not been experimentally demonstrated."
+    ]
+  },
+
+  {
+    id: "systems",
+    name: "Systems",
+    role: "Second Order",
+    description: "Macro, financing, liquidity and system-level interactions.",
+    direction: "SHORT",
+    confidence: .69,
+    thesis: "The opportunity is exposed to second-order financing and liquidity effects that may not appear in the base case.",
+    evidence: [
+      "Refinancing conditions can affect both value and liquidity.",
+      "Macro regime changes can propagate through multiple assumptions."
+    ],
+    contradictory: [
+      "Stress conditions may not persist.",
+      "Operational resilience could partially offset financing pressure."
+    ]
+  },
+
+  {
+    id: "contrarian",
+    name: "Contrarian",
+    role: "Failure",
+    description: "Attempts to break the thesis and find reasons not to proceed.",
+    direction: "SHORT",
+    confidence: .81,
+    thesis: "The strongest version of the thesis still depends on several favorable assumptions occurring together.",
+    evidence: [
+      "Downside scenarios compound rather than remain independent.",
+      "Optimistic assumptions can become correlated under stress."
+    ],
+    contradictory: [
+      "The asset may have greater resilience than the downside case assumes.",
+      "A disciplined purchase price could create sufficient margin of safety."
+    ]
+  },
+
+  {
+    id: "philosopher",
+    name: "Philosopher",
+    role: "Assumptions",
+    description: "Examines hidden assumptions, framing and epistemic quality.",
+    direction: "NEUTRAL",
+    confidence: .66,
+    thesis: "The narrative is coherent, but narrative coherence should not be mistaken for truth.",
+    evidence: [
+      "The thesis has internally recognizable logic.",
+      "Major assumptions can be explicitly stated."
+    ],
+    contradictory: [
+      "Unknown unknowns remain.",
+      "The framing may privilege upside outcomes."
+    ]
+  },
+
+  {
+    id: "observer",
+    name: "Observer",
+    role: "Calibration",
+    description: "Tracks what the system believes so outcomes can later be attributed.",
+    direction: "NEUTRAL",
+    confidence: .50,
+    thesis: "No outcome exists yet; the system must preserve the prediction so it can later be evaluated.",
+    evidence: [
+      "Predictions have been timestamped.",
+      "Assumptions can be compared with future observations."
+    ],
+    contradictory: [
+      "Calibration cannot be established from a single episode."
+    ]
+  },
+
+  {
+    id: "meta",
+    name: "Meta-Intelligence",
+    role: "Reasoning",
+    description: "Evaluates disagreement, evidence quality and reasoning structure.",
+    direction: "NEUTRAL",
+    confidence: .71,
+    thesis: "The disagreement is informative because it concentrates around price, financing and downside assumptions.",
+    evidence: [
+      "Multiple perspectives independently identify price sensitivity.",
+      "Bullish and bearish reasoning are not symmetrical."
+    ],
+    contradictory: [
+      "Agent confidence is not equivalent to empirical probability.",
+      "The evidence set remains incomplete."
+    ]
+  },
+
+  {
+    id: "governance",
+    name: "Governance / CHARTER",
+    role: "Authority",
+    description: "Ensures the system remains inside its declared authority boundary.",
+    direction: "NEUTRAL",
+    confidence: .99,
+    thesis: "The system may inform and challenge the human decision but may not independently authorize or execute investment activity.",
+    evidence: [
+      "Human Investment Committee remains the decision authority.",
+      "No autonomous brokerage or investment execution exists."
+    ],
+    contradictory: [
+      "Capability must never silently become authority."
+    ]
+  }
+];
+
+const initialMemory = [
+  {
+    title: "Operating principle",
+    text: "Disagreement is evidence, not failure. Consensus must never be manufactured simply to produce a clean answer."
+  },
+  {
+    title: "Governance principle",
+    text: "Increasing system capability must not silently become increasing system authority."
+  }
+];
+
+const state = {
+  question:
+    "Should AletheiaTelos advance this $12M multifamily acquisition to Investment Committee?",
+
+  stage: 0,
+
+  stageNames: [
+    "Question",
+    "Kaleidoscope",
+    "Conflict",
+    "Breaker",
+    "Meta-Intelligence",
+    "Synthesis",
+    "Human IC",
+    "Outcome",
+    "Attribution",
+    "Epistemic Memory"
+  ],
+
+  time: "T+0",
+
+  shock: false,
+
+  challenged: false,
+
+  icDecision: null,
+
+  outcome: null,
+
+  attribution: null,
+
+  results: JSON.parse(JSON.stringify(AGENTS)),
+
+  memory: JSON.parse(JSON.stringify(initialMemory)),
+
+  logs: [],
+
+  running: false
+};
+
+function log(message) {
+  const time = new Date().toLocaleTimeString();
+  state.logs.unshift(`${time}  ${message}`);
+}
+
+function getLongScore() {
+  return state.results
+    .filter(a => a.direction === "LONG")
+    .reduce((sum, a) => sum + a.confidence, 0);
+}
+
+function getShortScore() {
+  return state.results
+    .filter(a => a.direction === "SHORT")
+    .reduce((sum, a) => sum + a.confidence, 0);
+}
+
+function getConflictPairs() {
+
+  const active = state.results.filter(
+    a => a.direction !== "NEUTRAL"
+  );
+
+  const pairs = [];
+
+  for (let i = 0; i < active.length; i++) {
+
+    for (let j = i + 1; j < active.length; j++) {
+
+      if (active[i].direction !== active[j].direction) {
+
+        pairs.push([
+          active[i],
+          active[j]
+        ]);
+
+      }
+
+    }
+
+  }
+
+  return pairs;
+}
+
+function conviction() {
+
+  const active = state.results.filter(
+    a =>
+      a.direction !== "NEUTRAL" &&
+      a.id !== "governance"
+  );
+
+  if (!active.length) return 50;
+
+  const signed =
+    active.reduce(
+      (sum, a) =>
+        sum +
+        (a.direction === "LONG"
+          ? a.confidence
+          : -a.confidence),
+      0
+    );
+
+  const normalized =
+    Math.abs(signed) / active.length;
+
+  return Math.round(
+    Math.min(95, 50 + normalized * 45)
+  );
+}
+
+function synthesisVerdict() {
+
+  const longScore = getLongScore();
+  const shortScore = getShortScore();
+
+  if (
+    state.challenged &&
+    state.shock &&
+    shortScore > longScore
+  ) {
+    return "NO-GO";
+  }
+
+  if (shortScore > longScore * 1.08) {
+    return "NO-GO";
+  }
+
+  if (conviction() >= 70) {
+    return "CONDITIONAL GO";
+  }
+
+  return "HOLD / INVESTIGATE";
+}
+
+function stageComplete(i) {
+  return i < state.stage;
+}
+
+function directionClass(direction) {
+
+  if (direction === "LONG")
+    return "direction-long";
+
+  if (direction === "SHORT")
+    return "direction-short";
+
+  return "direction-neutral";
+}
+
+function renderTimeline() {
+
+  return `
+    <div class="relative grid grid-cols-5 md:grid-cols-10 gap-2">
+
+      <div class="timeline-line hidden md:block"></div>
+
+      ${state.stageNames.map((name, i) => {
+
+        const active = i === state.stage;
+        const complete = stageComplete(i);
+
+        return `
+          <div class="timeline-item text-center">
+
+            <div class="
+              dot
+              ${active ? "active" : ""}
+              ${complete ? "complete" : ""}
+            "></div>
+
+            <div class="text-[9px] md:text-[10px] muted">
+              ${String(i).padStart(2,"0")}
+            </div>
+
+            <div class="text-[9px] md:text-[10px] mt-1">
+              ${name}
+            </div>
+
+          </div>
+        `;
+
+      }).join("")}
+
+    </div>
+  `;
+}
+
+function renderAgent(agent) {
+
+  const challenged =
+    state.challenged &&
+    agent.id === "contrarian";
+
+  return `
+    <article class="
+      panel agent rounded-xl p-4
+      ${agent.id === "contrarian" ? "active" : ""}
+    ">
+
+      <div class="flex justify-between gap-3">
+
+        <div>
+          <div class="font-bold text-sm">
+            ${agent.name}
+          </div>
+
+          <div class="tiny muted mt-1">
+            ${agent.role}
+          </div>
+        </div>
+
+        <span class="
+          status
+          ${directionClass(agent.direction)}
+        ">
+          ${agent.direction}
+        </span>
+
+      </div>
+
+      <p class="text-xs muted mt-3">
+        ${agent.description}
+      </p>
+
+      <div class="flex justify-between text-[10px] mt-4">
+
+        <span class="muted">
+          CONFIDENCE
+        </span>
+
+        <span>
+          ${Math.round(agent.confidence * 100)}%
+        </span>
+
+      </div>
+
+      <div class="bar mt-2">
+        <div style="width:${agent.confidence * 100}%"></div>
+      </div>
+
+      <div class="mt-4 text-xs leading-5">
+
+        <div>
+          <span class="text-blue-300">
+            THESIS
+          </span>
+          <br/>
+          ${agent.thesis}
+        </div>
+
+        <div class="mt-3">
+
+          <span class="text-emerald-300">
+            SUPPORT
+          </span>
+
+          <ul class="list-disc pl-5 mt-1 muted">
+
+            ${agent.evidence.map(
+              e => `<li>${e}</li>`
+            ).join("")}
+
+          </ul>
+
+        </div>
+
+        <div class="mt-3">
+
+          <span class="text-amber-300">
+            CONTRADICTORY
+          </span>
+
+          <ul class="list-disc pl-5 mt-1 muted">
+
+            ${agent.contradictory.map(
+              e => `<li>${e}</li>`
+            ).join("")}
+
+          </ul>
+
+        </div>
+
+      </div>
+
+      ${
+        agent.id === "contrarian" && !state.challenged
+        ?
+        `
+          <button
+            onclick="challengeThesis()"
+            class="
+              mt-4 w-full rounded-lg py-2
+              text-xs
+              border border-rose-400/40
+              bg-rose-400/10
+            "
+          >
+            BREAK STRONGEST CLAIM
+          </button>
+        `
+        : ""
+      }
+
+      ${
+        challenged
+        ?
+        `
+          <div class="
+            danger rounded-lg p-3 mt-4 text-[10px]
+          ">
+            BREAKER ACTIVE — confidence recalibrated
+            after adversarial challenge.
+          </div>
+        `
+        : ""
+      }
+
+    </article>
+  `;
+}
+
+function renderConflictPanel() {
+
+  const conflicts = getConflictPairs();
+
+  return `
+    <section class="panel rounded-2xl p-5">
+
+      <div class="flex justify-between">
+
+        <div class="tiny muted">
+          CONFLICT & COEXISTENCE ENGINE
+        </div>
+
+        <div class="status">
+          ${conflicts.length} CONFLICTS
+        </div>
+
+      </div>
+
+      ${
+        conflicts.length === 0
+
+        ?
+
+        `
+          <div class="muted text-xs mt-4">
+            No active directional conflict.
+          </div>
+        `
+
+        :
+
+        conflicts.slice(0,8).map(
+          ([a,b]) => `
+            <div class="
+              mt-3 border border-[#29333f]
+              rounded-lg p-3 text-xs
+            ">
+
+              <div class="flex justify-between">
+
+                <span>
+                  ${a.name}
+                  <b>${a.direction}</b>
+                </span>
+
+                <span class="muted">
+                  VS
+                </span>
+
+                <span>
+                  ${b.name}
+                  <b>${b.direction}</b>
+                </span>
+
+              </div>
+
+              <div class="muted mt-2">
+                Disagreement preserved.
+                No forced averaging.
+              </div>
+
+            </div>
+          `
+        ).join("")
+      }
+
+    </section>
+  `;
+}
+
+function renderSynthesis() {
+
+  const verdict = synthesisVerdict();
+
+  return `
+    <section class="panel rounded-2xl p-5">
+
+      <div class="tiny muted">
+        META-INTELLIGENCE / SYNTHESIS
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-3">
+
+        <div class="panel rounded-xl p-4">
+
+          <div class="tiny muted">
+            LONG EVIDENCE
+          </div>
+
+          <div class="text-2xl font-bold mt-2">
+            ${getLongScore().toFixed(2)}
+          </div>
+
+        </div>
+
+        <div class="panel rounded-xl p-4">
+
+          <div class="tiny muted">
+            SHORT EVIDENCE
+          </div>
+
+          <div class="text-2xl font-bold mt-2">
+            ${getShortScore().toFixed(2)}
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="mt-5">
+
+        <div class="tiny muted">
+          SYSTEM CONVICTION
+        </div>
+
+        <div class="text-3xl font-bold mt-2">
+          ${conviction()}/100
+        </div>
+
+      </div>
+
+      <div class="
+        mt-5 rounded-xl p-4
+        ${verdict === "NO-GO" ? "danger" :
+          verdict === "CONDITIONAL GO" ? "success" :
+          "warning"}
+      ">
+
+        <div class="tiny">
+          SYNTHESIS
+        </div>
+
+        <div class="text-xl font-bold mt-2">
+          ${verdict}
+        </div>
+
+        <p class="text-xs muted mt-3">
+          This is a synthesis of evidence and disagreement.
+          It is not an autonomous investment authorization.
+        </p>
+
+      </div>
+
+    </section>
+  `;
+}
+
+function renderOutcome() {
+
+  if (!state.outcome) {
+
+    return `
+      <section class="panel rounded-2xl p-5">
+
+        <div class="tiny muted">
+          OUTCOME ENGINE
+        </div>
+
+        <div class="text-sm mt-4">
+          No simulated outcome recorded yet.
+        </div>
+
+        <div class="muted text-xs mt-2">
+          Record a human IC decision, then advance time.
+        </div>
+
+      </section>
+    `;
+  }
+
+  return `
+    <section class="panel rounded-2xl p-5">
+
+      <div class="tiny muted">
+        OBSERVER / REALIZED OUTCOME
+      </div>
+
+      <div class="text-xs muted mt-3">
+        ${state.time}
+      </div>
+
+      <div class="text-lg font-bold mt-3">
+        ${state.outcome}
+      </div>
+
+      ${
+        state.attribution
+        ?
+        `
+          <div class="
+            mt-4 rounded-lg p-3
+            success text-xs
+          ">
+            ${state.attribution}
+          </div>
+        `
+        : ""
+      }
+
+    </section>
+  `;
+}
+
+function renderMemory() {
+
+  return `
+    <section class="panel rounded-2xl p-5">
+
+      <div class="flex justify-between">
+
+        <div class="tiny muted">
+          EPISTEMIC MEMORY
+        </div>
+
+        <div class="status">
+          ${state.memory.length} EPISODES
+        </div>
+
+      </div>
+
+      ${state.memory.map(
+        item => `
+          <div class="memory mt-4 pl-3">
+
+            <div class="text-xs font-bold">
+              ${item.title}
+            </div>
+
+            <div class="text-xs muted mt-1 leading-5">
+              ${item.text}
+            </div>
+
+          </div>
+        `
+      ).join("")}
+
+    </section>
+  `;
+}
+
+function renderAudit() {
+
+  return `
+    <section class="panel rounded-2xl p-5">
+
+      <div class="flex justify-between">
+
+        <div class="tiny muted">
+          AUDIT STREAM
+        </div>
+
+        <div class="tiny muted">
+          ${state.time}
+        </div>
+
+      </div>
+
+      <div class="
+        mt-3 max-h-56 overflow-auto
+        text-[10px] leading-6
+      ">
+
+        ${
+          state.logs.length
+          ?
+          state.logs.map(
+            l => `<div>${l}</div>`
+          ).join("")
+          :
+          `<div class="muted">Awaiting system activity.</div>`
+        }
+
+      </div>
+
+    </section>
+  `;
+}
+
+function render() {
+
+  document.getElementById("app").innerHTML = `
+
+    <div class="max-w-[1500px] mx-auto p-4 md:p-7">
+
+      <!-- HEADER -->
+
+      <header class="
+        flex flex-col md:flex-row
+        md:items-end justify-between
+        gap-5 mb-7
+      ">
+
+        <div>
+
+          <div class="
+            text-xs tracking-[.3em]
+            text-blue-300
+          ">
+            ALETHEIATELOS
+            /
+            FULL VERTICAL SLICE
+          </div>
+
+          <h1 class="
+            text-3xl md:text-5xl
+            font-bold mt-3
+          ">
+            Decision Intelligence in Motion
+          </h1>
+
+          <p class="
+            muted max-w-4xl mt-3
+            text-sm leading-6
+          ">
+            A live simulation of the complete
+            AletheiaTelos learning loop:
+            question → independent reasoning →
+            disagreement → challenge → synthesis →
+            human decision → outcome → attribution →
+            epistemic memory.
+          </p>
+
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+
+          <span class="status">
+            STAGE:
+            ${state.stageNames[state.stage].toUpperCase()}
+          </span>
+
+          <span class="status">
+            ${state.time}
+          </span>
+
+          <span class="status">
+            HUMAN AUTHORITY
+          </span>
+
+        </div>
+
+      </header>
+
+
+      <!-- QUESTION -->
+
+      <section class="panel rounded-2xl p-5 mb-5">
+
+        <div class="tiny muted">
+          01 / DECISION QUESTION
+        </div>
+
+        <textarea
+          id="question"
+          class="
+            w-full mt-3
+            min-h-28
+            rounded-xl
+            bg-[#070b10]
+            border border-[#293440]
+            p-4
+            outline-none
+            text-sm
+            focus:border-blue-400
+          "
+        >${state.question}</textarea>
+
+        <div class="
+          flex flex-wrap gap-2 mt-4
+        ">
+
+          <button
+            onclick="runCouncil()"
+            class="
+              rounded-lg px-4 py-2
+              text-xs
+              border border-blue-400/40
+              bg-blue-400/10
+            "
+          >
+            RUN COUNCIL
+          </button>
+
+          <button
+            onclick="injectShock()"
+            class="
+              rounded-lg px-4 py-2
+              text-xs
+              border border-amber-400/40
+              bg-amber-400/10
+            "
+          >
+            ${state.shock ? "REMOVE SHOCK" : "INJECT SHOCK"}
+          </button>
+
+          <button
+            onclick="advanceTime()"
+            class="
+              rounded-lg px-4 py-2
+              text-xs
+              border border-emerald-400/40
+              bg-emerald-400/10
+            "
+          >
+            ADVANCE TIME
+          </button>
+
+          <button
+            onclick="resetSystem()"
+            class="
+              rounded-lg px-4 py-2
+              text-xs
+              border border-[#303b49]
+            "
+          >
+            RESET
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- TIMELINE -->
+
+      <section class="panel rounded-2xl p-5 mb-5">
+
+        <div class="tiny muted mb-5">
+          SYSTEM LOOP
+        </div>
+
+        ${renderTimeline()}
+
+      </section>
+
+
+      <!-- MAIN GRID -->
+
+      <div class="grid xl:grid-cols-3 gap-5">
+
+
+        <!-- AGENTS -->
+
+        <main class="xl:col-span-2">
+
+          <div class="
+            flex justify-between
+            items-center mb-3
+          ">
+
+            <div>
+
+              <div class="tiny muted">
+                COMPUTATIONAL KALEIDOSCOPE
+              </div>
+
+              <div class="text-xs muted mt-1">
+                Independent perspectives remain independent.
+              </div>
+
+            </div>
+
+            <div class="status">
+              ${state.results.length} PERSPECTIVES
+            </div>
+
+          </div>
+
+          <div class="
+            grid md:grid-cols-2
+            gap-3
+          ">
+
+            ${state.results.map(renderAgent).join("")}
+
+          </div>
+
+        </main>
+
+
+        <!-- SIDE CONTROL / INTELLIGENCE -->
+
+        <aside class="space-y-5">
+
+
+          <!-- REGIME -->
+
+          <section class="panel rounded-2xl p-5">
+
+            <div class="tiny muted">
+              ENVIRONMENT
+            </div>
+
+            <div class="text-xl font-bold mt-2">
+              ${state.shock
+                ? "VOLATILITY / REFINANCING SHOCK"
+                : "BASE OPERATING REGIME"}
+            </div>
+
+            <p class="text-xs muted mt-3 leading-5">
+
+              ${
+                state.shock
+                ?
+                "Stress has been injected into liquidity and refinancing assumptions. The system must reconsider the original thesis."
+                :
+                "Base assumptions are active. The system is evaluating the opportunity under normal conditions."
+              }
+
+            </p>
+
+          </section>
+
+
+          <!-- CONFLICT -->
+
+          ${renderConflictPanel()}
+
+
+          <!-- SYNTHESIS -->
+
+          ${renderSynthesis()}
+
+
+          <!-- HUMAN IC -->
+
+          <section class="panel rounded-2xl p-5">
+
+            <div class="tiny muted">
+              HUMAN INVESTMENT COMMITTEE
+            </div>
+
+            <p class="
+              text-xs muted
+              mt-3 leading-5
+            ">
+              AletheiaTelos prepares evidence,
+              exposes disagreement and produces
+              a synthesis. The human remains the
+              investment authority.
+            </p>
+
+            <div class="
+              grid grid-cols-3 gap-2 mt-4
+            ">
+
+              <button
+                onclick="recordIC('GO')"
+                class="
+                  rounded-lg py-2 text-xs
+                  border border-emerald-400/40
+                  bg-emerald-400/10
+                "
+              >
+                GO
+              </button>
+
+              <button
+                onclick="recordIC('HOLD')"
+                class="
+                  rounded-lg py-2 text-xs
+                  border border-amber-400/40
+                  bg-amber-400/10
+                "
+              >
+                HOLD
+              </button>
+
+              <button
+                onclick="recordIC('NO-GO')"
+                class="
+                  rounded-lg py-2 text-xs
+                  border border-rose-400/40
+                  bg-rose-400/10
+                "
+              >
+                NO-GO
+              </button>
+
+            </div>
+
+            ${
+              state.icDecision
+              ?
+              `
+                <div class="
+                  mt-4 rounded-lg
+                  border border-[#303b49]
+                  p-3 text-xs
+                ">
+                  HUMAN DECISION:
+                  <b>${state.icDecision}</b>
+                </div>
+              `
+              : ""
+            }
+
+          </section>
+
+
+          <!-- OUTCOME -->
+
+          ${renderOutcome()}
+
+
+          <!-- MEMORY -->
+
+          ${renderMemory()}
+
+        </aside>
+
+      </div>
+
+
+      <!-- AUDIT -->
+
+      <div class="mt-5">
+
+        ${renderAudit()}
+
+      </div>
+
+
+      <!-- GOVERNANCE FOOTER -->
+
+      <footer class="
+        mt-6 mb-4
+        text-center
+        text-[10px]
+        muted
+        leading-5
+      ">
+
+        ALETHEIATELOS IS A RESEARCH /
+        DECISION-INTELLIGENCE SYSTEM.
+        <br/>
+        NO BROKERAGE CONNECTION.
+        NO LIVE ORDER EXECUTION.
+        NO AUTONOMOUS INVESTMENT AUTHORITY.
+        <br/>
+        CAPABILITY ≠ AUTHORITY.
+
+      </footer>
+
+    </div>
+
+  `;
+}
+
+
+/* =========================================================
+   CORE LOOP
+   ========================================================= */
+
+function runCouncil() {
+
+  const input =
+    document.getElementById("question").value.trim();
+
+  if (input) {
+    state.question = input;
+  }
+
+  state.stage = 1;
+  state.time = "T+0";
+  state.shock = false;
+  state.challenged = false;
+  state.icDecision = null;
+  state.outcome = null;
+  state.attribution = null;
+  state.results =
+    JSON.parse(JSON.stringify(AGENTS));
+
+  log(
+    `NEW OPPORTUNITY:
+    ${state.question}`
+  );
+
+  log(
+    "Kaleidoscope activated — independent perspectives running."
+  );
+
+  log(
+    "No forced consensus permitted."
+  );
+
+  state.stage = 2;
+
+  log(
+    `${getConflictPairs().length}
+    directional conflicts detected.`
+  );
+
+  render();
+}
+
+
+function challengeThesis() {
+
+  state.challenged = true;
+
+  state.stage = 3;
+
+  const contrarian =
+    state.results.find(
+      a => a.id === "contrarian"
+    );
+
+  const investor =
+    state.results.find(
+      a => a.id === "investor"
+    );
+
+  const quant =
+    state.results.find(
+      a => a.id === "quant"
+    );
+
+  contrarian.confidence =
+    Math.max(
+      .45,
+      contrarian.confidence - .16
+    );
+
+  investor.confidence =
+    Math.max(
+      .45,
+      investor.confidence - .08
+    );
+
+  quant.confidence =
+    Math.max(
+      .45,
+      quant.confidence - .05
+    );
+
+  log(
+    "BREAKER activated against strongest claims."
+  );
+
+  log(
+    "Contrarian challenge preserved original claims while recalibrating confidence."
+  );
+
+  state.stage = 4;
+
+  log(
+    "Meta-Intelligence evaluating disagreement quality."
+  );
+
+  render();
+}
+
+
+function injectShock() {
+
+  state.shock = !state.shock;
+
+  if (state.shock) {
+
+    const systems =
+      state.results.find(
+        a => a.id === "systems"
+      );
+
+    const contrarian =
+      state.results.find(
+        a => a.id === "contrarian"
+      );
+
+    const investor =
+      state.results.find(
+        a => a.id === "investor"
+      );
+
+    const quant =
+      state.results.find(
+        a => a.id === "quant"
+      );
+
+    systems.confidence = .89;
+    contrarian.confidence = .94;
+    investor.confidence = .55;
+    quant.confidence = .49;
+
+    systems.direction = "SHORT";
+    contrarian.direction = "SHORT";
+    investor.direction = "NEUTRAL";
+    quant.direction = "NEUTRAL";
+
+    log(
+      "EXTERNAL SHOCK:
+      refinancing/liquidity stress injected."
+    );
+
+  } else {
+
+    state.results =
+      JSON.parse(JSON.stringify(AGENTS));
+
+    log(
+      "Shock removed. Base regime restored."
+    );
+  }
+
+  state.stage = 2;
+
+  render();
+}
+
+
+function recordIC(decision) {
+
+  state.icDecision = decision;
+
+  state.stage = 6;
+
+  log(
+    `HUMAN INVESTMENT COMMITTEE:
+    ${decision}`
+  );
+
+  log(
+    "System authority boundary respected."
+  );
+
+  render();
+}
+
+
+/* =========================================================
+   TIME / OUTCOME / ATTRIBUTION / MEMORY
+   ========================================================= */
+
+function advanceTime() {
+
+  if (!state.icDecision) {
+
+    state.stage = 5;
+
+    log(
+      `SYNTHESIS:
+      ${synthesisVerdict()}`
+    );
+
+    render();
+
+    return;
+  }
+
+
+  if (state.time === "T+0") {
+
+    state.time = "T+30";
+
+    state.stage = 7;
+
+    log(
+      "TIME ADVANCED → T+30."
+    );
+
+    log(
+      "Early operating observations captured."
+    );
+
+    render();
+
+    return;
+  }
+
+
+  if (state.time === "T+30") {
+
+    state.time = "T+90";
+
+    if (
+      state.shock ||
+      state.icDecision === "NO-GO"
+    ) {
+
+      state.outcome =
+        state.icDecision === "NO-GO"
+
+        ?
+
+        "Capital was not deployed. The avoided opportunity is retained as a counterfactual."
+
+        :
+
+        "Refinancing/liquidity stress materialized and impaired the original return case.";
+
+    } else {
+
+      state.outcome =
+        state.icDecision === "HOLD"
+
+        ?
+
+        "Opportunity remained unresolved; additional diligence reduced uncertainty."
+
+        :
+
+        "Operating performance remained broadly within the modeled base range.";
+
+    }
+
+    log(
+      `TIME ADVANCED → T+90.
+      OUTCOME OBSERVED.`
+    );
+
+    render();
+
+    return;
+  }
+
+
+  if (state.time === "T+90") {
+
+    state.time = "T+180";
+
+    state.stage = 8;
+
+    state.attribution =
+      state.shock
+
+      ?
+
+      "Attribution: the system's downside concerns about financing and liquidity were directionally correct. The original underwriting underweighted correlated stress."
+
+      :
+
+      "Attribution: the system correctly identified entry price as the dominant uncertainty. The outcome provided limited evidence for the base thesis.";
+
+    log(
+      "ATTRIBUTION ENGINE:
+      comparing prediction, assumptions and realized outcome."
+    );
+
+    render();
+
+    return;
+  }
+
+
+  if (state.time === "T+180") {
+
+    state.time = "T+365";
+
+    state.stage = 9;
+
+    let learning;
+
+    if (state.shock) {
+
+      learning =
+        "Learning episode: refinancing and liquidity risks should receive greater weight when multiple downside assumptions can become correlated under stress.";
+
+    } else if (
+      state.icDecision === "NO-GO"
+    ) {
+
+      learning =
+        "Learning episode: NO-GO is a valid successful decision when unresolved uncertainty prevents adequate margin of safety.";
+
+    } else {
+
+      learning =
+        "Learning episode: preserve independent disagreement and verify price-sensitive assumptions before treating a coherent thesis as investable.";
+
+    }
+
+    state.memory.unshift({
+
+      title:
+        `T+365 / ${state.icDecision} / ${state.time}`,
+
+      text:
+        learning
+
+    });
+
+    log(
+      "EPISTEMIC MEMORY UPDATED."
+    );
+
+    log(
+      "Outcome converted into reusable institutional learning."
+    );
+
+    render();
+
+    return;
+  }
+
+
+  log(
+    "Full simulation cycle complete."
+  );
+
+  render();
+}
+
+
+function resetSystem() {
+
+  state.stage = 0;
+  state.time = "T+0";
+  state.shock = false;
+  state.challenged = false;
+  state.icDecision = null;
+  state.outcome = null;
+  state.attribution = null;
+
+  state.results =
+    JSON.parse(JSON.stringify(AGENTS));
+
+  state.memory =
+    JSON.parse(JSON.stringify(initialMemory));
+
+  state.logs = [];
+
+  log(
+    "AletheiaTelos reset.
+    Awaiting new opportunity."
+  );
+
+  render();
+}
+
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+
+log(
+  "AletheiaTelos simulator initialized."
+);
+
+log(
+  "Governance boundary:
+  human authority remains explicit."
+);
+
+render();
+
+</script>
+
+</body>
+</html>
