@@ -1,4 +1,9 @@
+from datetime import datetime, timezone
+
 from app.evidence_orchestration import run_evidence_fed_agents
+
+
+NOW = datetime(2026, 9, 8, 12, 0, tzinfo=timezone.utc)
 
 
 class RecordingProvider:
@@ -39,7 +44,7 @@ def test_evidence_orchestration_uses_injected_provider_for_every_perspective():
     result = run_evidence_fed_agents(
         "Assess the opportunity",
         valid_evidence(),
-        now="2026-09-08T12:00:00+00:00",
+        now=NOW,
         provider=provider,
     )
     assert result["provider"] == "recording"
@@ -53,7 +58,7 @@ def test_invalid_evidence_never_reaches_provider():
     result = run_evidence_fed_agents(
         "Assess the opportunity",
         [{"evidence_id": "bad", "source": "unit-test", "claim": "Future claim", "observed_at": "2027-01-01T00:00:00+00:00"}],
-        now="2026-09-08T12:00:00+00:00",
+        now=NOW,
         provider=provider,
     )
     assert result["usable_evidence_count"] == 0
