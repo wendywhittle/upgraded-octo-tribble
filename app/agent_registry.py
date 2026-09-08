@@ -46,6 +46,6 @@ def run_default_agents(
     runner = AgentRunner()
     evidence_by_agent = evidence_by_agent or {agent_id: [] for agent_id, *_ in _ROSTER}
     return [
-        runner.run(registry._agents[agent_id], question, evidence_by_agent.get(agent_id, []))
+        runner.run(registry.get(agent_id), question, evidence_by_agent.get(agent_id, []))
         for agent_id in registry.ids()
     ]
