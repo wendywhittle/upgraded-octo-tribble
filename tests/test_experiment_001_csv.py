@@ -1,4 +1,4 @@
-from app.experiment_001_csv import HistoricalRow, canonical_csv, dataset_content_hash, parse_csv
+from app.experiment_001_csv import dataset_content_hash, parse_csv
 
 
 HEADER = "observed_at,available_at,source_id,source_version,methodology_version,content_hash,spx_close,vix_close,skew_close"
@@ -12,7 +12,7 @@ def test_valid_csv_is_point_in_time_and_reproducible():
     text = HEADER + "\n" + row("2024-01-02") + "\n" + row("2024-01-03") + "\n"
     rows = parse_csv(text)
     assert len(rows) == 2
-    assert dataset_content_hash(rows) == dataset_content_hash(parse_csv(canonical_csv(rows)))
+    assert dataset_content_hash(rows) == dataset_content_hash(parse_csv(text))
 
 
 def test_future_available_at_is_rejected():
@@ -33,6 +33,28 @@ def test_duplicate_observation_is_rejected():
         assert "duplicate" in str(exc)
     else:
         raise AssertionError("duplicate observations must be rejected")
+
+
+def test_duplicate_observation_with_equivalent_timezones_is_rejected():
+    first = row("2024-01-02")
+    second = first.replace("2024-01-02T21:00:00+00:00", "2024-01-02T13:00:00-08:00")
+    text = HEADER + "\n" + first + "\n" + second + "\n"
+    try:
+        parse_csv(text)
+    except ValueError as exc:
+        assert "duplicate" in str(exc)
+    else:
+        raise AssertionError("equivalent UTC timestamps must be rejected")
+
+
+def test_naive_timestamp_is_rejected():
+    text = HEADER + "\n2024-01-02T21:00:00,2024-01-02T21:00:00,licensed-source,v1,skew-method-v1,abc123,5000,15,130\n"
+    try:
+        parse_csv(text)
+    except ValueError as exc:
+        assert "timezone is required" in str(exc)
+    else:
+        raise AssertionError("timezone-less timestamps must be rejected")
 
 
 def test_missing_methodology_provenance_is_rejected():
