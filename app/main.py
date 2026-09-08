@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from fastapi import FastAPI
 
 from app.agent_registry import run_default_agents
+from app.analysis_endpoint import build_analysis_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
 from app.live_market_endpoint import build_live_market_router
@@ -13,25 +14,13 @@ from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
+from app.orchestrator import detect_conflicts
 
-app = FastAPI(title="AletheiaTelos", version="1.8.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.9.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def detect_conflicts(agents: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
-    conflicts, horizon_divergences = [], []
-    for i, first in enumerate(agents):
-        for second in agents[i + 1:]:
-            if first.get("direction") in {"NEUTRAL", "NO_DATA"} or second.get("direction") in {"NEUTRAL", "NO_DATA"} or first.get("direction") == second.get("direction"):
-                continue
-            if first.get("horizon") == second.get("horizon"):
-                conflicts.append({"agent_a": first["agent_id"], "agent_b": second["agent_id"], "direction_a": first["direction"], "direction_b": second["direction"], "horizon": first["horizon"], "type": "same_horizon_conflict"})
-            else:
-                horizon_divergences.append({"agent_a": first["agent_id"], "agent_b": second["agent_id"], "direction_a": first["direction"], "direction_b": second["direction"], "horizon_a": first["horizon"], "horizon_b": second["horizon"], "type": "horizon_divergence"})
-    return {"conflicts": conflicts, "horizon_divergences": horizon_divergences}
 
 
 def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[str, Any]]], skeptic: Dict[str, Any]) -> Dict[str, Any]:
@@ -43,8 +32,8 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
         verdict = "CONDITIONAL GO"
     else:
         verdict = "INVESTIGATE"
-    long_score = sum(a["confidence"] for a in agents if a.get("direction") == "LONG")
-    short_score = sum(a["confidence"] for a in agents if a.get("direction") == "SHORT")
+    long_score = sum(a.get("confidence", 0.0) for a in agents if a.get("direction") == "LONG")
+    short_score = sum(a.get("confidence", 0.0) for a in agents if a.get("direction") == "SHORT")
     total = long_score + short_score
     return {
         "verdict": verdict,
@@ -57,9 +46,11 @@ def synthesize(agents: List[Dict[str, Any]], conflict_data: Dict[str, List[Dict[
     }
 
 
+app.include_router(build_analysis_router())
+
 @app.get("/")
 def root():
-    return {"system": "AletheiaTelos", "status": "operational", "version": "1.8.0", "live_market_data": live_market_enabled()}
+    return {"system": "AletheiaTelos", "status": "operational", "version": "1.9.0", "live_market_data": live_market_enabled()}
 
 
 @app.get("/health")
@@ -89,8 +80,6 @@ def simulate(request: SimulationRequest):
     agents, evidence_validation = apply_evidence_gate(raw_agents)
     conflict_data = detect_conflicts(agents)
 
-    # Risk simulation remains independent of agent conclusions. Agent assumptions
-    # may be recorded for audit, but they do not control the simulation engine.
     simulation = run_monte_carlo(
         request.initial_value,
         request.horizon_steps,
@@ -107,7 +96,7 @@ def simulate(request: SimulationRequest):
 
     return {
         "system": "AletheiaTelos",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "question": request.question,
         "timestamp": timestamp(),
         "agents": agents,
