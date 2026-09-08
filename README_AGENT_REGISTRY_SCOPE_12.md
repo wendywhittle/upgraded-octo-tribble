@@ -1,0 +1,1 @@
+The formal agent registry is a non-executable research boundary.
