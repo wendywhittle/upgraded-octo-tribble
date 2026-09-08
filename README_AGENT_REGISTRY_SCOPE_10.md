@@ -1,0 +1,1 @@
+AletheiaTelos agents are research components, not autonomous trading actors.
