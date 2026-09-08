@@ -1,19 +1,20 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from app.agent_registry import run_default_agents
 from app.analysis_endpoint import build_analysis_router
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
-from app.learning_endpoint import LearningRequest, build_learning_router
 from app.learning import build_learning_report
+from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
 from app.memory import append_record, build_record, read_records
 from app.observer import observe
-from app.prediction_resolution_endpoint import build_prediction_resolution_router
+from app.prediction_resolution import resolve_prediction
+from app.prediction_resolution_endpoint import PredictionResolutionRequest, build_prediction_resolution_router
 from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 from app.simulator import run_monte_carlo
@@ -59,11 +60,34 @@ app.include_router(build_calibration_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 
-# Keep the public application boundary explicit even if router registration changes.
+# Explicit application-boundary fallbacks keep the public routes observable even if
+# router composition is altered by a future integration refactor.
 if not any(getattr(route, "path", None) == "/observer/learning" for route in app.routes):
     @app.post("/observer/learning")
     def observer_learning(request: LearningRequest) -> Dict[str, Any]:
         return build_learning_report(read_records(), bins=request.bins)
+
+if not any(getattr(route, "path", None) == "/predictions/resolve" for route in app.routes):
+    @app.post("/predictions/resolve")
+    def resolve_prediction_route(request: PredictionResolutionRequest) -> Dict[str, Any]:
+        prediction_id = request.prediction.get("prediction_id")
+        if any(
+            record.get("record_type") == "prediction_resolution"
+            and record.get("prediction_id") == prediction_id
+            for record in read_records()
+        ):
+            raise HTTPException(status_code=409, detail="prediction_id has already been resolved")
+        try:
+            result = resolve_prediction(
+                request.prediction,
+                request.outcome,
+                request.resolved_at,
+                request.outcome_source,
+            )
+            append_record(result)
+            return result
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @app.get("/")
 def root():
