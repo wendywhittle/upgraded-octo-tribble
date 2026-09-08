@@ -19,10 +19,36 @@ def test_explicit_probability_gets_stable_prediction_id():
                 "invalidation_conditions": [],
             }
 
-    first = AgentRunner(Provider()).run(agent, "Will the thesis hold?", [])
-    second = AgentRunner(Provider()).run(agent, "Will the thesis hold?", [])
+    evidence = [{"evidence_id": "E-1"}]
+    first = AgentRunner(Provider()).run(agent, "Will the thesis hold?", evidence)
+    second = AgentRunner(Provider()).run(agent, "Will the thesis hold?", evidence)
     assert first["prediction_id"] == second["prediction_id"]
     assert first["predicted_probability"] == 0.8
+
+
+def test_changed_evidence_context_creates_new_prediction_id():
+    agent = build_default_registry().get("quant")
+
+    class Provider:
+        name = "test-model"
+
+        def assess(self, agent, question, evidence):
+            return {
+                "direction": "LONG",
+                "confidence": 0.7,
+                "predicted_probability": 0.8,
+                "model_version": "test-1",
+                "evidence": [],
+                "assumptions": [],
+                "invalidation_conditions": [],
+            }
+
+    runner = AgentRunner(Provider())
+    evidence_a = [{"evidence_id": "E-1", "source": "test", "claim": "first"}]
+    evidence_b = [{"evidence_id": "E-2", "source": "test", "claim": "second"}]
+    first = runner.run(agent, "Question", evidence_a)
+    second = runner.run(agent, "Question", evidence_b)
+    assert first["prediction_id"] != second["prediction_id"]
 
 
 def test_confidence_alone_does_not_create_prediction_id():
