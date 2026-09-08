@@ -8,7 +8,8 @@ from app.analysis_endpoint import build_analysis_router
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
-from app.learning_endpoint import build_learning_router
+from app.learning_endpoint import LearningRequest, build_learning_router
+from app.learning import build_learning_report
 from app.live_market_endpoint import build_live_market_router
 from app.memory import append_record, build_record, read_records
 from app.observer import observe
@@ -57,6 +58,12 @@ app.include_router(build_analysis_router())
 app.include_router(build_calibration_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
+
+# Keep the public application boundary explicit even if router registration changes.
+if not any(getattr(route, "path", None) == "/observer/learning" for route in app.routes):
+    @app.post("/observer/learning")
+    def observer_learning(request: LearningRequest) -> Dict[str, Any]:
+        return build_learning_report(read_records(), bins=request.bins)
 
 @app.get("/")
 def root():
