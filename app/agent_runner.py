@@ -43,7 +43,15 @@ class AgentRunner:
         except Exception as exc:
             raise ValueError(f"Model provider returned invalid AgentOutput: {exc}") from exc
 
-        output = validated.model_dump()
+        if hasattr(validated, "model_dump"):
+            validated_data = validated.model_dump()
+        else:
+            validated_data = validated.dict()
+
+        # Keep useful provider metadata while making the validated AgentOutput canonical.
+        output = dict(result)
+        output.update(validated_data)
+        output["capability_profile"] = dict(capabilities)
         output["agent_runner"] = self.__class__.__name__
         output["provider"] = self.provider.name
         output["execution_capability"] = False
