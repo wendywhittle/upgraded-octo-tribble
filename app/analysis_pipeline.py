@@ -1,12 +1,13 @@
 """Full evidence-to-decision-intelligence pipeline.
 
-Evidence integrity precedes reasoning. Risk simulation is independent of agent
-conclusions. Institutional learning is advisory context only. No execution
-capability exists in this module.
+Evidence integrity precedes reasoning. Independent perspectives feed typed conflict
+intelligence; risk simulation remains independent of agent conclusions. Institutional
+learning is advisory context only. No execution capability exists in this module.
 """
 
 from typing import Any, Dict, Iterable
 
+from app.conflict_intelligence import detect_conflict_intelligence
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -18,21 +19,22 @@ from app.skeptic import review as skeptic_review
 
 
 def detect_conflicts(agents: list[Dict[str, Any]]) -> Dict[str, list[Dict[str, Any]]]:
-    """Record disagreement explicitly instead of averaging it away."""
-    conflicts: list[Dict[str, Any]] = []
-    horizon_divergences: list[Dict[str, Any]] = []
-    for i, first in enumerate(agents):
-        for second in agents[i + 1:]:
-            first_direction = first.get("direction")
-            second_direction = second.get("direction")
-            if first_direction in {"NEUTRAL", "NO_DATA"} or second_direction in {"NEUTRAL", "NO_DATA"}:
-                continue
-            if first_direction == second_direction:
-                continue
-            if first.get("horizon") == second.get("horizon"):
-                conflicts.append({"agent_a": first["agent_id"], "agent_b": second["agent_id"], "direction_a": first_direction, "direction_b": second_direction, "horizon": first.get("horizon"), "type": "same_horizon_conflict"})
-            else:
-                horizon_divergences.append({"agent_a": first["agent_id"], "agent_b": second["agent_id"], "direction_a": first_direction, "direction_b": second_direction, "horizon_a": first.get("horizon"), "horizon_b": second.get("horizon"), "type": "horizon_divergence"})
+    """Compatibility projection of typed conflict intelligence."""
+    records = detect_conflict_intelligence(agents)
+    conflicts = []
+    horizon_divergences = []
+    for record in records:
+        perspectives = record["perspectives"]
+        item = {
+            "agent_a": perspectives[0],
+            "agent_b": perspectives[1],
+            "type": record["conflict_type"],
+            "conflict_record": record,
+        }
+        if record["conflict_type"] == "horizon":
+            horizon_divergences.append(item)
+        else:
+            conflicts.append(item)
     return {"conflicts": conflicts, "horizon_divergences": horizon_divergences}
 
 
@@ -49,7 +51,22 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     long_score = sum(a.get("confidence", 0.0) for a in agents if a.get("direction") == "LONG")
     short_score = sum(a.get("confidence", 0.0) for a in agents if a.get("direction") == "SHORT")
     total = long_score + short_score
-    return {"verdict": verdict, "conviction": round(abs(long_score - short_score) / total, 3) if total else 0.0, "long_evidence": round(long_score, 3), "short_evidence": round(short_score, 3), "conflict_count": len(conflict_data["conflicts"]), "key_risks": ["Financing sensitivity", "Valuation assumptions", "Downside scenario uncertainty"], "unresolved_questions": ["What evidence would invalidate the core thesis?", "Which assumptions are most sensitive?", "Does the downside case preserve an adequate margin of safety?"]}
+    unresolved = []
+    for item in conflict_data["conflicts"] + conflict_data["horizon_divergences"]:
+        unresolved.extend(item.get("conflict_record", {}).get("unresolved_questions", []))
+    return {
+        "verdict": verdict,
+        "conviction": round(abs(long_score - short_score) / total, 3) if total else 0.0,
+        "long_evidence": round(long_score, 3),
+        "short_evidence": round(short_score, 3),
+        "conflict_count": len(conflict_data["conflicts"]),
+        "key_risks": ["Financing sensitivity", "Valuation assumptions", "Downside scenario uncertainty"],
+        "unresolved_questions": list(dict.fromkeys(unresolved)) or [
+            "What evidence would invalidate the core thesis?",
+            "Which assumptions are most sensitive?",
+            "Does the downside case preserve an adequate margin of safety?",
+        ],
+    }
 
 
 def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None) -> Dict[str, Any]:
@@ -91,4 +108,32 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         observer=observer,
         governance=governance,
     )
-    return {"system": "AletheiaTelos", "question": question, "institutional_learning": learning_context, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "synthesis": synthesis, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->agents->conflict->independent_risk->skeptic->synthesis->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"]}}
+    return {
+        "system": "AletheiaTelos",
+        "question": question,
+        "institutional_learning": learning_context,
+        "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        "agents": agents,
+        "active_perspectives": agent_stage["active_perspectives"],
+        "registered_agent_count": agent_stage["registered_agent_count"],
+        "conflicts": conflict_data["conflicts"],
+        "horizon_divergences": conflict_data["horizon_divergences"],
+        "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"],
+        "simulation": simulation,
+        "skeptic": skeptic,
+        "synthesis": synthesis,
+        "observer": observer,
+        "governance": governance,
+        "kaleidoscope": kaleidoscope,
+        "audit": {
+            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->synthesis->governance->observer->memory",
+            "simulation_independent_of_agents": True,
+            "simulation_seed": seed,
+            "memory_recorded": True,
+            "research_only": True,
+            "human_decision_required": True,
+            "provider": agent_stage["provider"],
+            "learning_context_supplied": agent_stage["learning_context_supplied"],
+            "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"],
+        },
+    }
