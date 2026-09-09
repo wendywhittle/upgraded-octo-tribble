@@ -1,13 +1,13 @@
 """Evidence-fed research orchestration boundary.
 
-Validated evidence is distributed to the canonical Computational Kaleidoscope and
+Validated evidence is distributed to the selected Iteration 2A perspectives and
 executed through AgentRunner so provider substitution remains explicit and auditable.
 No execution, brokerage, credential, or portfolio-mutation capability is introduced.
 """
 
 from typing import Any, Dict, Iterable
 
-from app.agent_registry import build_default_registry
+from app.agent_registry import active_perspective_ids, build_default_registry
 from app.agent_runner import AgentRunner
 from app.evidence import validate_evidence
 from app.model_provider import ModelProvider
@@ -30,7 +30,7 @@ def run_evidence_fed_agents(
     provider: ModelProvider | None = None,
     learning_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Run the canonical roster using integrity-checked evidence and prior learning."""
+    """Run the four active Iteration 2A perspectives using the same validated evidence."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
@@ -44,7 +44,8 @@ def run_evidence_fed_agents(
             usable.append(item)
 
     registry = build_default_registry()
-    evidence_by_agent = distribute_evidence(usable, registry.ids())
+    active_ids = active_perspective_ids()
+    evidence_by_agent = distribute_evidence(usable, active_ids)
     runner = AgentRunner(provider)
     agents = [
         runner.run(
@@ -53,12 +54,14 @@ def run_evidence_fed_agents(
             evidence_by_agent.get(agent_id, []),
             learning_context=learning_context,
         )
-        for agent_id in registry.ids()
+        for agent_id in active_ids
     ]
 
     return {
         "question": question,
         "agent_count": len(agents),
+        "active_perspectives": active_ids,
+        "registered_agent_count": len(registry.ids()),
         "agents": agents,
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
@@ -66,6 +69,7 @@ def run_evidence_fed_agents(
         "validation": validation,
         "provider": runner.provider.name,
         "learning_context_supplied": bool(learning_context),
+        "perspectives_share_conclusions": False,
         "research_only": True,
         "execution_capability": False,
         "brokerage_connectivity": False,
