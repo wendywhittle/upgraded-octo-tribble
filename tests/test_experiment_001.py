@@ -7,7 +7,7 @@ def _observations():
         # Deterministic synthetic fixture only: it tests mechanics, not the
         # empirical SKEW hypothesis. Real historical data must replace it.
         skew = 115 + (i % 8) * 2
-        event = i >= 28 and i % 3 == 0
+        event = (i % 7 == 0) or (i >= 28 and i % 3 == 0)
         drawdown = -0.04 if event else -0.005
         rows.append(
             Observation(
