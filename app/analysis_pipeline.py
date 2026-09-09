@@ -28,7 +28,8 @@ def detect_conflicts(agents: list[Dict[str, Any]]) -> Dict[str, list[Dict[str, A
         item = {
             "agent_a": perspectives[0],
             "agent_b": perspectives[1],
-            "type": record["conflict_type"],
+            "type": "horizon_divergence" if record["conflict_type"] == "horizon" else "same_horizon_conflict",
+            "conflict_type": record["conflict_type"],
             "conflict_record": record,
         }
         if record["conflict_type"] == "horizon":
