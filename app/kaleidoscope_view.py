@@ -5,10 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable
 
 
-PERSPECTIVES = (
-    "researcher", "quant", "investor", "scientist", "systems",
-    "contrarian", "philosopher", "observer", "meta_intelligence", "governance",
-)
+PERSPECTIVES = ("researcher", "quant", "skeptic", "contrarian")
 
 
 def build_kaleidoscope_view(
@@ -30,7 +27,7 @@ def build_kaleidoscope_view(
     cards = [
         {
             "agent_id": agent.get("agent_id"),
-            "role": agent.get("role"),
+            "role": agent.get("strategy"),
             "direction": agent.get("direction"),
             "confidence": agent.get("confidence", 0.0),
             "horizon": agent.get("horizon"),
