@@ -9,7 +9,8 @@ def _csv(rows=40):
     data = [header]
     for i in range(rows):
         stamp = (start + timedelta(days=i)).isoformat()
-        data.append(f"{stamp},{stamp},fixture,v1,m1,{'a'*64},{3000+i},{15+i/10},{120+i/10}")
+        spx = 3000 + i - (150 if i % 10 == 0 else 0)
+        data.append(f"{stamp},{stamp},fixture,v1,m1,{'a'*64},{spx},{15+i/10},{120+i/10}")
     return "\n".join(data)
 
 
