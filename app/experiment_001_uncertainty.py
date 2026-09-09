@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import log
 from random import Random
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Sequence
 
 
 @dataclass(frozen=True)
@@ -92,8 +92,8 @@ def moving_block_bootstrap(
     n = len(y)
     if not (n == len(baseline_probability) == len(augmented_probability)):
         raise ValueError("Outcome and probability lengths must match.")
-    if n < 10:
-        raise ValueError("At least 10 evaluation observations are required.")
+    if n < 8:
+        raise ValueError("At least 8 evaluation observations are required.")
     if len(set(y)) < 2:
         raise ValueError("Evaluation outcomes must contain both classes.")
     if block_length <= 0 or block_length > n:
@@ -115,7 +115,6 @@ def moving_block_bootstrap(
             indices.extend((start + offset) % n for offset in range(block_length))
         indices = indices[:n]
         sampled_y = [y[i] for i in indices]
-        # AUC/log-loss/brier are undefined or unstable for a single-class draw.
         if len(set(sampled_y)) < 2:
             continue
         sampled_base = [baseline_probability[i] for i in indices]
