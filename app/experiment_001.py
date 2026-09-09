@@ -75,6 +75,8 @@ def _standardize(train: Sequence[Sequence[float]], rows: Sequence[Sequence[float
 def _fit_logistic(x: Sequence[Sequence[float]], y: Sequence[int], iterations: int = 2500, learning_rate: float = 0.05) -> List[float]:
     if not x or len(x) != len(y):
         raise ValueError("Feature and outcome lengths must match and be non-empty.")
+    if len(set(y)) < 2:
+        raise ValueError("Training outcomes must contain both positive and negative classes.")
     width = len(x[0])
     weights = [0.0] * (width + 1)
     n = len(x)
@@ -99,7 +101,7 @@ def _auc(y: Sequence[int], probabilities: Sequence[float]) -> float:
     positives = [p for p, target in zip(probabilities, y) if target == 1]
     negatives = [p for p, target in zip(probabilities, y) if target == 0]
     if not positives or not negatives:
-        return 0.5
+        raise ValueError("AUC requires both positive and negative classes in the evaluation set.")
     wins = 0.0
     for positive in positives:
         for negative in negatives:
@@ -111,6 +113,8 @@ def _auc(y: Sequence[int], probabilities: Sequence[float]) -> float:
 
 
 def _metrics(y: Sequence[int], probabilities: Sequence[float]) -> ModelMetrics:
+    if len(set(y)) < 2:
+        raise ValueError("Evaluation outcomes must contain both positive and negative classes.")
     eps = 1e-12
     clipped = [min(1.0 - eps, max(eps, p)) for p in probabilities]
     brier = sum((p - target) ** 2 for p, target in zip(clipped, y)) / len(y)
@@ -143,6 +147,11 @@ def evaluate_experiment_001(
 
     y = [int(item.future_max_drawdown <= spec.drawdown_threshold) for item in ordered]
     train_y, test_y = y[:split], y[split:]
+    if len(set(train_y)) < 2:
+        raise ValueError("Chronological training window contains only one outcome class; EXP-001 cannot be evaluated.")
+    if len(set(test_y)) < 2:
+        raise ValueError("Chronological test window contains only one outcome class; EXP-001 metrics are not identifiable.")
+
     baseline_train = [_features(item, spec.baseline_features) for item in ordered[:split]]
     baseline_test = [_features(item, spec.baseline_features) for item in ordered[split:]]
     augmented_train = [_features(item, spec.baseline_features + spec.incremental_features) for item in ordered[:split]]
@@ -168,6 +177,16 @@ def evaluate_experiment_001(
             "train_fraction": spec.train_fraction,
             "chronological_split": True,
             "point_in_time_required": True,
+        },
+        "dataset_diagnostics": {
+            "total_observations": len(ordered),
+            "training_observations": len(train_y),
+            "test_observations": len(test_y),
+            "training_positive_events": sum(train_y),
+            "training_negative_events": len(train_y) - sum(train_y),
+            "test_positive_events": sum(test_y),
+            "test_negative_events": len(test_y) - sum(test_y),
+            "test_positive_rate": sum(test_y) / len(test_y),
         },
         "baseline": baseline.__dict__,
         "augmented": augmented.__dict__,
