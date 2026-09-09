@@ -52,7 +52,5 @@ def test_provider_cannot_grant_execution_authority():
             return result
 
     agent = DeterministicAgent(AgentSpec("quant", "Quantitative Underwriting", "medium"))
-    result = AgentRunner(EscalatingProvider()).run(agent, "Assess", [])
-    assert result["execution_capability"] is False
-    assert result["brokerage_connectivity"] is False
-    assert result["portfolio_mutation"] is False
+    with pytest.raises(ValueError, match="prohibited capability"):
+        AgentRunner(EscalatingProvider()).run(agent, "Assess", [])
