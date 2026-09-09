@@ -2,7 +2,7 @@
 
 Use this checklist when an authorized historical dataset is available.
 
-- [ ] Confirm the dataset is an authorized export/licensed feed.
+- [ ] Confirm the dataset is an authorized export or licensed feed.
 - [ ] Preserve the raw source outside the repository when redistribution is restricted.
 - [ ] Confirm every row has source ID, source version, methodology version, and content provenance.
 - [ ] Confirm `observed_at` and `available_at` are timezone-aware and normalize consistently.
