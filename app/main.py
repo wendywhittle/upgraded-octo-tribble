@@ -8,7 +8,8 @@ from app.analysis_endpoint import build_analysis_router
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
-from app.experiment_001_endpoint import build_experiment_001_router
+from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
+from app.experiment_001_runner import run_experiment_001_from_csv
 from app.learning import build_learning_report
 from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
@@ -88,6 +89,14 @@ if not any(getattr(route, "path", None) == "/predictions/resolve" for route in a
             )
             append_record(result)
             return result
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+if not any(getattr(route, "path", None) == "/experiments/EXP-001/run" for route in app.routes):
+    @app.post("/experiments/EXP-001/run", tags=["experiments"])
+    def run_experiment_001_route(request: Experiment001Request) -> Dict[str, Any]:
+        try:
+            return run_experiment_001_from_csv(request.csv_text)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
