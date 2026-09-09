@@ -4,7 +4,7 @@ from typing import Any, Dict
 from fastapi import FastAPI, HTTPException
 
 from app.analysis_endpoint import build_analysis_router
-from app.analysis_pipeline import detect_conflicts, run_analysis, simulate, synthesize
+from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
@@ -93,7 +93,7 @@ if live_market_enabled():
 
 
 @app.post("/simulate")
-def simulate_route(request: SimulationRequest):
+def simulate(request: SimulationRequest):
     """Compatibility route delegating to the canonical analysis pipeline."""
     result = run_analysis(
         question=request.question,
