@@ -10,8 +10,11 @@ def _csv(rows=40):
     start = datetime(2020, 1, 1, tzinfo=timezone.utc)
     for i in range(rows):
         stamp = (start + timedelta(days=i)).isoformat()
+        # Deterministic synthetic fixture only. Periodic shocks ensure both
+        # outcome classes exist after the locked 5-day label construction.
+        spx = 3000 + i - (150 if i % 10 == 0 else 0)
         lines.append(
-            f"{stamp},{stamp},fixture,v1,m1,{'a'*64},{3000+i},{15+i/10},{120+i/10}"
+            f"{stamp},{stamp},fixture,v1,m1,{'a'*64},{spx},{15+i/10},{120+i/10}"
         )
     return "\n".join(lines)
 
