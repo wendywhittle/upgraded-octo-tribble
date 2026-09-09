@@ -31,11 +31,15 @@ def test_evidence_fed_runner_uses_only_validated_evidence():
         [evidence_item(), evidence_item("blocked", decision_usable=False)],
         now=NOW,
     )
-    assert result["agent_count"] == 10
+    assert result["agent_count"] == 4
+    assert result["active_perspectives"] == ["researcher", "quant", "skeptic", "contrarian"]
+    assert result["registered_agent_count"] == 10
     assert result["evidence_count"] == 2
     assert result["usable_evidence_count"] == 1
     assert result["blocked_evidence_count"] == 1
     assert all(agent["direction"] != "NO_DATA" for agent in result["agents"])
+    assert all(agent["evidence_basis"] == ["e1"] for agent in result["agents"])
+    assert result["perspectives_share_conclusions"] is False
     assert result["research_only"] is True
     assert result["execution_capability"] is False
     assert result["brokerage_connectivity"] is False
