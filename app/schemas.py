@@ -24,7 +24,9 @@ class AgentOutput(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     horizon: str
     evidence: List[Evidence] = Field(default_factory=list)
+    evidence_basis: List[str] = Field(default_factory=list)
     contradictory_evidence: List[Evidence] = Field(default_factory=list)
+    contradictory_evidence_basis: List[str] = Field(default_factory=list)
     invalidation_conditions: List[str] = Field(default_factory=list)
     data_timestamp: Optional[str] = None
     model_version: str
