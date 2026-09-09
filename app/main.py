@@ -8,6 +8,8 @@ from app.analysis_endpoint import build_analysis_router
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.evidence import apply_evidence_gate
+from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
+from app.experiment_001_runner import run_experiment_001_from_csv
 from app.learning import build_learning_report
 from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
@@ -20,7 +22,7 @@ from app.schemas import SimulationRequest
 from app.simulator import run_monte_carlo
 from app.skeptic import review as skeptic_review
 
-app = FastAPI(title="AletheiaTelos", version="1.10.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.11.0", description="Research and decision intelligence system; not an autonomous trading system.")
 
 
 def timestamp() -> str:
@@ -59,6 +61,7 @@ app.include_router(build_analysis_router())
 app.include_router(build_calibration_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
+app.include_router(build_experiment_001_router())
 
 # Explicit application-boundary fallbacks keep the public routes observable even if
 # router composition is altered by a future integration refactor.
@@ -89,9 +92,17 @@ if not any(getattr(route, "path", None) == "/predictions/resolve" for route in a
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+if not any(getattr(route, "path", None) == "/experiments/EXP-001/run" for route in app.routes):
+    @app.post("/experiments/EXP-001/run", tags=["experiments"])
+    def run_experiment_001_route(request: Experiment001Request) -> Dict[str, Any]:
+        try:
+            return run_experiment_001_from_csv(request.csv_text)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 @app.get("/")
 def root():
-    return {"system": "AletheiaTelos", "status": "operational", "version": "1.10.0", "live_market_data": live_market_enabled()}
+    return {"system": "AletheiaTelos", "status": "operational", "version": "1.11.0", "live_market_data": live_market_enabled()}
 
 
 @app.get("/health")
@@ -125,4 +136,4 @@ def simulate(request: SimulationRequest):
     observer = observe(request.question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(request.question, agents, conflict_data, simulation, skeptic, synthesis, governance, request.seed)
     append_record(record)
-    return {"system": "AletheiaTelos", "version": "1.10.0", "question": request.question, "timestamp": timestamp(), "agents": agents, "evidence_validation": evidence_validation, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "observer": observer, "breaker": {"status": "pending", "decision": "pending", "human_decision_required": True}, "meta_intelligence": {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."}, "synthesis": synthesis, "governance": governance, "audit": {"reproducible": True, "simulation_seed": request.seed, "point_in_time_evidence_required": True, "evidence_gate": "active", "memory_recorded": True, "agent_registry": "active", "agent_runner": "active"}}
+    return {"system": "AletheiaTelos", "version": "1.11.0", "question": request.question, "timestamp": timestamp(), "agents": agents, "evidence_validation": evidence_validation, "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "observer": observer, "breaker": {"status": "pending", "decision": "pending", "human_decision_required": True}, "meta_intelligence": {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."}, "synthesis": synthesis, "governance": governance, "audit": {"reproducible": True, "simulation_seed": request.seed, "point_in_time_evidence_required": True, "evidence_gate": "active", "memory_recorded": True, "agent_registry": "active", "agent_runner": "active"}}
