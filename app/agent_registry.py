@@ -11,7 +11,15 @@ from app.agent_runner import AgentRunner
 
 
 _ROSTER = (
-    ("researcher", "Fundamental Research", "medium", "LONG", 0.72, "The opportunity appears fundamentally supportable pending diligence.", "Asset-level assumptions may be overstated."),
+    (
+        "researcher",
+        "Evidence-Bound Fundamental Research",
+        "medium",
+        "NEUTRAL",
+        0.0,
+        "Assess only what can be supported or challenged by the supplied decision-usable evidence.",
+        "The supplied evidence may be incomplete, contradictory, stale, or insufficient for a conclusion.",
+    ),
     ("quant", "Quantitative Underwriting", "medium", "LONG", 0.68, "The modeled return profile appears attractive under the base case.", "Downside sensitivity may be nonlinear."),
     ("investor", "Investment Thesis", "long", "LONG", 0.76, "Entry valuation may provide an acceptable margin of safety.", "Exit assumptions could be too optimistic."),
     ("scientist", "Scenario Analysis", "medium", "NEUTRAL", 0.61, "The result depends materially on assumptions that require testing.", "Scenario distributions may be wider than expected."),
@@ -37,10 +45,7 @@ def build_default_registry() -> AgentRegistry:
     )
 
 
-def run_default_agents(
-    question: str,
-    evidence_by_agent: Dict[str, Iterable[Dict[str, Any]]] | None = None,
-) -> list[Dict[str, Any]]:
+def run_default_agents(question: str, evidence_by_agent: Dict[str, Iterable[Dict[str, Any]]] | None = None) -> list[Dict[str, Any]]:
     """Run every registered perspective through the provider-agnostic runner."""
     registry = build_default_registry()
     runner = AgentRunner()
