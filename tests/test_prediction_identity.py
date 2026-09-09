@@ -19,7 +19,7 @@ def test_explicit_probability_gets_stable_prediction_id():
                 "invalidation_conditions": [],
             }
 
-    evidence = [{"evidence_id": "E-1"}]
+    evidence = [{"evidence_id": "E-1", "source": "test", "claim": "observed test evidence"}]
     first = AgentRunner(Provider()).run(agent, "Will the thesis hold?", evidence)
     second = AgentRunner(Provider()).run(agent, "Will the thesis hold?", evidence)
     assert first["prediction_id"] == second["prediction_id"]
