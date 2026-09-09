@@ -1,14 +1,17 @@
-"""Guarded callable model backend for AletheiaTelos.
+"""Guarded model backends for AletheiaTelos.
 
-This module provides the smallest practical bridge from an external model runtime
-into the existing provider contract. It intentionally accepts a caller-supplied
-callable rather than importing a vendor SDK. The callable has no access to tools
-through this boundary; its output is validated by AgentRunner before it can enter the reasoning pipeline.
+The callable backend remains the generic test seam. The OpenAI Responses backend
+is the first real model implementation and is deliberately limited to structured
+research output. It has no tool access and never receives execution authority.
 """
 
 from __future__ import annotations
 
+import json
+import os
 from typing import Any, Callable, Dict, Iterable, Mapping
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from app.agent_contract import Agent
 from app.model_provider import ModelProvider
@@ -65,13 +68,180 @@ class CallableModelBackend:
         return result
 
 
-class CallableModelProvider(ModelProvider):
-    """ModelProvider implementation backed by a guarded callable."""
+_RESEARCH_OUTPUT_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "direction": {"type": "string", "enum": ["LONG", "SHORT", "NEUTRAL", "NO_DATA"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "horizon": {"type": "string"},
+        "thesis": {"type": "string"},
+        "evidence_basis": {"type": "array", "items": {"type": "string"}},
+        "contradictory_evidence_basis": {"type": "array", "items": {"type": "string"}},
+        "invalidation_conditions": {"type": "array", "items": {"type": "string"}},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "direction",
+        "confidence",
+        "horizon",
+        "thesis",
+        "evidence_basis",
+        "contradictory_evidence_basis",
+        "invalidation_conditions",
+        "assumptions",
+    ],
+}
 
-    name = "callable-model"
 
-    def __init__(self, invoke: Callable[[Mapping[str, Any]], Dict[str, Any]], model_name: str = "unspecified") -> None:
-        self.backend = CallableModelBackend(invoke, model_name=model_name)
+class OpenAIResponsesModelBackend:
+    """Call one OpenAI Responses model with strict structured research output."""
+
+    name = "openai-responses"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model_name: str | None = None,
+        endpoint: str | None = None,
+        post_json: Callable[[str, Dict[str, Any], Dict[str, str]], Dict[str, Any]] | None = None,
+    ) -> None:
+        self.api_key = api_key or os.getenv("ALETHEIA_MODEL_API_KEY", "").strip()
+        self.model_name = (model_name or os.getenv("ALETHEIA_MODEL_NAME", "gpt-5.6-terra")).strip()
+        self.endpoint = (endpoint or os.getenv("ALETHEIA_MODEL_ENDPOINT", "https://api.openai.com/v1/responses")).strip()
+        self._post_json = post_json or self._default_post_json
+        if not self.api_key:
+            raise ModelBackendError("ALETHEIA_MODEL_API_KEY is required for the real model backend.")
+        if not self.model_name:
+            raise ModelBackendError("ALETHEIA_MODEL_NAME cannot be empty.")
+        if not self.endpoint:
+            raise ModelBackendError("ALETHEIA_MODEL_ENDPOINT cannot be empty.")
+
+    @staticmethod
+    def _default_post_json(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
+        request = Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=60) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise ModelBackendError(f"model API returned HTTP {exc.code}: {body[:500]}") from exc
+        except URLError as exc:
+            raise ModelBackendError(f"model API request failed: {exc.reason}") from exc
+        except json.JSONDecodeError as exc:
+            raise ModelBackendError("model API returned invalid JSON") from exc
+
+    @staticmethod
+    def _extract_structured_output(response: Mapping[str, Any]) -> Dict[str, Any]:
+        output_text = response.get("output_text")
+        if isinstance(output_text, str) and output_text.strip():
+            try:
+                parsed = json.loads(output_text)
+            except json.JSONDecodeError as exc:
+                raise ModelBackendError("model returned non-JSON structured output") from exc
+            if isinstance(parsed, dict):
+                return parsed
+
+        for item in response.get("output", []) or []:
+            for content in item.get("content", []) or []:
+                text = content.get("text")
+                if isinstance(text, str) and text.strip():
+                    try:
+                        parsed = json.loads(text)
+                    except json.JSONDecodeError as exc:
+                        raise ModelBackendError("model returned non-JSON structured output") from exc
+                    if isinstance(parsed, dict):
+                        return parsed
+        raise ModelBackendError("model response contained no structured output")
+
+    @staticmethod
+    def _prompt(agent: Agent, question: str, evidence: list[Dict[str, Any]], learning_context: Dict[str, Any]) -> str:
+        return (
+            "You are the Researcher perspective in AletheiaTelos. "
+            "You are an evidence-bound research component, not an investment authority. "
+            "Use only the supplied evidence; do not add facts, sources, market data, or claims from outside it. "
+            "Identify which supplied evidence supports the assessment and which supplied evidence contradicts it. "
+            "If the evidence is insufficient, return NO_DATA with confidence 0. "
+            "Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. "
+            "Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
+            "Confidence is not probability. Return only the requested structured object.\n\n"
+            f"Question: {question}\n"
+            f"Research role: {agent.spec.role}\n"
+            f"Default horizon: {agent.spec.default_horizon}\n"
+            f"Evidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\n"
+            f"Prior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
+        )
+
+    def assess(
+        self,
+        agent: Agent,
+        question: str,
+        evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
+    ) -> Dict[str, Any]:
+        evidence_list = [dict(item) for item in evidence]
+        if not evidence_list:
+            return {
+                "direction": "NO_DATA",
+                "confidence": 0.0,
+                "horizon": agent.spec.default_horizon,
+                "thesis": "No decision-usable evidence was supplied.",
+                "evidence_basis": [],
+                "contradictory_evidence_basis": [],
+                "invalidation_conditions": ["Decision-usable evidence becomes available."],
+                "assumptions": [],
+                "model_version": self.model_name,
+            }
+
+        payload = {
+            "model": self.model_name,
+            "input": self._prompt(agent, question, evidence_list, dict(learning_context or {})),
+            "text": {
+                "format": {
+                    "type": "json_schema",
+                    "name": "aletheia_researcher_output",
+                    "strict": True,
+                    "schema": _RESEARCH_OUTPUT_SCHEMA,
+                }
+            },
+        }
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        response = self._post_json(self.endpoint, payload, headers)
+        if not isinstance(response, dict):
+            raise ModelBackendError("model API response must be an object")
+        result = self._extract_structured_output(response)
+
+        allowed_ids = {str(item.get("evidence_id")) for item in evidence_list if item.get("evidence_id")}
+        for field in ("evidence_basis", "contradictory_evidence_basis"):
+            values = result.get(field)
+            if not isinstance(values, list) or not all(str(value) in allowed_ids for value in values):
+                raise ModelBackendError(f"model returned invalid {field}; evidence provenance was not preserved")
+        if result.get("direction") != "NO_DATA" and not result["evidence_basis"]:
+            raise ModelBackendError("Researcher must cite at least one supplied evidence item")
+
+        result["model_version"] = self.model_name
+        result["evidence"] = evidence_list
+        result["contradictory_evidence"] = [
+            item for item in evidence_list if str(item.get("evidence_id")) in {str(v) for v in result["contradictory_evidence_basis"]}
+        ]
+        return result
+
+
+class OpenAIResponsesModelProvider(ModelProvider):
+    """ModelProvider backed by the single configured OpenAI Responses model."""
+
+    name = "openai-responses"
+
+    def __init__(self, **kwargs: Any) -> None:
+        self.backend = OpenAIResponsesModelBackend(**kwargs)
 
     def assess(
         self,
