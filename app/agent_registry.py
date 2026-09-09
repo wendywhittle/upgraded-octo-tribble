@@ -53,7 +53,6 @@ _ROSTER = (
         "Identify missing evidence, unsupported assumptions, failure conditions, and reasons the apparent thesis could be wrong.",
         "A weakness in the thesis does not by itself establish the opposing thesis.",
     ),
-    ("philosopher", "Epistemic Analysis", "long", "NEUTRAL", 0.58, "The quality of the decision depends on recognizing what is not known.", "Uncertainty itself may be difficult to quantify."),
     ("observer", "Outcome Observation", "long", "NEUTRAL", 0.55, "The current state should be treated as a baseline for future attribution.", "Future outcomes may not cleanly identify causal drivers."),
     ("meta_intelligence", "Meta-Intelligence", "medium", "NEUTRAL", 0.67, "The disagreement between bullish and defensive perspectives is decision-relevant.", "Some disagreement may arise from different assumptions rather than true conflict."),
     ("governance", "CHARTER", "all", "NEUTRAL", 0.95, "Human Investment Committee authority remains mandatory.", "No autonomous investment authority is permitted."),
