@@ -5,6 +5,10 @@ from pydantic import BaseModel, Field
 
 Direction = Literal["LONG", "SHORT", "NEUTRAL", "NO_DATA"]
 ScenarioName = Literal["base", "bull", "bear", "adversarial"]
+ConflictType = Literal[
+    "factual", "evidentiary", "statistical", "methodological", "interpretive",
+    "assumption", "scenario", "horizon", "uncertainty",
+]
 
 
 class Evidence(BaseModel):
@@ -37,6 +41,18 @@ class AgentOutput(BaseModel):
     # separately validated probability forecast for later calibration.
     predicted_probability: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     prediction_id: Optional[str] = None
+
+
+class ConflictRecord(BaseModel):
+    proposition: str
+    conflict_type: ConflictType
+    perspectives: List[str] = Field(min_length=2)
+    supporting_evidence: List[str] = Field(default_factory=list)
+    contradicting_evidence: List[str] = Field(default_factory=list)
+    assumption_conflicts: List[Dict[str, Any]] = Field(default_factory=list)
+    unresolved_questions: List[str] = Field(default_factory=list)
+    severity: Literal["moderate", "material"]
+    status: Literal["unresolved", "resolved"]
 
 
 class SimulationRequest(BaseModel):
