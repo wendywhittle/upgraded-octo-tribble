@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from math import exp, log
 from typing import Dict, Iterable, List, Sequence, Tuple
 
+from .experiment_001_uncertainty import moving_block_bootstrap
+
 
 @dataclass(frozen=True)
 class Experiment001Spec:
@@ -163,6 +165,22 @@ def evaluate_experiment_001(
     augmented_probabilities = _predict(_fit_logistic(augmented_train, train_y), augmented_test)
     baseline = _metrics(test_y, baseline_probabilities)
     augmented = _metrics(test_y, augmented_probabilities)
+    incremental = {
+        "brier_improvement": baseline.brier_score - augmented.brier_score,
+        "log_loss_improvement": baseline.log_loss - augmented.log_loss,
+        "auc_improvement": augmented.auc - baseline.auc,
+    }
+
+    uncertainty = [
+        interval.as_dict()
+        for interval in moving_block_bootstrap(
+            test_y,
+            baseline_probabilities,
+            augmented_probabilities,
+            block_length=spec.horizon_days,
+            seed=spec.seed,
+        )
+    ]
 
     return {
         "experiment_id": spec.experiment_id,
@@ -190,10 +208,13 @@ def evaluate_experiment_001(
         },
         "baseline": baseline.__dict__,
         "augmented": augmented.__dict__,
-        "incremental": {
-            "brier_improvement": baseline.brier_score - augmented.brier_score,
-            "log_loss_improvement": baseline.log_loss - augmented.log_loss,
-            "auc_improvement": augmented.auc - baseline.auc,
+        "incremental": incremental,
+        "uncertainty": {
+            "method": "moving_block_bootstrap",
+            "block_length": spec.horizon_days,
+            "confidence": 0.95,
+            "intervals": uncertainty,
+            "secondary_analysis": True,
         },
         "governance": {
             "research_only": True,
