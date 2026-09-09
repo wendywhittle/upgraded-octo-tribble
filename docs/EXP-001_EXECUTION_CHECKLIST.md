@@ -15,7 +15,7 @@ Use this checklist when an authorized historical dataset is available.
 - [ ] Run the locked primary result before any sensitivity analysis.
 - [ ] Record baseline and augmented Brier score, log loss, and AUC.
 - [ ] Review event counts and test event rate before interpreting metrics.
-- [ ] Do not present synthetic fixtures as empirical evidence.
+- [ ] No synthetic fixture is presented as empirical evidence.
 - [ ] Run separately versioned sensitivity analyses for overlapping horizons, dependence, uncertainty, and chronological stability.
 - [ ] Have the Skeptic/Contrarian layer review data integrity, metric differences, uncertainty, and failure modes.
 - [ ] Keep hypothesis interpretation separate from execution: no automatic H1/H0 declaration.
