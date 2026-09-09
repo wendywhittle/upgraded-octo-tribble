@@ -44,9 +44,43 @@ def test_incremental_comparison_reports_all_predeclared_metrics():
     assert result["baseline"]["sample_count"] == result["augmented"]["sample_count"]
 
 
+def test_dataset_diagnostics_report_both_classes_in_each_window():
+    result = evaluate_experiment_001(_observations())
+    diagnostics = result["dataset_diagnostics"]
+    assert diagnostics["total_observations"] == 40
+    assert diagnostics["training_observations"] == 28
+    assert diagnostics["test_observations"] == 12
+    assert diagnostics["training_positive_events"] > 0
+    assert diagnostics["training_negative_events"] > 0
+    assert diagnostics["test_positive_events"] > 0
+    assert diagnostics["test_negative_events"] > 0
+    assert 0.0 < diagnostics["test_positive_rate"] < 1.0
+
+
 def test_default_spec_matches_preregistered_hypothesis():
     spec = Experiment001Spec()
     assert spec.horizon_days == 5
     assert spec.drawdown_threshold == -0.03
     assert "vix_level" in spec.baseline_features
     assert "skew_level" in spec.incremental_features
+
+
+def test_single_class_test_window_is_rejected():
+    observations = _observations()
+    for item in observations[28:]:
+        item_index = observations.index(item)
+        observations[item_index] = Observation(
+            observed_at=item.observed_at,
+            spx_return_5d=item.spx_return_5d,
+            vix_level=item.vix_level,
+            vix_change_5d=item.vix_change_5d,
+            skew_level=item.skew_level,
+            skew_change_5d=item.skew_change_5d,
+            future_max_drawdown=-0.005,
+        )
+    try:
+        evaluate_experiment_001(observations)
+    except ValueError as exc:
+        assert "test window" in str(exc)
+    else:
+        raise AssertionError("Expected single-class test window to be rejected")
