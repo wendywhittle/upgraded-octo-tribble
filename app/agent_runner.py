@@ -4,7 +4,7 @@ from hashlib import sha256
 from typing import Any, Dict, Iterable
 
 from app.agent_contract import Agent
-from app.model_provider import ContractModelProvider, ModelProvider
+from app.model_provider import ModelProvider
 from app.schemas import AgentOutput
 
 
@@ -12,25 +12,18 @@ class AgentRunner:
     """Run a research agent through a model provider without execution authority."""
 
     def __init__(self, provider: ModelProvider | None = None):
-        self.provider = provider or ContractModelProvider()
+        if provider is None:
+            from app.model_backend import build_default_model_provider
+            provider = build_default_model_provider()
+        self.provider = provider
 
     @staticmethod
     def _prediction_id(agent_id: str, question: str, model_version: str, evidence: Iterable[Dict[str, Any]]) -> str:
-        evidence_ids = sorted(
-            str(item.get("evidence_id"))
-            for item in evidence
-            if item.get("evidence_id")
-        )
+        evidence_ids = sorted(str(item.get("evidence_id")) for item in evidence if item.get("evidence_id"))
         material = f"{agent_id}|{model_version}|{question.strip()}|{','.join(evidence_ids)}".encode("utf-8")
         return f"pred-{sha256(material).hexdigest()[:16]}"
 
-    def run(
-        self,
-        agent: Agent,
-        question: str,
-        evidence: Iterable[Dict[str, Any]],
-        learning_context: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+    def run(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         capabilities = agent.spec.capability_profile
         if capabilities.get("execute", False):
             raise ValueError("Agent execution capability is prohibited.")
@@ -40,30 +33,32 @@ class AgentRunner:
             raise ValueError("Agent portfolio mutation capability is prohibited.")
 
         evidence_list = [dict(item) for item in evidence]
-        # Preserve compatibility with existing provider implementations when no
-        # institutional-learning context is available. New providers can opt in
-        # by accepting the learning_context keyword defined by ModelProvider.
         if learning_context is None:
             result = self.provider.assess(agent, question, evidence_list)
         else:
-            result = self.provider.assess(
-                agent,
-                question,
-                evidence_list,
-                learning_context=learning_context,
-            )
+            result = self.provider.assess(agent, question, evidence_list, learning_context=learning_context)
         if not isinstance(result, dict):
             raise ValueError("Model provider must return a dictionary.")
         result = dict(result)
-        result.setdefault("agent_id", agent.spec.agent_id)
+
+        if result.get("agent_id", agent.spec.agent_id) != agent.spec.agent_id:
+            raise ValueError("Model provider returned an AgentOutput for the wrong agent.")
+        for forbidden in ("execution_capability", "brokerage_connectivity", "portfolio_mutation"):
+            if result.get(forbidden) is True:
+                raise ValueError(f"Model provider attempted to enable prohibited capability: {forbidden}.")
+        if result.get("human_decision_required") is False:
+            raise ValueError("Model provider attempted to remove human decision authority.")
+
+        result["agent_id"] = agent.spec.agent_id
         result.setdefault("strategy", agent.spec.role)
         result.setdefault("horizon", agent.spec.default_horizon)
         result.setdefault("model_version", f"{self.provider.name}-provider")
-        result.setdefault("evidence", evidence_list)
+        result["evidence"] = evidence_list
         result.setdefault("assumptions", [])
         result.setdefault("invalidation_conditions", [])
         if result.get("predicted_probability") is not None:
             result.setdefault("prediction_id", self._prediction_id(agent.spec.agent_id, question, str(result["model_version"]), evidence_list))
+
         try:
             validated = AgentOutput(**result)
         except Exception as exc:
