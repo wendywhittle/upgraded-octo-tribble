@@ -14,7 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from app.agent_contract import Agent
-from app.model_provider import ModelProvider
+from app.model_provider import ModelProvider, ResearcherOnlyModelProvider
 
 
 class ModelBackendError(RuntimeError):
@@ -32,13 +32,7 @@ class CallableModelBackend:
         self._invoke = invoke
         self.model_name = model_name.strip() or "unspecified"
 
-    def assess(
-        self,
-        agent: Agent,
-        question: str,
-        evidence: Iterable[Dict[str, Any]],
-        learning_context: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         context = {
             "question": question,
             "agent": {
@@ -99,13 +93,7 @@ class OpenAIResponsesModelBackend:
 
     name = "openai-responses"
 
-    def __init__(
-        self,
-        api_key: str | None = None,
-        model_name: str | None = None,
-        endpoint: str | None = None,
-        post_json: Callable[[str, Dict[str, Any], Dict[str, str]], Dict[str, Any]] | None = None,
-    ) -> None:
+    def __init__(self, api_key: str | None = None, model_name: str | None = None, endpoint: str | None = None, post_json: Callable[[str, Dict[str, Any], Dict[str, str]], Dict[str, Any]] | None = None) -> None:
         self.api_key = api_key or os.getenv("ALETHEIA_MODEL_API_KEY", "").strip()
         self.model_name = (model_name or os.getenv("ALETHEIA_MODEL_NAME", "gpt-5.6-terra")).strip()
         self.endpoint = (endpoint or os.getenv("ALETHEIA_MODEL_ENDPOINT", "https://api.openai.com/v1/responses")).strip()
@@ -119,12 +107,7 @@ class OpenAIResponsesModelBackend:
 
     @staticmethod
     def _default_post_json(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
-        request = Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
+        request = Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
             with urlopen(request, timeout=60) as response:
                 return json.loads(response.read().decode("utf-8"))
@@ -146,7 +129,6 @@ class OpenAIResponsesModelBackend:
                 raise ModelBackendError("model returned non-JSON structured output") from exc
             if isinstance(parsed, dict):
                 return parsed
-
         for item in response.get("output", []) or []:
             for content in item.get("content", []) or []:
                 text = content.get("text")
@@ -170,55 +152,30 @@ class OpenAIResponsesModelBackend:
             "Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. "
             "Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
             "Confidence is not probability. Return only the requested structured object.\n\n"
-            f"Question: {question}\n"
-            f"Research role: {agent.spec.role}\n"
-            f"Default horizon: {agent.spec.default_horizon}\n"
+            f"Question: {question}\nResearch role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\n"
             f"Evidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\n"
             f"Prior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
         )
 
-    def assess(
-        self,
-        agent: Agent,
-        question: str,
-        evidence: Iterable[Dict[str, Any]],
-        learning_context: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         evidence_list = [dict(item) for item in evidence]
         if not evidence_list:
             return {
-                "direction": "NO_DATA",
-                "confidence": 0.0,
-                "horizon": agent.spec.default_horizon,
-                "thesis": "No decision-usable evidence was supplied.",
-                "evidence_basis": [],
-                "contradictory_evidence_basis": [],
-                "invalidation_conditions": ["Decision-usable evidence becomes available."],
-                "assumptions": [],
-                "model_version": self.model_name,
+                "direction": "NO_DATA", "confidence": 0.0, "horizon": agent.spec.default_horizon,
+                "thesis": "No decision-usable evidence was supplied.", "evidence_basis": [],
+                "contradictory_evidence_basis": [], "invalidation_conditions": ["Decision-usable evidence becomes available."],
+                "assumptions": [], "model_version": self.model_name,
             }
-
         payload = {
             "model": self.model_name,
             "input": self._prompt(agent, question, evidence_list, dict(learning_context or {})),
-            "text": {
-                "format": {
-                    "type": "json_schema",
-                    "name": "aletheia_researcher_output",
-                    "strict": True,
-                    "schema": _RESEARCH_OUTPUT_SCHEMA,
-                }
-            },
+            "text": {"format": {"type": "json_schema", "name": "aletheia_researcher_output", "strict": True, "schema": _RESEARCH_OUTPUT_SCHEMA}},
         }
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         response = self._post_json(self.endpoint, payload, headers)
         if not isinstance(response, dict):
             raise ModelBackendError("model API response must be an object")
         result = self._extract_structured_output(response)
-
         allowed_ids = {str(item.get("evidence_id")) for item in evidence_list if item.get("evidence_id")}
         for field in ("evidence_basis", "contradictory_evidence_basis"):
             values = result.get(field)
@@ -226,12 +183,10 @@ class OpenAIResponsesModelBackend:
                 raise ModelBackendError(f"model returned invalid {field}; evidence provenance was not preserved")
         if result.get("direction") != "NO_DATA" and not result["evidence_basis"]:
             raise ModelBackendError("Researcher must cite at least one supplied evidence item")
-
         result["model_version"] = self.model_name
         result["evidence"] = evidence_list
-        result["contradictory_evidence"] = [
-            item for item in evidence_list if str(item.get("evidence_id")) in {str(v) for v in result["contradictory_evidence_basis"]}
-        ]
+        contradictory_ids = {str(v) for v in result["contradictory_evidence_basis"]}
+        result["contradictory_evidence"] = [item for item in evidence_list if str(item.get("evidence_id")) in contradictory_ids]
         return result
 
 
@@ -243,11 +198,13 @@ class OpenAIResponsesModelProvider(ModelProvider):
     def __init__(self, **kwargs: Any) -> None:
         self.backend = OpenAIResponsesModelBackend(**kwargs)
 
-    def assess(
-        self,
-        agent: Agent,
-        question: str,
-        evidence: Iterable[Dict[str, Any]],
-        learning_context: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         return self.backend.assess(agent, question, evidence, learning_context=learning_context)
+
+
+def build_default_model_provider() -> ModelProvider:
+    """Return real Researcher routing when configured, otherwise the deterministic path."""
+    if not os.getenv("ALETHEIA_MODEL_API_KEY", "").strip():
+        from app.model_provider import ContractModelProvider
+        return ContractModelProvider()
+    return ResearcherOnlyModelProvider(OpenAIResponsesModelProvider())
