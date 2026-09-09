@@ -12,7 +12,7 @@ class RecordingProvider:
     def __init__(self):
         self.calls = []
 
-    def assess(self, agent, question, evidence):
+    def assess(self, agent, question, evidence, learning_context=None):
         evidence = list(evidence)
         self.calls.append((agent.spec.agent_id, question, evidence))
         return {
@@ -39,7 +39,7 @@ def valid_evidence():
     }]
 
 
-def test_evidence_orchestration_uses_injected_provider_for_every_perspective():
+def test_evidence_orchestration_uses_injected_provider_for_active_perspectives():
     provider = RecordingProvider()
     result = run_evidence_fed_agents(
         "Assess the opportunity",
@@ -48,7 +48,8 @@ def test_evidence_orchestration_uses_injected_provider_for_every_perspective():
         provider=provider,
     )
     assert result["provider"] == "recording"
-    assert len(provider.calls) == 10
+    assert len(provider.calls) == 4
+    assert [call[0] for call in provider.calls] == ["researcher", "quant", "skeptic", "contrarian"]
     assert all(call[2] for call in provider.calls)
     assert all(agent["provider"] == "recording" for agent in result["agents"])
 
@@ -57,7 +58,7 @@ def test_invalid_evidence_never_reaches_provider():
     provider = RecordingProvider()
     result = run_evidence_fed_agents(
         "Assess the opportunity",
-        [{"evidence_id": "bad", "source": "unit-test", "claim": "Future claim", "observed_at": "2027-01-01T00:00:00+00:00"}],
+        [{"evidence_id": "bad", "source": "unit-test", "claim": "Future claim", "observed_at": "2027-01-01T00:00:00Z"}],
         now=NOW,
         provider=provider,
     )
