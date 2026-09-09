@@ -64,10 +64,12 @@ class DeterministicAgent:
                 "model_version": "deterministic-agent-1.0",
                 "invalidation_conditions": ["Material evidence contradicts the core thesis."],
                 "assumptions": ["Assessment is dependent on supplied evidence."],
+                "evidence_basis": [str(item["evidence_id"]) for item in evidence_list if item.get("evidence_id")],
                 "capability_profile": dict(self.spec.capability_profile),
             }
         )
         if self.contradictory_claim:
+            # This is explicitly agent-generated challenge text, not supplied evidence.
             result["contradictory_evidence"] = [
                 {
                     "evidence_id": f"{self.spec.agent_id}-challenge",
