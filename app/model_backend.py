@@ -62,6 +62,18 @@ class CallableModelBackend:
         return result
 
 
+class CallableModelProvider(ModelProvider):
+    """Backward-compatible provider facade over the callable backend test seam."""
+
+    name = "callable"
+
+    def __init__(self, invoke: Callable[[Mapping[str, Any]], Dict[str, Any]], model_name: str = "unspecified") -> None:
+        self.backend = CallableModelBackend(invoke, model_name=model_name)
+
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        return self.backend.assess(agent, question, evidence, learning_context=learning_context)
+
+
 _RESEARCH_OUTPUT_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
