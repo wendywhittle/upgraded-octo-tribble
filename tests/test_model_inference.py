@@ -86,7 +86,7 @@ def test_provider_cannot_escalate_agent_capabilities():
     assert result["portfolio_mutation"] is False
 
 
-def test_full_pipeline_uses_injected_provider_for_all_perspectives(monkeypatch):
+def test_full_pipeline_uses_injected_provider_for_active_perspectives(monkeypatch):
     calls = []
 
     def invoke(context):
@@ -96,11 +96,8 @@ def test_full_pipeline_uses_injected_provider_for_all_perspectives(monkeypatch):
     monkeypatch.setattr("app.analysis_pipeline.append_record", lambda record: None)
     result = run_analysis("Assess the test opportunity", evidence(), now=NOW, paths=100, provider=CallableModelProvider(invoke))
 
-    assert len(calls) == 10
-    assert set(calls) == {
-        "researcher", "quant", "investor", "scientist", "systems",
-        "contrarian", "philosopher", "observer", "meta_intelligence", "governance",
-    }
+    assert len(calls) == 4
+    assert set(calls) == {"researcher", "quant", "skeptic", "contrarian"}
     assert result["audit"]["provider"] == "injected-model"
     assert result["audit"]["research_only"] is True
     assert result["governance"]["human_decision_required"] is True
