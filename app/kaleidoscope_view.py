@@ -18,10 +18,12 @@ def build_kaleidoscope_view(
     synthesis: Dict[str, Any] | None = None,
     observer: Dict[str, Any] | None = None,
     governance: Dict[str, Any] | None = None,
+    cre_assessments: Iterable[Dict[str, Any]] = (),
 ) -> Dict[str, Any]:
     """Project analysis state into a UI-safe, read-only view.
 
-    This function does not score, average, authorize, trade, or mutate state.
+    CRE assessments are carried as inspectable records; this projection does not
+    score, average, authorize, trade, or mutate state.
     """
     agent_list = [dict(agent) for agent in agents]
     cards = [
@@ -38,6 +40,7 @@ def build_kaleidoscope_view(
     ]
     return {
         "perspectives": cards,
+        "cre_perspective_assessments": [dict(item) for item in cre_assessments],
         "perspective_count": len(cards),
         "expected_perspective_count": len(active_perspective_ids()),
         "evidence": evidence or {},
