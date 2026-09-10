@@ -66,6 +66,12 @@ def test_contradictory_evidence_is_preserved():
     assert "Material uncertainty" in result.reasons[2]
 
 
+def test_no_deal_is_explicit_and_requires_a_reason():
+    result = underwrite(inputs(no_deal_reasons=("Downside risk is unacceptable.",)))
+    assert result.decision is UnderwritingDecision.NO_DEAL
+    assert "Downside risk is unacceptable." in result.reasons
+
+
 def test_invalid_assumption_confidence_is_rejected():
     with pytest.raises(ValueError):
         Assumption("bad", 1, "x", confidence=1.1)
