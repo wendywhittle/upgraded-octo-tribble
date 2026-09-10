@@ -31,6 +31,8 @@ A question can be examined through independently inspectable perspectives:
 - Observer
 - Epistemic Memory
 
+For CRE, `app/cre_kaleidoscope.py` provides typed assessment records for Underwriter, Investor, Quant, Researcher, Macro, Systems, Contrarian, and Risk. These are an adapter into the existing Computational Kaleidoscope, not a second autonomous agent framework.
+
 The purpose is not to create more agents for their own sake. It is to create genuinely different ways of seeing the same question.
 
 ## Conflict Before Consensus
@@ -75,9 +77,39 @@ NEXT OPPORTUNITY
 
 ## Independent Simulation
 
-The risk engine is designed to test assumptions independently through scenario distributions rather than relying on a single predicted outcome. Scenario families include Base, Bull, Bear, Adversarial, and Tail Risk.
+The risk engine is designed to test assumptions independently through scenario distributions rather than relying on a single predicted outcome. The CRE boundary in `app/cre_simulation.py` preserves explicit underwriting variables and missing values before they reach an independent simulator. Scenario contracts in `app/cre_scenarios.py` support Base, Bull, Bear, Adversarial, and Tail Risk without fabricating CRE assumptions.
 
 Agents may supply assumptions. The simulator remains independently inspectable and its outputs are reviewable by Contrarian and Risk perspectives.
+
+## Commercial Real Estate
+
+CRE is the first real-world application. Typed contracts now separate the core concerns:
+
+- `app/cre_intelligence.py` — conservative opportunity screening
+- `app/cre_underwriting.py` — property, assumption, underwriting, and decision contracts
+- `app/cre_kaleidoscope.py` — structured multi-perspective CRE assessments
+- `app/cre_scenarios.py` — scenario/risk contracts
+- `app/cre_simulation.py` — explicit underwriting-to-simulation boundary
+- `app/cre_decision.py` — auditable decision record with human authority preserved
+- `app/cre_workflow.py` — ordered workflow boundaries
+
+The institutional intelligence path is:
+
+```text
+OPPORTUNITY
+→ SCREENING
+→ UNDERWRITING
+→ DUE DILIGENCE
+→ SCENARIO ANALYSIS
+→ CAPITAL STRUCTURE
+→ VALUE CREATION
+→ INVESTMENT COMMITTEE
+→ CAPITAL / ASSET
+→ OBSERVE OUTCOME
+→ EPISTEMIC MEMORY
+```
+
+Underwriting is assumption-driven and evidence-aware. Missing required inputs produce **INSUFFICIENT EVIDENCE** rather than invented numbers. Explicit, evidence-supported failure conditions can produce **NO DEAL**. Neither state authorizes investment activity.
 
 ## Institutional Memory
 
@@ -98,28 +130,6 @@ WHAT CHANGED
         ↓
 WHAT WE NOW BELIEVE
 ```
-
-## Commercial Real Estate
-
-CRE is the first real-world application. The initial intelligence path is:
-
-```text
-OPPORTUNITY
-→ SCREENING
-→ MULTI-PERSPECTIVE UNDERWRITING
-→ DUE DILIGENCE
-→ SCENARIO ANALYSIS
-→ CAPITAL STRUCTURE
-→ VALUE CREATION
-→ INVESTMENT COMMITTEE
-→ CAPITAL
-→ ASSET
-→ OPERATE / IMPROVE
-→ OBSERVE OUTCOME
-→ EPISTEMIC MEMORY
-```
-
-The repository now includes a conservative CRE screening foundation in `app/cre_intelligence.py`. Screening deliberately returns **WATCH** rather than investment approval, and missing critical inputs return **INSUFFICIENT EVIDENCE**.
 
 ## Capital Intelligence
 
@@ -143,22 +153,14 @@ The objective is decision quality, not forced deployment.
 
 The system constitution is defined in [`CHARTER.md`](CHARTER.md). It establishes boundaries around human authority, tools, persistence, memory, self-modification, execution, risk controls, auditability, independent oversight, model changes, data integrity, and secrets.
 
+The Computational Kaleidoscope is a multi-perspective reasoning and observability layer. It does not grant investment authority, and its read-only projection explicitly preserves the execution boundary.
+
 ## Architecture Direction
 
 The existing AletheiaTelos prototype is treated as a research seed. Valuable components can be preserved and refactored; obsolete components can be removed; new components are added only when they improve intelligence, discipline, auditability, or learning.
 
 The target is a simple, inspectable architecture rather than complexity for its own sake.
 
-## Definition of Success
-
-Success is not more agents, more code, more dashboards, or more autonomy.
-
-Success is a system that can take a difficult investment question, examine genuinely different perspectives, preserve disagreement, test assumptions independently, expose uncertainty, identify reasons not to act, and produce an auditable decision record for a human decision-maker.
-
-Over time:
+## Institutional Learning Loop
 
 **INTELLIGENCE → DISCIPLINE → DECISION QUALITY → OBSERVATION → LEARNING → COMPOUNDING INSTITUTIONAL KNOWLEDGE**
-
-## Status
-
-**Institutional Intelligence Engine foundation in active development.** Governance, evidence-fed reasoning, conflict intelligence, independent simulation, adversarial review, institutional learning, and the first CRE screening primitive are present. The next layer is structured CRE underwriting and decision-record integration.
