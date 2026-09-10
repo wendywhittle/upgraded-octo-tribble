@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071015">
+  <title>AletheiaTelos | Institutional Investment Intelligence</title>
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="brand">ALETHEIA<span>TELOS</span></div>
+      <div class="subtitle">INSTITUTIONAL REAL ESTATE INVESTMENT INTELLIGENCE</div>
+    </div>
+    <div class="system-status"><span id="api-dot" class="status-dot offline"></span><span id="api-status">API CHECKING</span><span class="divider">|</span> RESEARCH ONLY</div>
+  </header>
+
+  <main class="terminal-grid">
+    <section class="panel command-panel">
+      <div class="panel-head"><span>01 / OPPORTUNITY COMMAND</span><span id="research-state">READY</span></div>
+      <form id="analysis-form">
+        <label for="question">INVESTMENT QUESTION</label>
+        <textarea id="question" required placeholder="What should we understand about this opportunity?"></textarea>
+        <div class="field-grid">
+          <div><label for="asset">ASSET / OPPORTUNITY</label><input id="asset" placeholder="e.g. Industrial / NNN" /></div>
+          <div><label for="market">MARKET</label><input id="market" placeholder="e.g. Vancouver, WA" /></div>
+        </div>
+        <div class="field-grid compact">
+          <div><label for="initial-value">INITIAL VALUE</label><input id="initial-value" type="number" min="0.01" value="100" step="0.01" /></div>
+          <div><label for="horizon">HORIZON STEPS</label><input id="horizon" type="number" min="1" max="10000" value="60" /></div>
+          <div><label for="paths">SIMULATION PATHS</label><input id="paths" type="number" min="100" max="100000" value="5000" /></div>
+        </div>
+        <button type="submit" id="run-button">RUN RESEARCH ANALYSIS</button>
+      </form>
+      <div class="command-meta"><span>EVIDENCE <b id="evidence-state">NOT SUPPLIED</b></span><span>DECISION <b id="decision-state">NO DATA</b></span></div>
+    </section>
+
+    <section class="panel kaleidoscope-panel">
+      <div class="panel-head"><span>02 / COMPUTATIONAL KALEIDOSCOPE</span><span>INDEPENDENT PERSPECTIVES</span></div>
+      <div id="perspectives" class="perspectives"></div>
+      <div class="kaleidoscope-core"><span>SHARED QUESTION</span><strong id="core-question">AWAITING INPUT</strong></div>
+    </section>
+
+    <section class="panel conflict-panel">
+      <div class="panel-head"><span>03 / CONFLICT INTELLIGENCE</span><span id="conflict-count">0 MATERIAL</span></div>
+      <div id="conflicts" class="empty-state">NO CONFLICT DATA YET</div>
+    </section>
+
+    <section class="panel risk-panel">
+      <div class="panel-head"><span>04 / INDEPENDENT RISK ENGINE</span><span>SIMULATION ≠ AGENT CONCLUSION</span></div>
+      <div id="risk-grid" class="risk-grid"></div>
+      <div id="risk-note" class="muted">Run an analysis to populate independent scenario results.</div>
+    </section>
+
+    <section class="panel ic-panel">
+      <div class="panel-head"><span>05 / INVESTMENT COMMITTEE</span><span>HUMAN AUTHORITY</span></div>
+      <div class="ic-state" id="ic-state">NO DATA</div>
+      <div class="ic-warning">HUMAN INVESTMENT AUTHORITY REQUIRED</div>
+      <div class="muted">Research and decision intelligence only. No autonomous execution, brokerage connectivity, or portfolio mutation.</div>
+    </section>
+
+    <section class="panel memory-panel">
+      <div class="panel-head"><span>06 / INSTITUTIONAL MEMORY</span><span>APPEND-ONLY</span></div>
+      <div class="memory-grid">
+        <div><span>WHAT WE BELIEVED</span><strong id="memory-belief">NOT AVAILABLE</strong></div>
+        <div><span>WHY</span><strong id="memory-why">NOT AVAILABLE</strong></div>
+        <div><span>WHAT WE DECIDED</span><strong id="memory-decision">NOT AVAILABLE</strong></div>
+        <div><span>WHAT ACTUALLY HAPPENED</span><strong id="memory-outcome">PENDING</strong></div>
+        <div><span>WHAT WE LEARNED</span><strong id="memory-lesson">AWAITING OUTCOME</strong></div>
+      </div>
+      <button id="load-memory" class="secondary">REFRESH MEMORY</button>
+    </section>
+  </main>
+
+  <footer><span>ALETHEIA/TELOS TERMINAL</span><span>RESEARCH-ONLY SYSTEM • HUMAN DECISION REQUIRED</span></footer>
+  <script src="/web/app.js" defer></script>
+</body>
+</html>
