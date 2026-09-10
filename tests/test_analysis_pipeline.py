@@ -22,14 +22,14 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     with patch("app.analysis_pipeline.append_record"):
         result = run_analysis("Assess the opportunity", [], now=NOW, paths=100)
     assert result["evidence"]["usable_count"] == 0
-    assert len(result["agents"]) == 4
-    assert set(result["active_perspectives"]) == {"researcher", "quant", "skeptic", "contrarian"}
+    assert len(result["agents"]) == 6
+    assert set(result["active_perspectives"]) == {"researcher", "quant", "investor", "systems", "skeptic", "contrarian"}
     assert all(agent["direction"] == "NO_DATA" for agent in result["agents"])
     assert result["synthesis"]["verdict"] == "NO_DATA"
     assert result["audit"]["simulation_independent_of_agents"] is True
     assert result["governance"]["human_decision_required"] is True
     assert result["kaleidoscope"]["read_only"] is True
-    assert result["kaleidoscope"]["perspective_count"] == 4
+    assert result["kaleidoscope"]["perspective_count"] == 6
 
 
 def test_full_pipeline_feeds_only_validated_evidence_to_active_agents():

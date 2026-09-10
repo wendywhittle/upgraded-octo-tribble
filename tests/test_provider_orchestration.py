@@ -48,8 +48,8 @@ def test_evidence_orchestration_uses_injected_provider_for_active_perspectives()
         provider=provider,
     )
     assert result["provider"] == "recording"
-    assert len(provider.calls) == 4
-    assert [call[0] for call in provider.calls] == ["researcher", "quant", "skeptic", "contrarian"]
+    assert len(provider.calls) == 6
+    assert [call[0] for call in provider.calls] == ["researcher", "quant", "investor", "systems", "skeptic", "contrarian"]
     assert all(call[2] for call in provider.calls)
     assert all(agent["provider"] == "recording" for agent in result["agents"])
 
