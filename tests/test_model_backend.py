@@ -65,7 +65,26 @@ def test_scientist_has_distinct_role_specific_prompt():
     assert scientist_prompt != researcher_prompt
 
 
-def test_selective_provider_routes_researcher_and_scientist_only():
+def test_governance_has_distinct_role_specific_prompt():
+    governance = OpenAIResponsesModelBackend._prompt(
+        build_default_registry().get("governance"),
+        "Assess the opportunity",
+        [{"evidence_id": "E1", "claim": "fact"}],
+        {},
+    )
+
+    assert "You are the Governance perspective in AletheiaTelos." in governance
+    assert "CHARTER" in governance
+    assert "human investment authority" in governance
+    assert "autonomous execution" in governance
+    assert "portfolio mutation" in governance
+    assert "capital movement" in governance
+    assert "evidence validation and provenance" in governance
+    assert "immediate human review" in governance
+    assert "Do not override other perspectives or make an investment decision." in governance
+
+
+def test_selective_provider_routes_researcher_scientist_and_governance_only():
     class SpyProvider:
         name = "spy"
 
@@ -78,20 +97,24 @@ def test_selective_provider_routes_researcher_and_scientist_only():
 
     researcher_provider = SpyProvider()
     scientist_provider = SpyProvider()
+    governance_provider = SpyProvider()
     fallback = SpyProvider()
     provider = ResearcherOnlyModelProvider(
         researcher_provider,
         fallback=fallback,
         scientist_provider=scientist_provider,
+        governance_provider=governance_provider,
     )
     registry = build_default_registry()
 
     provider.assess(registry.get("researcher"), "q", [])
     provider.assess(registry.get("scientist"), "q", [])
+    provider.assess(registry.get("governance"), "q", [])
     provider.assess(registry.get("quant"), "q", [])
 
     assert researcher_provider.calls == ["researcher"]
     assert scientist_provider.calls == ["scientist"]
+    assert governance_provider.calls == ["governance"]
     assert fallback.calls == ["quant"]
 
 
