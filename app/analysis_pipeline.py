@@ -8,7 +8,10 @@ context only. No execution capability exists in this module.
 
 from typing import Any, Dict, Iterable
 
-from app.conflict_intelligence import detect_conflict_intelligence
+from app.conflict_intelligence import detect_conflict_intelligence, detect_cre_conflicts
+from app.cre_adversarial import review_cre_simulation
+from app.cre_context import CREOpportunityContext
+from app.cre_perspectives import assess_cre_opportunity
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -16,7 +19,7 @@ from app.memory import append_record, build_record, read_records
 from app.meta_intelligence import evaluate as meta_intelligence_evaluate
 from app.model_provider import ModelProvider
 from app.observer import observe
-from app.simulator import run_monte_carlo
+from app.simulator import run_monte_carlo, run_cre_monte_carlo
 from app.skeptic import review as skeptic_review
 
 
@@ -73,8 +76,8 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     }
 
 
-def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, cre_assessments: Iterable[Dict[str, Any]] = ()) -> Dict[str, Any]:
-    """Run the complete research loop and optionally carry typed CRE assessments into the Kaleidoscope."""
+def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, cre_assessments: Iterable[Dict[str, Any]] = (), cre_context: CREOpportunityContext | None = None) -> Dict[str, Any]:
+    """Run the complete research loop, with an optional connected CRE loop."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
     agent_stage = run_evidence_fed_agents(
@@ -124,6 +127,34 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         governance=governance,
         cre_assessments=cre_assessments,
     )
+
+    cre_result: dict[str, Any] = {}
+    if cre_context is not None:
+        assessments = assess_cre_opportunity(cre_context)
+        cre_conflicts = detect_cre_conflicts(assessments)
+        cre_simulation = run_cre_monte_carlo(
+            purchase_price=cre_context.purchase_price,
+            noi=cre_context.noi,
+            hold_period=int(cre_context.hold_period or 5),
+            paths=paths,
+            seed=seed,
+            occupancy=cre_context.occupancy,
+            rent_growth=cre_context.rent_growth,
+            interest_rate=cre_context.interest_rate,
+            exit_cap_rate=cre_context.cap_rate,
+            capital_expenditures=cre_context.capital_expenditures or 0.0,
+            assumptions=list(cre_context.assumption_labels()),
+        )
+        cre_adversarial = review_cre_simulation(cre_simulation, cre_context.assumption_labels(), cre_context.evidence)
+        cre_result = {
+            "context": cre_context,
+            "perspectives": assessments,
+            "conflicts": cre_conflicts,
+            "simulation": cre_simulation,
+            "adversarial_review": cre_adversarial,
+            "decision_boundary": "human authority required",
+        }
+
     return {
         "system": "AletheiaTelos",
         "question": question,
@@ -143,8 +174,9 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "observer": observer,
         "governance": governance,
         "kaleidoscope": kaleidoscope,
+        "cre": cre_result,
         "audit": {
-            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->governance->observer->memory",
+            "pipeline": "prior_learning->evidence->cre_context->cre_perspectives->cre_conflict->independent_cre_simulation->cre_adversarial_review->synthesis->governance->observer->memory",
             "simulation_independent_of_agents": True,
             "simulation_seed": seed,
             "memory_recorded": True,
@@ -156,5 +188,9 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
             "meta_intelligence_directional_vote": False,
             "meta_intelligence_execution_capability": False,
             "cre_assessments_are_observational": True,
+            "cre_simulation_independent_of_perspectives": True,
+            "autonomous_execution": False,
+            "brokerage_connectivity": False,
+            "portfolio_mutation": False,
         },
     }
