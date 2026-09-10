@@ -245,7 +245,7 @@ class OpenAIResponsesModelProvider(ModelProvider):
 
 
 def build_default_model_provider() -> ModelProvider:
-    """Return real Researcher and Scientist routing when configured, otherwise the deterministic path."""
+    """Return real Researcher, Scientist, and Governance routing when configured, otherwise the deterministic path."""
     if not os.getenv("ALETHEIA_MODEL_API_KEY", "").strip():
         from app.model_provider import ContractModelProvider
         return ContractModelProvider()
