@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from app.analysis_pipeline import run_analysis
+from app.cre_context import CREOpportunityContext
+from app.cre_decision import CREDecisionCriteria
 
 
 NOW = datetime(2026, 9, 8, 12, 0, tzinfo=timezone.utc)
@@ -9,13 +11,20 @@ NOW = datetime(2026, 9, 8, 12, 0, tzinfo=timezone.utc)
 
 def evidence(claim="The observed condition is material."):
     return [{
-        "evidence_id": "E-1",
-        "source": "unit-test-source",
-        "claim": claim,
-        "observed_at": "2026-09-08T11:00:00+00:00",
-        "retrieved_at": "2026-09-08T11:05:00+00:00",
+        "evidence_id": "E-1", "source": "unit-test-source", "claim": claim,
+        "observed_at": "2026-09-08T11:00:00+00:00", "retrieved_at": "2026-09-08T11:05:00+00:00",
         "provenance": {"type": "primary", "point_in_time": True},
     }]
+
+
+def cre_context():
+    return CREOpportunityContext(
+        opportunity_id="cre-1", property_id="prop-1", asset_type="industrial", location="Vancouver, WA",
+        purchase_price=10_000_000, noi=700_000, occupancy=0.95, rent_growth=0.03, vacancy=0.05,
+        interest_rate=0.06, hold_period=5, capital_expenditures=25_000, evidence=("E-1",),
+        assumptions=("normalized NOI",), exit_assumptions={"exit_cap_rate": 0.07, "selling_cost_rate": 0.02},
+        financing_assumptions={"loan_to_value": 0.65, "amortization_years": 25},
+    )
 
 
 def test_full_pipeline_preserves_no_data_without_evidence():
@@ -90,3 +99,27 @@ def test_full_pipeline_carries_cre_assessments_into_read_only_kaleidoscope():
     assert result["kaleidoscope"]["cre_perspective_assessments"] == assessments
     assert result["kaleidoscope"]["read_only"] is True
     assert result["audit"]["cre_assessments_are_observational"] is True
+
+
+def test_full_pipeline_connects_shared_cre_economics_to_perspectives_and_simulation():
+    with patch("app.analysis_pipeline.append_record"):
+        result = run_analysis("Assess CRE opportunity", evidence(), now=NOW, paths=100, cre_context=cre_context())
+    cre = result["cre"]
+    assert cre["financial_model"].status == "CALCULATED"
+    assert cre["financial_model"].dscr is not None
+    assert len(cre["perspectives"]) == 8
+    assert all("going_in_cap_rate=" in " ".join(p.assumptions) for p in cre["perspectives"])
+    assert cre["simulation"]["independent_of_agents"] is True
+    assert len(cre["simulation"]["scenarios"]) == 5
+    assert cre["adversarial_review"].status == "reviewed"
+    assert cre["decision"].human_decision_required is True
+
+
+def test_full_pipeline_can_apply_explicit_cre_economic_criteria():
+    with patch("app.analysis_pipeline.append_record"):
+        result = run_analysis(
+            "Assess CRE opportunity", evidence(), now=NOW, paths=100, cre_context=cre_context(),
+            cre_criteria=CREDecisionCriteria(min_dscr=1.50, max_ltv=0.70),
+        )
+    assert result["cre"]["decision"].state.value == "NO DEAL"
+    assert result["cre"]["decision"].autonomous_execution is False
