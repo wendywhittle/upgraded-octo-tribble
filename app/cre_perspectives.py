@@ -8,6 +8,7 @@ from typing import Callable, Any
 
 from .cre_context import CREOpportunityContext
 from .cre_kaleidoscope import CRE_PERSPECTIVES, PerspectiveAssessment
+from .cre_underwriting import CREFinancialInputs, underwrite_financial_model
 
 
 def _metrics(model: Any | None) -> dict[str, float | None]:
@@ -73,6 +74,8 @@ def _researcher(ctx, model):
 def _macro(ctx, model):
     rate = ctx.interest_rate
     claims = (f"Financing rate is {rate:.2%}.",) if rate is not None else ()
+    if not claims and model is not None and model.annual_debt_service is not None:
+        claims = (f"Annual debt service is {model.annual_debt_service:,.0f} under the supplied financing terms.",)
     return _assessment(ctx, "macro", "Rates, demand and the exit valuation regime can change otherwise stable property economics.", ("rate regime", "demand regime"), ("What macro regime is embedded in the exit assumption?",), ("Rates or demand move outside underwriting tolerance",), financial_result=model, claims=claims)
 
 
@@ -80,6 +83,8 @@ def _systems(ctx, model):
     claims = ()
     if model is not None and model.dscr is not None and model.break_even_occupancy is not None:
         claims = (f"Debt coverage is {model.dscr:.2f}x and modeled occupancy break-even is {model.break_even_occupancy:.2%}.",)
+    elif model is not None and model.dscr is not None:
+        claims = (f"Debt coverage is {model.dscr:.2f}x; occupancy break-even is UNKNOWN without explicit rent and operating-expense inputs.",)
     return _assessment(ctx, "systems", "The thesis is a dependency network involving operations, leasing, financing, capital expenditures and exit conditions.", ("dependency chains", "operational fragility"), ("Which dependency can fail first and propagate?",), ("A critical dependency lacks a credible fallback",), financial_result=model, claims=claims)
 
 
@@ -99,8 +104,52 @@ _PERSPECTIVE_BUILDERS: dict[str, Callable[[CREOpportunityContext, Any | None], P
 }
 
 
+def _model_from_context(ctx: CREOpportunityContext):
+    """Build the same deterministic financial model when callers omit it.
+
+    Missing inputs remain UNKNOWN; this helper never supplies synthetic financing
+    or exit assumptions merely to make a perspective calculable.
+    """
+    financing, exit_data, lease = ctx.financing_assumptions, ctx.exit_assumptions, ctx.leasing_assumptions
+    inputs = CREFinancialInputs(
+        purchase_price=ctx.purchase_price,
+        noi=ctx.noi,
+        gross_rent=ctx.gross_rent,
+        effective_income=ctx.effective_income,
+        occupancy=ctx.occupancy,
+        vacancy=ctx.vacancy,
+        operating_expenses=ctx.expenses,
+        rent_growth=ctx.rent_growth,
+        expense_growth=ctx.expense_growth,
+        capital_expenditures=ctx.capital_expenditures,
+        loan_amount=financing.get("loan_amount"),
+        loan_to_value=financing.get("loan_to_value"),
+        interest_rate=ctx.interest_rate if ctx.interest_rate is not None else financing.get("interest_rate"),
+        amortization_years=financing.get("amortization_years"),
+        interest_only=bool(financing.get("interest_only", False)),
+        hold_period_years=int(ctx.hold_period) if ctx.hold_period is not None else None,
+        exit_cap_rate=exit_data.get("exit_cap_rate"),
+        selling_cost_rate=exit_data.get("selling_cost_rate"),
+        closing_costs=exit_data.get("closing_costs"),
+        other_income=exit_data.get("other_income"),
+        lease_term_years=lease.get("remaining_lease_term_years"),
+        rent_escalation=lease.get("rent_escalation"),
+        renewal_probability=lease.get("renewal_probability"),
+        tenant_concentration=lease.get("tenant_concentration"),
+        tenant_credit_quality=lease.get("tenant_credit_quality"),
+        rollover_year=lease.get("rollover_year"),
+        downtime_years=lease.get("downtime_years"),
+        leasing_costs=lease.get("leasing_costs"),
+        tenant_improvements=lease.get("tenant_improvements"),
+        evidence_ids=ctx.evidence,
+    )
+    return underwrite_financial_model(inputs)
+
+
 def assess_cre_opportunity(ctx: CREOpportunityContext, financial_result: Any | None = None) -> tuple[PerspectiveAssessment, ...]:
     """Run all eight lenses over exactly the same context and economic result."""
+    if financial_result is None:
+        financial_result = _model_from_context(ctx)
     return tuple(_PERSPECTIVE_BUILDERS[name](ctx, financial_result) for name in CRE_PERSPECTIVES)
 
 
