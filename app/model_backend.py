@@ -155,16 +155,33 @@ class OpenAIResponsesModelBackend:
 
     @staticmethod
     def _prompt(agent: Agent, question: str, evidence: list[Dict[str, Any]], learning_context: Dict[str, Any]) -> str:
+        if agent.spec.agent_id == "scientist":
+            role_prompt = (
+                "You are the Scientist perspective in AletheiaTelos. "
+                "You are a scientific and epistemic validity component, not an investment authority. "
+                "Ask: What would have to be true for this conclusion to be valid, and what evidence could prove it wrong? "
+                "Use only the supplied decision-usable evidence; do not add facts, sources, market data, or claims from outside it. "
+                "Distinguish observations from interpretations. Formulate testable hypotheses and examine causal claims for confounding, reverse causality, selection effects, survivorship bias, measurement artifacts, and alternative explanations. "
+                "Evaluate evidence quality, representativeness, recency, independence, methodological validity, statistical weakness, model sensitivity, and regime dependence. "
+                "Identify assumptions, falsification tests, failure modes, unknowns, limitations, and what evidence would change the conclusion. "
+                "If the evidence is insufficient, return NO_DATA with confidence 0. "
+                "Confidence is not probability. Do not fabricate evidence or recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
+                "Preserve human decision authority. Return only the requested structured object."
+            )
+        else:
+            role_prompt = (
+                "You are the Researcher perspective in AletheiaTelos. "
+                "You are an evidence-bound research component, not an investment authority. "
+                "Use only the supplied evidence; do not add facts, sources, market data, or claims from outside it. "
+                "Identify which supplied evidence supports the assessment and which supplied evidence contradicts it. "
+                "If the evidence is insufficient, return NO_DATA with confidence 0. "
+                "Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. "
+                "Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
+                "Confidence is not probability. Return only the requested structured object."
+            )
         return (
-            "You are the Researcher perspective in AletheiaTelos. "
-            "You are an evidence-bound research component, not an investment authority. "
-            "Use only the supplied evidence; do not add facts, sources, market data, or claims from outside it. "
-            "Identify which supplied evidence supports the assessment and which supplied evidence contradicts it. "
-            "If the evidence is insufficient, return NO_DATA with confidence 0. "
-            "Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. "
-            "Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
-            "Confidence is not probability. Return only the requested structured object.\n\n"
-            f"Question: {question}\nResearch role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\n"
+            role_prompt + "\n\n"
+            f"Question: {question}\nPerspective role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\n"
             f"Evidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\n"
             f"Prior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
         )
@@ -194,7 +211,7 @@ class OpenAIResponsesModelBackend:
             if not isinstance(values, list) or not all(str(value) in allowed_ids for value in values):
                 raise ModelBackendError(f"model returned invalid {field}; evidence provenance was not preserved")
         if result.get("direction") != "NO_DATA" and not result["evidence_basis"]:
-            raise ModelBackendError("Researcher must cite at least one supplied evidence item")
+            raise ModelBackendError("Active perspective must cite at least one supplied evidence item")
         result["model_version"] = self.model_name
         result["evidence"] = evidence_list
         contradictory_ids = {str(v) for v in result["contradictory_evidence_basis"]}
@@ -215,8 +232,9 @@ class OpenAIResponsesModelProvider(ModelProvider):
 
 
 def build_default_model_provider() -> ModelProvider:
-    """Return real Researcher routing when configured, otherwise the deterministic path."""
+    """Return real Researcher and Scientist routing when configured, otherwise the deterministic path."""
     if not os.getenv("ALETHEIA_MODEL_API_KEY", "").strip():
         from app.model_provider import ContractModelProvider
         return ContractModelProvider()
-    return ResearcherOnlyModelProvider(OpenAIResponsesModelProvider())
+    model_provider = OpenAIResponsesModelProvider()
+    return ResearcherOnlyModelProvider(model_provider, scientist_provider=model_provider)
