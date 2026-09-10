@@ -11,7 +11,9 @@ from typing import Any, Dict, Iterable
 from app.conflict_intelligence import detect_conflict_intelligence, detect_cre_conflicts
 from app.cre_adversarial import review_cre_simulation
 from app.cre_context import CREOpportunityContext
+from app.cre_decision import build_decision_record
 from app.cre_perspectives import assess_cre_opportunity
+from app.cre_underwriting import Assumption, Property, UnderwritingInputs, underwrite
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -76,6 +78,29 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     }
 
 
+def _underwriting_from_context(ctx: CREOpportunityContext):
+    property_data = Property(
+        property_id=ctx.property_id,
+        asset_type=ctx.asset_type,
+        market=ctx.location,
+        occupancy=ctx.occupancy,
+    )
+    assumptions = tuple(
+        Assumption(name=name, value=name, unit="context", evidence_id=None)
+        for name in ctx.assumptions
+    )
+    return underwrite(UnderwritingInputs(
+        opportunity_id=ctx.opportunity_id,
+        property=property_data,
+        purchase_price=ctx.purchase_price,
+        annual_noi=ctx.noi,
+        assumptions=assumptions,
+        evidence_ids=ctx.evidence,
+        contradictory_evidence=ctx.contradictory_evidence,
+        uncertainty_notes=ctx.uncertainty,
+    ))
+
+
 def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, cre_assessments: Iterable[Dict[str, Any]] = (), cre_context: CREOpportunityContext | None = None) -> Dict[str, Any]:
     """Run the complete research loop, with an optional connected CRE loop."""
     prior_records = read_records()
@@ -114,22 +139,11 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "informational_only": True,
     }
     append_record(record)
-    kaleidoscope = build_kaleidoscope_view(
-        agents=agents,
-        evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
-        conflicts=conflict_data["conflicts"],
-        horizon_divergences=conflict_data["horizon_divergences"],
-        simulation=simulation,
-        skeptic=skeptic,
-        meta_intelligence=meta_intelligence,
-        synthesis=synthesis,
-        observer=observer,
-        governance=governance,
-        cre_assessments=cre_assessments,
-    )
 
     cre_result: dict[str, Any] = {}
+    cre_for_view = tuple(cre_assessments)
     if cre_context is not None:
+        underwriting = _underwriting_from_context(cre_context)
         assessments = assess_cre_opportunity(cre_context)
         cre_conflicts = detect_cre_conflicts(assessments)
         cre_simulation = run_cre_monte_carlo(
@@ -146,14 +160,35 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
             assumptions=list(cre_context.assumption_labels()),
         )
         cre_adversarial = review_cre_simulation(cre_simulation, cre_context.assumption_labels(), cre_context.evidence)
+        decision = build_decision_record(
+            underwriting,
+            unresolved_questions=tuple(cre_adversarial.unresolved_questions) + tuple(cre_context.uncertainty),
+        )
+        cre_for_view = assessments
         cre_result = {
             "context": cre_context,
+            "underwriting": underwriting,
             "perspectives": assessments,
             "conflicts": cre_conflicts,
             "simulation": cre_simulation,
             "adversarial_review": cre_adversarial,
+            "decision": decision,
             "decision_boundary": "human authority required",
         }
+
+    kaleidoscope = build_kaleidoscope_view(
+        agents=agents,
+        evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        conflicts=conflict_data["conflicts"],
+        horizon_divergences=conflict_data["horizon_divergences"],
+        simulation=simulation,
+        skeptic=skeptic,
+        meta_intelligence=meta_intelligence,
+        synthesis=synthesis,
+        observer=observer,
+        governance=governance,
+        cre_assessments=cre_for_view,
+    )
 
     return {
         "system": "AletheiaTelos",
@@ -176,7 +211,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "kaleidoscope": kaleidoscope,
         "cre": cre_result,
         "audit": {
-            "pipeline": "prior_learning->evidence->cre_context->cre_perspectives->cre_conflict->independent_cre_simulation->cre_adversarial_review->synthesis->governance->observer->memory",
+            "pipeline": "prior_learning->evidence->cre_context->underwriting->cre_perspectives->cre_conflict->independent_cre_simulation->cre_adversarial_review->decision->human_authority->observer->memory",
             "simulation_independent_of_agents": True,
             "simulation_seed": seed,
             "memory_recorded": True,
