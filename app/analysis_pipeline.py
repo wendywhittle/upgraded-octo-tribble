@@ -73,8 +73,8 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     }
 
 
-def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None) -> Dict[str, Any]:
-    """Run the complete research loop and persist an auditable learning record."""
+def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, cre_assessments: Iterable[Dict[str, Any]] = ()) -> Dict[str, Any]:
+    """Run the complete research loop and optionally carry typed CRE assessments into the Kaleidoscope."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
     agent_stage = run_evidence_fed_agents(
@@ -122,6 +122,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         synthesis=synthesis,
         observer=observer,
         governance=governance,
+        cre_assessments=cre_assessments,
     )
     return {
         "system": "AletheiaTelos",
@@ -154,5 +155,6 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
             "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"],
             "meta_intelligence_directional_vote": False,
             "meta_intelligence_execution_capability": False,
+            "cre_assessments_are_observational": True,
         },
     }
