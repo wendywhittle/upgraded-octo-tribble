@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable
 
-
-PERSPECTIVES = ("researcher", "quant", "skeptic", "contrarian")
+from app.agent_registry import active_perspective_ids
 
 
 def build_kaleidoscope_view(
@@ -39,7 +38,7 @@ def build_kaleidoscope_view(
     return {
         "perspectives": cards,
         "perspective_count": len(cards),
-        "expected_perspective_count": len(PERSPECTIVES),
+        "expected_perspective_count": len(active_perspective_ids()),
         "evidence": evidence or {},
         "conflicts": list(conflicts),
         "horizon_divergences": list(horizon_divergences),
