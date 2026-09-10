@@ -1,4 +1,4 @@
-const ACTIVE = new Set(["researcher","quant","skeptic","contrarian"]);
+const ACTIVE = new Set(["researcher","quant","investor","systems","skeptic","contrarian"]);
 const PERSPECTIVES = [
   ["researcher","RESEARCHER","Evidence-bound fundamental research"],["quant","QUANT","Quantitative and statistical interpretation"],["investor","INVESTOR","Investment thesis"],["scientist","SCIENTIST","Scenario analysis"],["systems","SYSTEMS","Systems risk"],["contrarian","CONTRARIAN","Strongest credible opposing case"],["skeptic","SKEPTIC","Evidence and assumption challenge"],["observer","OBSERVER","Outcome observation"],["meta-intelligence","META-INTELLIGENCE","Reasoning-process examination"],["governance","GOVERNANCE","CHARTER and authority boundary"]
 ];
