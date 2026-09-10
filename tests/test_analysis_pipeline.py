@@ -37,7 +37,7 @@ def test_full_pipeline_feeds_only_validated_evidence_to_active_agents():
         result = run_analysis("Assess the opportunity", evidence(), now=NOW, paths=100)
     assert result["evidence"]["count"] == 1
     assert result["evidence"]["usable_count"] == 1
-    assert len(result["agents"]) == 4
+    assert len(result["agents"]) == 6
     assert all(agent["evidence"] for agent in result["agents"])
     assert result["simulation"]["independent_of_agents"] is True
     assert result["governance"]["autonomous_execution"] is False
