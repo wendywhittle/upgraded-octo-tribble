@@ -36,6 +36,7 @@ def review_cre_simulation(simulation: Mapping[str, Any], assumptions: Sequence[s
     if inputs.get("exit_cap_rate") is not None: challenges.append(f"Exit cap input is {inputs['exit_cap_rate']:.2%}; valuation sensitivity remains material.")
     if financial_result is not None:
         if financial_result.break_even_occupancy is not None: challenges.append(f"Operating/debt-service break-even occupancy is {financial_result.break_even_occupancy:.2%}.")
+        else: challenges.append("Operating/debt-service break-even occupancy is UNKNOWN because explicit gross-rent and operating-expense inputs were not supplied.")
         if financial_result.break_even_exit_cap is not None: challenges.append(f"Exit-cap break-even for preserving initial equity is {financial_result.break_even_exit_cap:.2%}.")
         if financial_result.net_sale_proceeds is not None and financial_result.net_sale_proceeds < 0: challenges.append(f"Modeled net sale proceeds are negative ({financial_result.net_sale_proceeds:,.0f})."); risks.append("negative terminal equity")
         if financial_result.dscr is not None and financial_result.dscr < 1: challenges.append(f"Base underwriting DSCR is below 1.00x ({financial_result.dscr:.2f}x)."); risks.append("base-case debt coverage")
