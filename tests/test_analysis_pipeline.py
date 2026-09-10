@@ -41,7 +41,7 @@ def test_full_pipeline_feeds_only_validated_evidence_to_active_agents():
     assert all(agent["evidence"] for agent in result["agents"])
     assert result["simulation"]["independent_of_agents"] is True
     assert result["governance"]["autonomous_execution"] is False
-    assert result["kaleidoscope"]["expected_perspective_count"] == 4
+    assert result["kaleidoscope"]["expected_perspective_count"] == 6
     assert result["kaleidoscope"]["human_decision_required"] is True
     assert result["kaleidoscope"]["execution_capability"] is False
     assert result["kaleidoscope"]["brokerage_connectivity"] is False
