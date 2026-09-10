@@ -1,8 +1,8 @@
 """Canonical Computational Kaleidoscope research roster.
 
-The full registry remains available for compatibility, while the active reasoning layer
-uses eight deliberately differentiated perspectives. No perspective grants execution,
-brokerage, credential, or portfolio-mutation capability.
+The registry distinguishes directional reasoning perspectives from Meta-Intelligence,
+which evaluates the reasoning process rather than voting on direction. No perspective
+grants execution, brokerage, credential, or portfolio-mutation capability.
 """
 
 from typing import Any, Dict, Iterable
@@ -11,7 +11,8 @@ from app.agent_contract import AgentRegistry, AgentSpec, DeterministicAgent
 from app.agent_runner import AgentRunner
 
 
-_ACTIVE_PERSPECTIVES = ("researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance")
+_ACTIVE_PERSPECTIVES = ("researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance", "meta_intelligence")
+_REASONING_PERSPECTIVES = tuple(agent_id for agent_id in _ACTIVE_PERSPECTIVES if agent_id != "meta_intelligence")
 
 _ROSTER = (
     (
@@ -62,7 +63,7 @@ _ROSTER = (
         "A weakness in the thesis does not by itself establish the opposing thesis.",
     ),
     ("observer", "Outcome Observation", "long", "NEUTRAL", 0.55, "The current state should be treated as a baseline for future attribution.", "Future outcomes may not cleanly identify causal drivers."),
-    ("meta_intelligence", "Meta-Intelligence", "medium", "NEUTRAL", 0.67, "The disagreement between bullish and defensive perspectives is decision-relevant.", "Some disagreement may arise from different assumptions rather than true conflict."),
+    ("meta_intelligence", "Meta-Intelligence", "medium", "NEUTRAL", 0.67, "Evaluate whether the reasoning system is behaving reliably across perspectives.", "Apparent agreement may reflect shared evidence, assumptions, or other correlated reasoning."),
     (
         "governance",
         "CHARTER and Authority Boundary",
@@ -89,16 +90,21 @@ def build_default_registry() -> AgentRegistry:
 
 
 def active_perspective_ids() -> list[str]:
-    """Return the eight active reasoning perspectives."""
+    """Return all active Computational Kaleidoscope perspectives."""
     return list(_ACTIVE_PERSPECTIVES)
 
 
+def reasoning_perspective_ids() -> list[str]:
+    """Return directional/evidence-fed perspectives, excluding process-level Meta-Intelligence."""
+    return list(_REASONING_PERSPECTIVES)
+
+
 def run_default_agents(question: str, evidence_by_agent: Dict[str, Iterable[Dict[str, Any]]] | None = None) -> list[Dict[str, Any]]:
-    """Run every registered perspective through the provider-agnostic runner."""
+    """Run registered directional perspectives through the provider-agnostic runner."""
     registry = build_default_registry()
     runner = AgentRunner()
-    evidence_by_agent = evidence_by_agent or {agent_id: [] for agent_id, *_ in _ROSTER}
+    evidence_by_agent = evidence_by_agent or {agent_id: [] for agent_id in _REASONING_PERSPECTIVES}
     return [
         runner.run(registry.get(agent_id), question, evidence_by_agent.get(agent_id, []))
-        for agent_id in registry.ids()
+        for agent_id in _REASONING_PERSPECTIVES
     ]
