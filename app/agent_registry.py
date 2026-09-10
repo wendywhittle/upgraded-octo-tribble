@@ -1,7 +1,7 @@
 """Canonical Computational Kaleidoscope research roster.
 
-The full registry remains available for compatibility, while Iteration 2A activates
-four deliberately differentiated perspectives. No perspective grants execution,
+The full registry remains available for compatibility, while the active reasoning layer
+uses six deliberately differentiated perspectives. No perspective grants execution,
 brokerage, credential, or portfolio-mutation capability.
 """
 
@@ -11,7 +11,7 @@ from app.agent_contract import AgentRegistry, AgentSpec, DeterministicAgent
 from app.agent_runner import AgentRunner
 
 
-_ACTIVE_PERSPECTIVES = ("researcher", "quant", "skeptic", "contrarian")
+_ACTIVE_PERSPECTIVES = ("researcher", "quant", "investor", "systems", "skeptic", "contrarian")
 
 _ROSTER = (
     (
@@ -73,7 +73,7 @@ def build_default_registry() -> AgentRegistry:
 
 
 def active_perspective_ids() -> list[str]:
-    """Return the intentionally small Iteration 2A active perspective set."""
+    """Return the six active reasoning perspectives."""
     return list(_ACTIVE_PERSPECTIVES)
 
 
