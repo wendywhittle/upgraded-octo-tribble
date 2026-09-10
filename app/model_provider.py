@@ -2,8 +2,8 @@
 
 Providers may change how an Agent's reasoning is produced, but they cannot widen
 the Agent's capability profile. The deterministic contract provider remains the
-regression path; Iteration 1 selectively routes Researcher and Scientist to the
-configured real model.
+regression path; the active reasoning layer selectively routes Researcher, Scientist,
+and Governance to the configured real model.
 """
 
 from typing import Any, Dict, Iterable, Protocol
@@ -43,9 +43,9 @@ class ContractModelProvider:
 
 
 class ResearcherOnlyModelProvider:
-    """Use a real model for Researcher and Scientist; fall back deterministically for others."""
+    """Use a real model for Researcher, Scientist, and Governance; fall back deterministically for others."""
 
-    name = "researcher-scientist-selective"
+    name = "researcher-scientist-governance-selective"
 
     def __init__(
         self,
@@ -53,9 +53,11 @@ class ResearcherOnlyModelProvider:
         fallback: ModelProvider | None = None,
         *,
         scientist_provider: ModelProvider | None = None,
+        governance_provider: ModelProvider | None = None,
     ) -> None:
         self.researcher_provider = researcher_provider
         self.scientist_provider = scientist_provider or researcher_provider
+        self.governance_provider = governance_provider or researcher_provider
         self.fallback = fallback or ContractModelProvider()
 
     def assess(
@@ -69,6 +71,8 @@ class ResearcherOnlyModelProvider:
             provider = self.researcher_provider
         elif agent.spec.agent_id == "scientist":
             provider = self.scientist_provider
+        elif agent.spec.agent_id == "governance":
+            provider = self.governance_provider
         else:
             provider = self.fallback
         return provider.assess(agent, question, evidence, learning_context=learning_context)
