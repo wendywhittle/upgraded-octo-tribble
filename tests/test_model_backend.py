@@ -1,7 +1,8 @@
 import pytest
 
 from app.agent_registry import build_default_registry
-from app.model_backend import CallableModelBackend, CallableModelProvider, ModelBackendError
+from app.model_backend import CallableModelBackend, CallableModelProvider, ModelBackendError, OpenAIResponsesModelBackend
+from app.model_provider import ResearcherOnlyModelProvider
 
 
 def test_backend_passes_structured_context_and_model_metadata():
@@ -38,3 +39,68 @@ def test_provider_wraps_backend():
     agent = build_default_registry().get("investor")
     result = provider.assess(agent, "q", [])
     assert result["model_version"] == "provider-test"
+
+
+def test_scientist_has_distinct_role_specific_prompt():
+    registry = build_default_registry()
+    scientist_prompt = OpenAIResponsesModelBackend._prompt(
+        registry.get("scientist"),
+        "Assess the opportunity",
+        [{"evidence_id": "E1", "claim": "fact"}],
+        {},
+    )
+    researcher_prompt = OpenAIResponsesModelBackend._prompt(
+        registry.get("researcher"),
+        "Assess the opportunity",
+        [{"evidence_id": "E1", "claim": "fact"}],
+        {},
+    )
+
+    assert "You are the Scientist perspective in AletheiaTelos." in scientist_prompt
+    assert "What would have to be true for this conclusion to be valid, and what evidence could prove it wrong?" in scientist_prompt
+    assert "confounding" in scientist_prompt
+    assert "falsification" in scientist_prompt
+    assert "You are the Researcher perspective in AletheiaTelos." in researcher_prompt
+    assert "You are the Scientist perspective in AletheiaTelos." not in researcher_prompt
+    assert scientist_prompt != researcher_prompt
+
+
+def test_selective_provider_routes_researcher_and_scientist_only():
+    class SpyProvider:
+        name = "spy"
+
+        def __init__(self):
+            self.calls = []
+
+        def assess(self, agent, question, evidence, learning_context=None):
+            self.calls.append(agent.spec.agent_id)
+            return {"direction": "NO_DATA", "confidence": 0.0, "horizon": agent.spec.default_horizon, "thesis": "ok", "evidence_basis": [], "contradictory_evidence_basis": [], "invalidation_conditions": [], "assumptions": []}
+
+    researcher_provider = SpyProvider()
+    scientist_provider = SpyProvider()
+    fallback = SpyProvider()
+    provider = ResearcherOnlyModelProvider(
+        researcher_provider,
+        fallback=fallback,
+        scientist_provider=scientist_provider,
+    )
+    registry = build_default_registry()
+
+    provider.assess(registry.get("researcher"), "q", [])
+    provider.assess(registry.get("scientist"), "q", [])
+    provider.assess(registry.get("quant"), "q", [])
+
+    assert researcher_provider.calls == ["researcher"]
+    assert scientist_provider.calls == ["scientist"]
+    assert fallback.calls == ["quant"]
+
+
+def test_scientist_uses_deterministic_fallback_without_real_model():
+    scientist = build_default_registry().get("scientist")
+    result = scientist.assess("q", [{"evidence_id": "E1", "claim": "fact"}])
+
+    assert result["agent_id"] == "scientist"
+    assert result["strategy"] == "Scientific and Epistemic Validity"
+    assert result["capability_profile"]["execute"] is False
+    assert result["capability_profile"]["brokerage"] is False
+    assert result["capability_profile"]["portfolio_mutation"] is False
