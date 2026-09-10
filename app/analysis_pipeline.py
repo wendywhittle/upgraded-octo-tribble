@@ -13,7 +13,7 @@ from app.cre_adversarial import review_cre_simulation
 from app.cre_context import CREOpportunityContext
 from app.cre_decision import build_decision_record
 from app.cre_perspectives import assess_cre_opportunity
-from app.cre_underwriting import Assumption, Property, UnderwritingInputs, underwrite
+from app.cre_underwriting import Assumption, CREFinancialInputs, Property, UnderwritingInputs, underwrite, underwrite_financial_model
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -33,11 +33,9 @@ def detect_conflicts(agents: list[Dict[str, Any]]) -> Dict[str, list[Dict[str, A
     for record in records:
         perspectives = record["perspectives"]
         item = {
-            "agent_a": perspectives[0],
-            "agent_b": perspectives[1],
+            "agent_a": perspectives[0], "agent_b": perspectives[1],
             "type": "horizon_divergence" if record["conflict_type"] == "horizon" else "same_horizon_conflict",
-            "conflict_type": record["conflict_type"],
-            "conflict_record": record,
+            "conflict_type": record["conflict_type"], "conflict_record": record,
         }
         if record["conflict_type"] == "horizon":
             horizon_divergences.append(item)
@@ -65,13 +63,11 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     return {
         "verdict": verdict,
         "conviction": round(abs(long_score - short_score) / total, 3) if total else 0.0,
-        "long_evidence": round(long_score, 3),
-        "short_evidence": round(short_score, 3),
+        "long_evidence": round(long_score, 3), "short_evidence": round(short_score, 3),
         "conflict_count": len(conflict_data["conflicts"]),
         "key_risks": ["Financing sensitivity", "Valuation assumptions", "Downside scenario uncertainty"],
         "unresolved_questions": list(dict.fromkeys(unresolved)) or [
-            "What evidence would invalidate the core thesis?",
-            "Which assumptions are most sensitive?",
+            "What evidence would invalidate the core thesis?", "Which assumptions are most sensitive?",
             "Does the downside case preserve an adequate margin of safety?",
         ],
         "meta_intelligence": meta_intelligence or {},
@@ -79,40 +75,48 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
 
 
 def _underwriting_from_context(ctx: CREOpportunityContext):
-    property_data = Property(
-        property_id=ctx.property_id,
-        asset_type=ctx.asset_type,
-        market=ctx.location,
-        occupancy=ctx.occupancy,
-    )
-    assumptions = tuple(
-        Assumption(name=name, value=name, unit="context", evidence_id=None)
-        for name in ctx.assumptions
-    )
+    property_data = Property(ctx.property_id, ctx.asset_type, ctx.location, occupancy=ctx.occupancy)
+    assumptions = tuple(Assumption(name=name, value=name, unit="context", evidence_id=None) for name in ctx.assumptions)
     return underwrite(UnderwritingInputs(
-        opportunity_id=ctx.opportunity_id,
-        property=property_data,
-        purchase_price=ctx.purchase_price,
-        annual_noi=ctx.noi,
-        assumptions=assumptions,
-        evidence_ids=ctx.evidence,
-        contradictory_evidence=ctx.contradictory_evidence,
+        opportunity_id=ctx.opportunity_id, property=property_data,
+        purchase_price=ctx.purchase_price, annual_noi=ctx.noi, assumptions=assumptions,
+        evidence_ids=ctx.evidence, contradictory_evidence=ctx.contradictory_evidence,
         uncertainty_notes=ctx.uncertainty,
     ))
 
 
+def _financial_inputs_from_context(ctx: CREOpportunityContext) -> CREFinancialInputs:
+    financing = ctx.financing_assumptions
+    exit = ctx.exit_assumptions
+    return CREFinancialInputs(
+        purchase_price=ctx.purchase_price,
+        noi=ctx.noi,
+        gross_rent=ctx.gross_rent,
+        effective_income=ctx.effective_income,
+        occupancy=ctx.occupancy,
+        vacancy=ctx.vacancy,
+        operating_expenses=ctx.expenses,
+        rent_growth=ctx.rent_growth,
+        expense_growth=ctx.expense_growth,
+        capital_expenditures=ctx.capital_expenditures,
+        loan_amount=financing.get("loan_amount"),
+        loan_to_value=financing.get("loan_to_value"),
+        interest_rate=ctx.interest_rate if ctx.interest_rate is not None else financing.get("interest_rate"),
+        amortization_years=financing.get("amortization_years"),
+        hold_period_years=int(ctx.hold_period) if ctx.hold_period is not None else None,
+        exit_cap_rate=exit.get("exit_cap_rate"),
+        selling_cost_rate=exit.get("selling_cost_rate"),
+        closing_costs=exit.get("closing_costs"),
+        other_income=exit.get("other_income"),
+        evidence_ids=ctx.evidence,
+    )
+
+
 def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, cre_assessments: Iterable[Dict[str, Any]] = (), cre_context: CREOpportunityContext | None = None) -> Dict[str, Any]:
-    """Run the complete research loop, with an optional connected CRE loop."""
+    """Run the complete research loop, with a connected CRE economic loop when supplied."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
-    agent_stage = run_evidence_fed_agents(
-        question,
-        evidence,
-        now=now,
-        max_age_seconds=max_age_seconds,
-        provider=provider,
-        learning_context=learning_context,
-    )
+    agent_stage = run_evidence_fed_agents(question, evidence, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context)
     agents = agent_stage["agents"]
     conflict_data = detect_conflicts(agents)
     simulation = run_monte_carlo(initial_value, horizon_steps, paths, seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
@@ -120,112 +124,70 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     meta_intelligence = meta_intelligence_evaluate(
         agents=agents,
         evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
-        conflicts=conflict_data["conflicts"],
-        horizon_divergences=conflict_data["horizon_divergences"],
-        simulation=simulation,
-        skeptic=skeptic,
-        learning_context=learning_context,
+        conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"],
+        simulation=simulation, skeptic=skeptic, learning_context=learning_context,
     )
     synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False}
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed)
     record["meta_intelligence"] = meta_intelligence
-    record["institutional_learning_context"] = {
-        "resolved_prediction_count": learning_context.get("resolved_prediction_count", 0),
-        "lessons": learning_context.get("lessons", []),
-        "agent_metrics_ranked": learning_context.get("agent_metrics_ranked", []),
-        "horizon_metrics": learning_context.get("horizon_metrics", {}),
-        "informational_only": True,
-    }
+    record["institutional_learning_context"] = {"resolved_prediction_count": learning_context.get("resolved_prediction_count", 0), "lessons": learning_context.get("lessons", []), "agent_metrics_ranked": learning_context.get("agent_metrics_ranked", []), "horizon_metrics": learning_context.get("horizon_metrics", {}), "informational_only": True}
     append_record(record)
 
     cre_result: dict[str, Any] = {}
     cre_for_view = tuple(cre_assessments)
     if cre_context is not None:
         underwriting = _underwriting_from_context(cre_context)
-        assessments = assess_cre_opportunity(cre_context)
+        financial_inputs = _financial_inputs_from_context(cre_context)
+        financial_model = underwrite_financial_model(financial_inputs)
+        assessments = assess_cre_opportunity(cre_context, financial_model)
         cre_conflicts = detect_cre_conflicts(assessments)
+        exit_cap = cre_context.exit_assumptions.get("exit_cap_rate")
+        financing = cre_context.financing_assumptions
         cre_simulation = run_cre_monte_carlo(
             purchase_price=cre_context.purchase_price,
             noi=cre_context.noi,
-            hold_period=int(cre_context.hold_period or 5),
-            paths=paths,
-            seed=seed,
-            occupancy=cre_context.occupancy,
-            rent_growth=cre_context.rent_growth,
-            interest_rate=cre_context.interest_rate,
-            exit_cap_rate=cre_context.cap_rate,
-            capital_expenditures=cre_context.capital_expenditures or 0.0,
-            assumptions=list(cre_context.assumption_labels()),
+            hold_period=int(cre_context.hold_period or 5), paths=paths, seed=seed,
+            occupancy=cre_context.occupancy, rent_growth=cre_context.rent_growth,
+            expense_growth=cre_context.expense_growth, interest_rate=financial_inputs.interest_rate,
+            loan_to_value=financing.get("loan_to_value"), capital_expenditures=cre_context.capital_expenditures or 0.0,
+            assumptions=list(cre_context.assumption_labels()), gross_rent=cre_context.gross_rent,
+            operating_expenses=cre_context.expenses, vacancy=cre_context.vacancy,
+            amortization_years=financial_inputs.amortization_years, exit_cap_rate=exit_cap,
+            selling_cost_rate=financial_inputs.selling_cost_rate or 0.0,
         )
         cre_adversarial = review_cre_simulation(cre_simulation, cre_context.assumption_labels(), cre_context.evidence)
-        decision = build_decision_record(
-            underwriting,
-            unresolved_questions=tuple(cre_adversarial.unresolved_questions) + tuple(cre_context.uncertainty),
-        )
+        decision = build_decision_record(underwriting, unresolved_questions=tuple(cre_adversarial.unresolved_questions) + tuple(cre_context.uncertainty))
         cre_for_view = assessments
         cre_result = {
-            "context": cre_context,
-            "underwriting": underwriting,
-            "perspectives": assessments,
-            "conflicts": cre_conflicts,
-            "simulation": cre_simulation,
-            "adversarial_review": cre_adversarial,
-            "decision": decision,
+            "context": cre_context, "underwriting": underwriting, "financial_model": financial_model,
+            "perspectives": assessments, "conflicts": cre_conflicts, "simulation": cre_simulation,
+            "adversarial_review": cre_adversarial, "decision": decision,
             "decision_boundary": "human authority required",
         }
 
     kaleidoscope = build_kaleidoscope_view(
         agents=agents,
         evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
-        conflicts=conflict_data["conflicts"],
-        horizon_divergences=conflict_data["horizon_divergences"],
-        simulation=simulation,
-        skeptic=skeptic,
-        meta_intelligence=meta_intelligence,
-        synthesis=synthesis,
-        observer=observer,
-        governance=governance,
-        cre_assessments=cre_for_view,
+        conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation,
+        skeptic=skeptic, meta_intelligence=meta_intelligence, synthesis=synthesis, observer=observer,
+        governance=governance, cre_assessments=cre_for_view,
     )
-
     return {
-        "system": "AletheiaTelos",
-        "question": question,
-        "institutional_learning": learning_context,
+        "system": "AletheiaTelos", "question": question, "institutional_learning": learning_context,
         "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
-        "agents": agents,
-        "active_perspectives": agent_stage["active_perspectives"],
-        "reasoning_perspectives": agent_stage["reasoning_perspectives"],
-        "registered_agent_count": agent_stage["registered_agent_count"],
-        "conflicts": conflict_data["conflicts"],
-        "horizon_divergences": conflict_data["horizon_divergences"],
-        "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"],
-        "simulation": simulation,
-        "skeptic": skeptic,
-        "meta_intelligence": meta_intelligence,
-        "synthesis": synthesis,
-        "observer": observer,
-        "governance": governance,
-        "kaleidoscope": kaleidoscope,
-        "cre": cre_result,
+        "agents": agents, "active_perspectives": agent_stage["active_perspectives"], "reasoning_perspectives": agent_stage["reasoning_perspectives"],
+        "registered_agent_count": agent_stage["registered_agent_count"], "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"],
+        "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic,
+        "meta_intelligence": meta_intelligence, "synthesis": synthesis, "observer": observer, "governance": governance,
+        "kaleidoscope": kaleidoscope, "cre": cre_result,
         "audit": {
-            "pipeline": "prior_learning->evidence->cre_context->underwriting->cre_perspectives->cre_conflict->independent_cre_simulation->cre_adversarial_review->decision->human_authority->observer->memory",
-            "simulation_independent_of_agents": True,
-            "simulation_seed": seed,
-            "memory_recorded": True,
-            "research_only": True,
-            "human_decision_required": True,
-            "provider": agent_stage["provider"],
-            "learning_context_supplied": agent_stage["learning_context_supplied"],
-            "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"],
-            "meta_intelligence_directional_vote": False,
-            "meta_intelligence_execution_capability": False,
-            "cre_assessments_are_observational": True,
-            "cre_simulation_independent_of_perspectives": True,
-            "autonomous_execution": False,
-            "brokerage_connectivity": False,
-            "portfolio_mutation": False,
+            "pipeline": "prior_learning->evidence->cre_context->underwriting->financial_model->cre_perspectives->cre_conflict->independent_cre_simulation->cre_adversarial_review->decision->human_authority->observer->memory",
+            "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True,
+            "human_decision_required": True, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"],
+            "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"], "meta_intelligence_directional_vote": False,
+            "meta_intelligence_execution_capability": False, "cre_assessments_are_observational": True,
+            "cre_simulation_independent_of_perspectives": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False,
         },
     }
