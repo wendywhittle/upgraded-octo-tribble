@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 
 from app.analysis_endpoint import build_analysis_router
 from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
@@ -19,6 +21,7 @@ from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 
 app = FastAPI(title="AletheiaTelos", version="1.11.0", description="Research and decision intelligence system; not an autonomous trading system.")
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
 def timestamp() -> str:
@@ -70,7 +73,7 @@ if not any(getattr(route, "path", None) == "/experiments/EXP-001/run" for route 
 
 @app.get("/")
 def root():
-    return {"system": "AletheiaTelos", "status": "operational", "version": "1.11.0", "live_market_data": live_market_enabled()}
+    return FileResponse(WEB_DIR / "index.html")
 
 
 @app.get("/health")
@@ -82,6 +85,14 @@ def health():
 def memory():
     records = read_records()
     return {"count": len(records), "records": records}
+
+
+@app.get("/web/{asset_path:path}")
+def web_asset(asset_path: str):
+    path = (WEB_DIR / asset_path).resolve()
+    if WEB_DIR not in path.parents or not path.is_file():
+        raise HTTPException(status_code=404, detail="Frontend asset not found")
+    return FileResponse(path)
 
 
 feed_urls = research_feed_urls()
