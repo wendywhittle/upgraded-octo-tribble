@@ -1,7 +1,7 @@
 """Canonical Computational Kaleidoscope research roster.
 
 The full registry remains available for compatibility, while the active reasoning layer
-uses seven deliberately differentiated perspectives. No perspective grants execution,
+uses eight deliberately differentiated perspectives. No perspective grants execution,
 brokerage, credential, or portfolio-mutation capability.
 """
 
@@ -11,7 +11,7 @@ from app.agent_contract import AgentRegistry, AgentSpec, DeterministicAgent
 from app.agent_runner import AgentRunner
 
 
-_ACTIVE_PERSPECTIVES = ("researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian")
+_ACTIVE_PERSPECTIVES = ("researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance")
 
 _ROSTER = (
     (
@@ -63,7 +63,15 @@ _ROSTER = (
     ),
     ("observer", "Outcome Observation", "long", "NEUTRAL", 0.55, "The current state should be treated as a baseline for future attribution.", "Future outcomes may not cleanly identify causal drivers."),
     ("meta_intelligence", "Meta-Intelligence", "medium", "NEUTRAL", 0.67, "The disagreement between bullish and defensive perspectives is decision-relevant.", "Some disagreement may arise from different assumptions rather than true conflict."),
-    ("governance", "CHARTER", "all", "NEUTRAL", 0.95, "Human Investment Committee authority remains mandatory.", "No autonomous investment authority is permitted."),
+    (
+        "governance",
+        "CHARTER and Authority Boundary",
+        "all",
+        "NEUTRAL",
+        0.95,
+        "Verify that system behavior remains within the CHARTER, preserves human investment authority, and requires escalation when governance boundaries are threatened.",
+        "A governance violation, unauthorized autonomy, or unsupported authority claim may require immediate human review.",
+    ),
 )
 
 
@@ -81,7 +89,7 @@ def build_default_registry() -> AgentRegistry:
 
 
 def active_perspective_ids() -> list[str]:
-    """Return the seven active reasoning perspectives."""
+    """Return the eight active reasoning perspectives."""
     return list(_ACTIVE_PERSPECTIVES)
 
 
