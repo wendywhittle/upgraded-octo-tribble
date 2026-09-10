@@ -14,6 +14,7 @@ def build_kaleidoscope_view(
     horizon_divergences: Iterable[Dict[str, Any]] = (),
     simulation: Dict[str, Any] | None = None,
     skeptic: Dict[str, Any] | None = None,
+    meta_intelligence: Dict[str, Any] | None = None,
     synthesis: Dict[str, Any] | None = None,
     observer: Dict[str, Any] | None = None,
     governance: Dict[str, Any] | None = None,
@@ -44,6 +45,7 @@ def build_kaleidoscope_view(
         "horizon_divergences": list(horizon_divergences),
         "simulation": simulation or {},
         "skeptic": skeptic or {},
+        "meta_intelligence": meta_intelligence or {},
         "synthesis": synthesis or {},
         "observer": observer or {},
         "governance": governance or {
