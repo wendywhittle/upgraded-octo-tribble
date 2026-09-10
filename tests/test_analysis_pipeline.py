@@ -24,7 +24,7 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     assert result["evidence"]["usable_count"] == 0
     assert len(result["agents"]) == 8
     assert len(result["active_perspectives"]) == 9
-    assert set(result["active_perspectives"]) == {"researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance", "meta_intelligence"}
+    assert result["active_perspectives"] == ["researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance", "observer"]
     assert all(agent["direction"] == "NO_DATA" for agent in result["agents"])
     assert result["synthesis"]["verdict"] == "NO_DATA"
     assert result["meta_intelligence"]["reasoning_health"] == "INSUFFICIENT"
