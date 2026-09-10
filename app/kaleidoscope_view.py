@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict, is_dataclass
 from typing import Any, Dict, Iterable
 
 from app.agent_registry import active_perspective_ids
+
+
+def _assessment_dict(item: Any) -> Dict[str, Any]:
+    """Normalize mapping or dataclass assessments without changing their content."""
+    if is_dataclass(item):
+        return asdict(item)
+    return dict(item)
 
 
 def build_kaleidoscope_view(
@@ -18,7 +26,7 @@ def build_kaleidoscope_view(
     synthesis: Dict[str, Any] | None = None,
     observer: Dict[str, Any] | None = None,
     governance: Dict[str, Any] | None = None,
-    cre_assessments: Iterable[Dict[str, Any]] = (),
+    cre_assessments: Iterable[Any] = (),
 ) -> Dict[str, Any]:
     """Project analysis state into a UI-safe, read-only view.
 
@@ -40,7 +48,7 @@ def build_kaleidoscope_view(
     ]
     return {
         "perspectives": cards,
-        "cre_perspective_assessments": [dict(item) for item in cre_assessments],
+        "cre_perspective_assessments": [_assessment_dict(item) for item in cre_assessments],
         "perspective_count": len(cards),
         "expected_perspective_count": len(active_perspective_ids()),
         "evidence": evidence or {},
