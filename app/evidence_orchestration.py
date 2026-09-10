@@ -1,6 +1,6 @@
 """Evidence-fed research orchestration boundary.
 
-Validated evidence is distributed to the selected six active perspectives and
+Validated evidence is distributed to the selected seven active perspectives and
 executed through AgentRunner so provider substitution remains explicit and auditable.
 No execution, brokerage, credential, or portfolio-mutation capability is introduced.
 """
@@ -30,7 +30,7 @@ def run_evidence_fed_agents(
     provider: ModelProvider | None = None,
     learning_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Run the six active perspectives using the same validated evidence."""
+    """Run the seven active perspectives using the same validated evidence."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
