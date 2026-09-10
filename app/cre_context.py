@@ -1,17 +1,17 @@
 """Shared, evidence-aware context for the CRE intelligence loop.
 
-The context is deliberately a data contract. It does not make an investment
-recommendation and it never fills missing underwriting values with defaults.
+The context is a data contract. It does not make an investment recommendation
+and it never fills missing underwriting values with defaults.
 """
 from dataclasses import dataclass, field
 from typing import Mapping, Sequence
 
 
 CRE_CONTEXT_FIELDS = (
-    "purchase_price", "noi", "occupancy", "rent_growth", "vacancy", "expenses",
-    "cap_rate", "financing_assumptions", "interest_rate", "hold_period",
-    "exit_assumptions", "leasing_assumptions", "capital_expenditures",
-    "value_creation_assumptions",
+    "purchase_price", "gross_rent", "effective_income", "noi", "occupancy", "rent_growth",
+    "vacancy", "expenses", "expense_growth", "cap_rate", "financing_assumptions",
+    "interest_rate", "hold_period", "exit_assumptions", "leasing_assumptions",
+    "capital_expenditures", "value_creation_assumptions",
 )
 
 
@@ -22,11 +22,14 @@ class CREOpportunityContext:
     asset_type: str
     location: str
     purchase_price: float | None = None
+    gross_rent: float | None = None
+    effective_income: float | None = None
     noi: float | None = None
     occupancy: float | None = None
     rent_growth: float | None = None
     vacancy: float | None = None
     expenses: float | None = None
+    expense_growth: float | None = None
     cap_rate: float | None = None
     financing_assumptions: Mapping[str, float | str | None] = field(default_factory=dict)
     interest_rate: float | None = None
