@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.analysis_pipeline import run_analysis
+from app.cre_context import CREOpportunityContext
 
 
 class AnalysisRequest(BaseModel):
@@ -15,6 +16,7 @@ class AnalysisRequest(BaseModel):
     horizon_steps: int = Field(default=60, ge=1, le=10000)
     paths: int = Field(default=5000, ge=100, le=100000)
     seed: int = Field(default=42, ge=0)
+    cre_context: Dict[str, Any] | None = None
 
 
 def build_analysis_router() -> APIRouter:
@@ -23,6 +25,7 @@ def build_analysis_router() -> APIRouter:
     @router.post("/run")
     def analyze(request: AnalysisRequest) -> Dict[str, Any]:
         try:
+            cre_context = CREOpportunityContext(**request.cre_context) if request.cre_context else None
             return run_analysis(
                 question=request.question,
                 evidence=request.evidence,
@@ -30,8 +33,9 @@ def build_analysis_router() -> APIRouter:
                 horizon_steps=request.horizon_steps,
                 paths=request.paths,
                 seed=request.seed,
+                cre_context=cre_context,
             )
-        except (ValueError, RuntimeError) as exc:
+        except (TypeError, ValueError, RuntimeError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return router
