@@ -84,6 +84,8 @@ def evaluate(
 
     if evidence.get("count", 0) and not evidence.get("usable_count", 0):
         evidence_concerns.append("Supplied evidence was not decision-usable after validation.")
+    elif not evidence.get("usable_count", 0):
+        evidence_concerns.append("No decision-usable evidence was available for process evaluation.")
 
     assumption_counts: Dict[str, int] = {}
     for agent in agent_list:
