@@ -13,13 +13,18 @@ function riskText(value, fallback="NOT AVAILABLE"){
   if(Array.isArray(value)) return value.length?`${value.length} concern${value.length===1?"":"s"}`: "NONE IDENTIFIED";
   return value==null || value===""?fallback:String(value);
 }
-function renderPerspectives(outputs=[]){
+function pct(v){return v==null?"UNKNOWN":`${(Number(v)*100).toFixed(2)}%`;}
+function money(v){return v==null?"UNKNOWN":Number(v).toLocaleString(undefined,{maximumFractionDigits:0});}
+function metric(v, formatter=x=>x){return v==null?"UNKNOWN":formatter(v);}
+function renderPerspectives(outputs=[], creAssessments=[]){
   const byId=Object.fromEntries(outputs.map(x=>[x.agent_id||x.agent?.agent_id,x]));
+  const creById=Object.fromEntries((creAssessments||[]).map(x=>[x.perspective_id,x]));
   $("perspectives").innerHTML=PERSPECTIVES.map(([id,name,detail])=>{
-    const active=ACTIVE.has(id), out=byId[id];
+    const active=ACTIVE.has(id), out=byId[id], cre=creById[id];
     const status=active?(out?"RETURNED":"ACTIVE"):"NOT YET ACTIVE";
-    const signal=out?.direction||out?.recommendation||"";
-    return `<article class="agent ${active?"active":"inactive"}"><div class="agent-name"><span>${name}</span><span class="agent-status">${status}</span></div><div class="agent-detail">${esc(signal||detail)}</div></article>`;
+    const signal=cre?.recommendation||out?.direction||"";
+    const claim=cre?.economic_claim;
+    return `<article class="agent ${active?"active":"inactive"}"><div class="agent-name"><span>${name}</span><span class="agent-status">${status}</span></div><div class="agent-detail">${esc(signal||claim||detail)}</div>${claim?`<div class="agent-economics">${esc(claim)}</div>`:""}</article>`;
   }).join("");
 }
 function renderMeta(meta={}){
@@ -45,20 +50,39 @@ function setDecision(value){
   const v=allowed.has(normalized)?normalized:"NO DATA";
   $("decision-state").textContent=v; $("ic-state").textContent=v;
 }
-function renderConflicts(conflicts=[],horizon=[]){
-  const items=[...conflicts,...horizon];
+function renderConflicts(conflicts=[],horizon=[],creConflicts=[]){
+  const items=[...conflicts,...horizon,...(creConflicts||[])];
   $("conflict-count").textContent=`${items.length} ${items.length===1?"ITEM":"ITEMS"}`;
-  $("conflicts").innerHTML=items.length?items.map(c=>{const r=c.conflict_record||c;return `<div class="conflict-item"><strong>${esc(r.conflict_type||c.type||"CONFLICT")}</strong><span>${esc(r.severity||c.severity||"UNSPECIFIED")}</span><div class="question">${esc(r.unresolved_questions?.join(" • ")||c.description||"Unresolved question not supplied.")}</div></div>`}).join(""):"NO CONFLICT DATA / NO DISAGREEMENT RETURNED";
+  $("conflicts").innerHTML=items.length?items.map(c=>{const r=c.conflict_record||c;const economics=r.economic_disagreement||r.description||r.unresolved_questions?.join(" • ");return `<div class="conflict-item"><strong>${esc(r.conflict_type||c.type||"CONFLICT")}</strong><span>${esc(r.severity||c.severity||"UNSPECIFIED")}</span><div class="question">${esc(economics||"Unresolved question not supplied.")}</div></div>`}).join(""):"NO CONFLICT DATA / NO DISAGREEMENT RETURNED";
 }
 function renderRisk(sim={}){
-  const scenarios=Array.isArray(sim.scenarios)?Object.fromEntries(sim.scenarios.map(x=>[x.scenario,x])):(sim.scenarios||{});
-  const names=["base","bull","bear","adversarial"];
+  const scenarios=Array.isArray(sim.scenarios)?Object.fromEntries(sim.scenarios.map(x=>[String(x.scenario).toLowerCase(),x])):(sim.scenarios||{});
+  const names=["base","bull","bear","adversarial","tail_risk"];
   $("risk-grid").innerHTML=names.map(n=>{
-    const x=scenarios[n];
-    if(!x)return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>NOT AVAILABLE</strong><em>Backend metric not returned</em></div>`;
-    return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>${esc(x.mean_terminal??"NOT AVAILABLE")}</strong><em>loss ${x.probability_loss==null?"NOT AVAILABLE":esc(x.probability_loss)} • drawdown ${x.max_drawdown_mean==null?"NOT AVAILABLE":esc(x.max_drawdown_mean)}</em></div>`;
+    const x=scenarios[n]||scenarios[n.toUpperCase()];
+    if(!x)return `<div class="risk-card"><span>${n.replace("_"," ").toUpperCase()}</span><strong>NOT AVAILABLE</strong><em>Backend metric not returned</em></div>`;
+    return `<div class="risk-card"><span>${n.replace("_"," ").toUpperCase()}</span><strong>${esc(x.mean_terminal??x.mean_terminal_value??"NOT AVAILABLE")}</strong><em>loss ${x.probability_loss==null?"NOT AVAILABLE":esc(pct(x.probability_loss))} • drawdown ${x.max_drawdown_mean==null?"NOT AVAILABLE":esc(pct(x.max_drawdown_mean))}</em></div>`;
   }).join("");
   $("risk-note").textContent=sim.independent_of_agents===false?"INDEPENDENCE FLAG FAILED":"Independent simulation output. Agent conclusions do not determine these results.";
+}
+function renderCRE(cre={}){
+  const m=cre.financial_model||{};
+  const ctx=cre.context||{};
+  const u=cre.underwriting||{};
+  const status=m.status||"UNKNOWN";
+  const items=[
+    ["PURCHASE PRICE",money(ctx.purchase_price)], ["ANNUAL NOI",money(ctx.noi)], ["GOING-IN CAP",pct(m.going_in_cap_rate)], ["OCCUPANCY",pct(ctx.occupancy)],
+    ["LTV",pct(ctx.financing_assumptions?.loan_to_value)], ["LOAN AMOUNT",money(ctx.financing_assumptions?.loan_amount)], ["INTEREST RATE",pct(ctx.interest_rate??ctx.financing_assumptions?.interest_rate)], ["DSCR",metric(m.dscr,x=>Number(x).toFixed(2)+"x")],
+    ["DEBT YIELD",pct(m.debt_yield)], ["EQUITY REQUIRED",money(m.equity_requirement)], ["CASH-ON-CASH",pct(m.cash_on_cash)], ["EQUITY MULTIPLE",metric(m.equity_multiple,x=>Number(x).toFixed(2)+"x")],
+    ["IRR",pct(m.irr)], ["EXIT VALUE",money(m.exit_value)], ["NET SALE PROCEEDS",money(m.net_sale_proceeds)], ["HOLD PERIOD",ctx.hold_period==null?"UNKNOWN":`${ctx.hold_period} yrs`]
+  ];
+  $("cre-grid").innerHTML=`<div class="model-status">MODEL STATUS <strong>${esc(status)}</strong></div>`+items.map(([label,value])=>`<div class="cre-metric"><span>${label}</span><strong>${esc(value)}</strong></div>`).join("");
+  const breaks=[
+    ["BREAK-EVEN OCCUPANCY",pct(m.break_even_occupancy)], ["BREAK-EVEN EXIT CAP",pct(m.break_even_exit_cap)],
+    ["MAX PRICE @ TARGET CAP",money(m.max_purchase_price_at_target_cap)], ["MAX LOAN @ TARGET DSCR",money(m.max_loan_at_target_dscr)],
+    ["MISSING INPUTS",listText(m.missing_inputs,"NONE")], ["UNDERWRITING",u.decision||status]
+  ];
+  $("cre-breaks").innerHTML=breaks.map(([label,value])=>`<div><span>${label}</span><strong>${esc(value)}</strong></div>`).join("");
 }
 function renderMemory(records=[]){
   const r=records.at(-1); if(!r)return;
@@ -72,5 +96,14 @@ function renderMemory(records=[]){
 async function health(){try{const r=await fetch("/health");if(!r.ok)throw Error();$("api-dot").className="status-dot online";$("api-status").textContent="API ONLINE";}catch{$("api-dot").className="status-dot offline";$("api-status").textContent="API UNAVAILABLE";}}
 async function loadMemory(){try{const r=await fetch("/memory");if(!r.ok)throw Error();const data=await r.json();renderMemory(data.records||[]);}catch{$("memory-outcome").textContent="UNAVAILABLE";}}
 async function loadLearning(){try{const r=await fetch("/observer/learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bins:10})});if(!r.ok)throw Error();const data=await r.json();if(Array.isArray(data.lessons)&&data.lessons.length){$("memory-lesson").textContent=data.lessons.join(" • ");}}catch{$("memory-lesson").textContent="LEARNING DATA UNAVAILABLE";}}
-async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");renderMeta({});$("core-question").textContent=$("question").value;try{const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:$("question").value,evidence:[],initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42})});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||[]);renderMeta(data.meta_intelligence||{});renderConflicts(data.conflicts||[],data.horizon_divergences||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict);$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";renderMeta({status:"unavailable"});}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
-$("analysis-form").addEventListener("submit",runAnalysis);$("load-memory").addEventListener("click",()=>{loadMemory();loadLearning();});renderPerspectives();renderMeta();renderRisk();health();loadMemory();loadLearning();
+function optionalNumber(id,scale=1){const value=$(id).value.trim();return value===""?undefined:Number(value)/scale;}
+function buildCREContext(){
+  const purchase=optionalNumber("purchase-price"), noi=optionalNumber("noi"), occupancy=optionalNumber("occupancy",100);
+  if(purchase==null && noi==null) return undefined;
+  const financing={}; const ltv=optionalNumber("ltv",100); if(ltv!=null) financing.loan_to_value=ltv;
+  const rate=optionalNumber("rate",100); if(rate!=null) financing.interest_rate=rate;
+  const exitCap=optionalNumber("exit-cap",100); const rentGrowth=optionalNumber("rent-growth",100); const expenseGrowth=optionalNumber("expense-growth",100); const hold=optionalNumber("hold");
+  return {opportunity_id:"UI-OPPORTUNITY",property_id:"UI-PROPERTY",asset_type:$("asset").value.trim()||"UNKNOWN",location:$("market").value.trim()||"UNKNOWN",purchase_price:purchase,noi:noi,occupancy:occupancy,rent_growth:rentGrowth,expense_growth:expenseGrowth,interest_rate:rate,hold_period:hold,financing_assumptions:financing,exit_assumptions:exitCap==null?{}:{exit_cap_rate:exitCap},evidence:[],uncertainty:["CRE inputs supplied through read-only dashboard form; evidence has not been attached."],missing_inputs:[]};
+}
+async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");renderMeta({});$("core-question").textContent=$("question").value;try{const cre_context=buildCREContext();const payload={question:$("question").value,evidence:[],initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42};if(cre_context)payload.cre_context=cre_context;const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||[],data.cre?.perspectives||[]);renderCRE(data.cre||{});renderMeta(data.meta_intelligence||{});renderConflicts(data.conflicts||[],data.horizon_divergences||[],data.cre?.conflicts||[]);renderRisk(data.cre?.simulation||data.simulation||{});setDecision(data.synthesis?.verdict);if(data.cre?.decision){$("cre-decision").textContent=String(data.cre.decision.state||"UNKNOWN");$("decision-rationale").textContent=listText(data.cre.decision.rationale,"No CRE decision rationale returned.");}else{$("cre-decision").textContent="UNKNOWN";$("decision-rationale").textContent="No CRE context supplied. Enter purchase price and NOI to activate the CRE economic model.";}$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";renderMeta({status:"unavailable"});}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
+$("analysis-form").addEventListener("submit",runAnalysis);$("load-memory").addEventListener("click",()=>{loadMemory();loadLearning();});renderPerspectives();renderMeta();renderCRE();renderRisk();health();loadMemory();loadLearning();
