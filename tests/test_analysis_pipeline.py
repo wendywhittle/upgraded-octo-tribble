@@ -81,3 +81,12 @@ def test_full_pipeline_surfaces_meta_intelligence_before_synthesis():
     assert "recommended_next_step" in meta
     assert "meta_intelligence" in result["synthesis"]
     assert result["synthesis"]["meta_intelligence"] == meta
+
+
+def test_full_pipeline_carries_cre_assessments_into_read_only_kaleidoscope():
+    assessments = [{"perspective_id": "underwriter", "thesis": "Evidence supports further diligence."}]
+    with patch("app.analysis_pipeline.append_record"):
+        result = run_analysis("Assess CRE opportunity", evidence(), now=NOW, paths=100, cre_assessments=assessments)
+    assert result["kaleidoscope"]["cre_perspective_assessments"] == assessments
+    assert result["kaleidoscope"]["read_only"] is True
+    assert result["audit"]["cre_assessments_are_observational"] is True
