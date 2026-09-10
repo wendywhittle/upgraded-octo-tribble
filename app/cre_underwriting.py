@@ -49,6 +49,7 @@ class UnderwritingInputs:
     evidence_ids: Sequence[str] = field(default_factory=tuple)
     contradictory_evidence: Sequence[str] = field(default_factory=tuple)
     uncertainty_notes: Sequence[str] = field(default_factory=tuple)
+    no_deal_reasons: Sequence[str] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -88,14 +89,8 @@ def underwrite(inputs: UnderwritingInputs) -> UnderwritingResult:
     assert inputs.purchase_price is not None
     assert inputs.annual_noi is not None
     cap_rate = inputs.annual_noi / inputs.purchase_price
-    fragile = tuple(
-        a.name for a in inputs.assumptions
-        if a.confidence is not None and a.confidence < 0.6
-    )
-    invalidations = tuple(
-        a.invalidation_condition for a in inputs.assumptions
-        if a.invalidation_condition
-    )
+    fragile = tuple(a.name for a in inputs.assumptions if a.confidence is not None and a.confidence < 0.6)
+    invalidations = tuple(a.invalidation_condition for a in inputs.assumptions if a.invalidation_condition)
     reasons = [f"Going-in cap rate: {cap_rate:.2%}"]
     if inputs.contradictory_evidence:
         reasons.append("Contradictory evidence is present and requires review.")
@@ -103,6 +98,16 @@ def underwrite(inputs: UnderwritingInputs) -> UnderwritingResult:
         reasons.append("Material uncertainty has been recorded.")
     if fragile:
         reasons.append("One or more assumptions have low recorded confidence.")
+    if inputs.no_deal_reasons:
+        reasons.extend(inputs.no_deal_reasons)
+        return UnderwritingResult(
+            decision=UnderwritingDecision.NO_DEAL,
+            going_in_cap_rate=cap_rate,
+            reasons=tuple(reasons),
+            fragile_assumptions=fragile,
+            invalidation_conditions=invalidations,
+            evidence_ids=tuple(inputs.evidence_ids),
+        )
 
     return UnderwritingResult(
         decision=UnderwritingDecision.WATCH,
