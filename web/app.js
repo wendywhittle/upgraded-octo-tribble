@@ -1,6 +1,6 @@
-const ACTIVE = new Set(["researcher","quant","investor","scientist","systems","skeptic","contrarian"]);
+const ACTIVE = new Set(["researcher","quant","investor","scientist","systems","skeptic","contrarian","governance"]);
 const PERSPECTIVES = [
-  ["researcher","RESEARCHER","Evidence-bound fundamental research"],["quant","QUANT","Quantitative and statistical interpretation"],["investor","INVESTOR","Investment thesis"],["scientist","SCIENTIST","Scientific and Epistemic Validity"],["systems","SYSTEMS","Systems risk"],["contrarian","CONTRARIAN","Strongest credible opposing case"],["skeptic","SKEPTIC","Evidence and assumption challenge"],["observer","OBSERVER","Outcome observation"],["meta-intelligence","META-INTELLIGENCE","Reasoning-process examination"],["governance","GOVERNANCE","CHARTER and authority boundary"]
+  ["researcher","RESEARCHER","Evidence-bound fundamental research"],["quant","QUANT","Quantitative and statistical interpretation"],["investor","INVESTOR","Investment thesis"],["scientist","SCIENTIST","Scientific and Epistemic Validity"],["systems","SYSTEMS","Systems risk"],["contrarian","CONTRARIAN","Strongest credible opposing case"],["skeptic","SKEPTIC","Evidence and assumption challenge"],["observer","OBSERVER","Outcome observation"],["meta-intelligence","META-INTELLIGENCE","Reasoning-process examination"],["governance","GOVERNANCE","CHARTER and Authority Boundary"]
 ];
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
