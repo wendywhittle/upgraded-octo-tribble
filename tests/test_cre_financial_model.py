@@ -84,7 +84,7 @@ def test_financing_unknown_prevents_simulation_from_inventing_rate():
 
 
 def test_sensitivity_changes_the_requested_variable():
-    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07)
+    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, interest_rate=.06, loan_to_value=.65, amortization_years=25, exit_cap_rate=.07)
     outcomes = [row["base_scenario"]["mean_equity_outcome"] for row in result["variables"]["exit_cap_rate"]]
     assert outcomes[0] > outcomes[-1]
 
