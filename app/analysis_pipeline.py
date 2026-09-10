@@ -1,8 +1,9 @@
 """Full evidence-to-decision-intelligence pipeline.
 
 Evidence integrity precedes reasoning. Independent perspectives feed typed conflict
-intelligence; risk simulation remains independent of agent conclusions. Institutional
-learning is advisory context only. No execution capability exists in this module.
+intelligence; risk simulation remains independent of agent conclusions. Meta-Intelligence
+evaluates the reasoning process before synthesis. Institutional learning is advisory
+context only. No execution capability exists in this module.
 """
 
 from typing import Any, Dict, Iterable
@@ -12,6 +13,7 @@ from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
 from app.memory import append_record, build_record, read_records
+from app.meta_intelligence import evaluate as meta_intelligence_evaluate
 from app.model_provider import ModelProvider
 from app.observer import observe
 from app.simulator import run_monte_carlo
@@ -39,7 +41,7 @@ def detect_conflicts(agents: list[Dict[str, Any]]) -> Dict[str, list[Dict[str, A
     return {"conflicts": conflicts, "horizon_divergences": horizon_divergences}
 
 
-def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[str, Any]]], skeptic: Dict[str, Any]) -> Dict[str, Any]:
+def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[str, Any]]], skeptic: Dict[str, Any], meta_intelligence: Dict[str, Any] | None = None) -> Dict[str, Any]:
     """Produce a transparent research synthesis; never authorize execution."""
     if any(a.get("direction") == "NO_DATA" for a in agents):
         verdict = "NO_DATA"
@@ -67,6 +69,7 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
             "Which assumptions are most sensitive?",
             "Does the downside case preserve an adequate margin of safety?",
         ],
+        "meta_intelligence": meta_intelligence or {},
     }
 
 
@@ -86,10 +89,20 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     conflict_data = detect_conflicts(agents)
     simulation = run_monte_carlo(initial_value, horizon_steps, paths, seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
     skeptic = skeptic_review(agents, simulation)
-    synthesis = synthesize(agents, conflict_data, skeptic)
+    meta_intelligence = meta_intelligence_evaluate(
+        agents=agents,
+        evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        conflicts=conflict_data["conflicts"],
+        horizon_divergences=conflict_data["horizon_divergences"],
+        simulation=simulation,
+        skeptic=skeptic,
+        learning_context=learning_context,
+    )
+    synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False}
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed)
+    record["meta_intelligence"] = meta_intelligence
     record["institutional_learning_context"] = {
         "resolved_prediction_count": learning_context.get("resolved_prediction_count", 0),
         "lessons": learning_context.get("lessons", []),
@@ -105,6 +118,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         horizon_divergences=conflict_data["horizon_divergences"],
         simulation=simulation,
         skeptic=skeptic,
+        meta_intelligence=meta_intelligence,
         synthesis=synthesis,
         observer=observer,
         governance=governance,
@@ -116,18 +130,20 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
         "agents": agents,
         "active_perspectives": agent_stage["active_perspectives"],
+        "reasoning_perspectives": agent_stage["reasoning_perspectives"],
         "registered_agent_count": agent_stage["registered_agent_count"],
         "conflicts": conflict_data["conflicts"],
         "horizon_divergences": conflict_data["horizon_divergences"],
         "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"],
         "simulation": simulation,
         "skeptic": skeptic,
+        "meta_intelligence": meta_intelligence,
         "synthesis": synthesis,
         "observer": observer,
         "governance": governance,
         "kaleidoscope": kaleidoscope,
         "audit": {
-            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->synthesis->governance->observer->memory",
+            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->governance->observer->memory",
             "simulation_independent_of_agents": True,
             "simulation_seed": seed,
             "memory_recorded": True,
@@ -136,5 +152,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
             "provider": agent_stage["provider"],
             "learning_context_supplied": agent_stage["learning_context_supplied"],
             "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"],
+            "meta_intelligence_directional_vote": False,
+            "meta_intelligence_execution_capability": False,
         },
     }
