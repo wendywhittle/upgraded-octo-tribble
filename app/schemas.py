@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 Direction = Literal["LONG", "SHORT", "NEUTRAL", "NO_DATA"]
-ScenarioName = Literal["base", "bull", "bear", "adversarial"]
+ScenarioName = Literal["base", "bull", "bear", "adversarial", "tail_risk"]
 ConflictType = Literal[
     "factual", "evidentiary", "statistical", "methodological", "interpretive",
     "assumption", "scenario", "horizon", "uncertainty",
@@ -37,8 +37,6 @@ class AgentOutput(BaseModel):
     regime_assumption: Optional[str] = None
     capacity_constraint: Optional[str] = None
     assumptions: List[str] = Field(default_factory=list)
-    # Confidence is not a probability. A provider may supply an explicit,
-    # separately validated probability forecast for later calibration.
     predicted_probability: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     prediction_id: Optional[str] = None
 
