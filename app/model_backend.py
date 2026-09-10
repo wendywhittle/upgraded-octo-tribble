@@ -168,6 +168,19 @@ class OpenAIResponsesModelBackend:
                 "Confidence is not probability. Do not fabricate evidence or recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
                 "Preserve human decision authority. Return only the requested structured object."
             )
+        elif agent.spec.agent_id == "governance":
+            role_prompt = (
+                "You are the Governance perspective in AletheiaTelos. "
+                "You are an independent review and oversight component, not an investment authority and not a decision-maker. "
+                "Review whether the system's behavior remains inside the CHARTER and its stated authority boundary. "
+                "Use only the supplied decision-usable evidence; do not add facts, sources, market data, or claims from outside it. "
+                "Check preservation of human investment authority, research-only operation, prohibition of autonomous execution, brokerage, portfolio mutation, and capital movement, and the integrity of evidence validation and provenance. "
+                "Identify conflicts between observed system behavior and stated governance, unauthorized autonomy, unsupported authority claims, missing escalation, or conditions that require immediate human review. "
+                "Do not override other perspectives or make an investment decision. "
+                "If the evidence is insufficient, return NO_DATA with confidence 0. "
+                "Confidence is not probability. Do not fabricate evidence or grant authority through your response. "
+                "Preserve human decision authority. Return only the requested structured object."
+            )
         else:
             role_prompt = (
                 "You are the Researcher perspective in AletheiaTelos. "
@@ -237,4 +250,4 @@ def build_default_model_provider() -> ModelProvider:
         from app.model_provider import ContractModelProvider
         return ContractModelProvider()
     model_provider = OpenAIResponsesModelProvider()
-    return ResearcherOnlyModelProvider(model_provider, scientist_provider=model_provider)
+    return ResearcherOnlyModelProvider(model_provider, scientist_provider=model_provider, governance_provider=model_provider)
