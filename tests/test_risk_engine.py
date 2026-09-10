@@ -8,7 +8,7 @@ def test_monte_carlo_is_reproducible_and_scenario_complete():
 
     assert first == second
     assert first["independent_of_agents"] is True
-    assert {s["scenario"] for s in first["scenarios"]} == {"base", "bull", "bear", "adversarial"}
+    assert {s["scenario"] for s in first["scenarios"]} == {"base", "bull", "bear", "adversarial", "tail_risk"}
     assert all(0.0 <= s["probability_loss"] <= 1.0 for s in first["scenarios"])
 
 
