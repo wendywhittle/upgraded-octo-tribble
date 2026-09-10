@@ -15,3 +15,11 @@ def test_view_preserves_perspectives_and_authority_boundary():
     assert view["brokerage_connectivity"] is False
     assert view["portfolio_mutation"] is False
     assert view["human_decision_required"] is True
+
+
+def test_view_exposes_cre_assessments_without_scoring_them():
+    assessments = [{"perspective_id": "underwriter", "thesis": "Test thesis", "confidence": 0.5}]
+    view = build_kaleidoscope_view([], cre_assessments=assessments)
+    assert view["cre_perspective_assessments"] == assessments
+    assert view["read_only"] is True
+    assert view["execution_capability"] is False
