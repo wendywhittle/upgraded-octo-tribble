@@ -1,15 +1,18 @@
 """Explicit CRE-to-simulator boundary.
 
-This adapter validates what underwriting is asking the independent simulator to
-consider. It does not calculate or approve an investment outcome.
+This adapter validates and labels structured underwriting inputs. It does not
+calculate or approve an investment outcome. The independent simulator remains
+the sole source of stochastic results.
 """
 from dataclasses import dataclass, field
 from typing import Mapping, Sequence
 
 CRE_SIMULATION_VARIABLES = (
-    "purchase_price", "noi", "occupancy", "rent_growth", "vacancy", "expenses",
-    "exit_assumptions", "financing_assumptions", "interest_rate", "hold_period",
-    "cap_rate", "leasing_assumptions", "capital_expenditures",
+    "purchase_price", "gross_rent", "effective_income", "noi", "occupancy", "vacancy",
+    "rent_growth", "expenses", "expense_growth", "capital_expenditures", "cap_rate",
+    "financing_assumptions", "loan_amount", "loan_to_value", "interest_rate", "debt_service",
+    "amortization_years", "hold_period", "exit_assumptions", "exit_cap_rate", "selling_cost_rate",
+    "leasing_assumptions",
 )
 
 
@@ -28,6 +31,4 @@ class CRESimulationRequest:
 
     def assumption_labels(self) -> tuple[str, ...]:
         """Pass explicit assumption names downstream without inventing values."""
-        return tuple(
-            f"{name}={value}" for name, value in self.assumptions.items() if value is not None
-        )
+        return tuple(f"{name}={value}" for name, value in self.assumptions.items() if value is not None)
