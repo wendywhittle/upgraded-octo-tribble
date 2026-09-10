@@ -14,34 +14,38 @@ function renderPerspectives(outputs=[]){
   }).join("");
 }
 function setDecision(value){
+  const raw=String(value||"");
+  const normalized=raw==="HOLD"||raw==="CONDITIONAL GO"?"INVESTIGATE":raw;
   const allowed=new Set(["NO DATA","INVESTIGATE","NO-GO","READY FOR IC REVIEW"]);
-  const v=allowed.has(String(value||""))?String(value):"NO DATA";
+  const v=allowed.has(normalized)?normalized:"NO DATA";
   $("decision-state").textContent=v; $("ic-state").textContent=v;
 }
-function renderConflicts(conflicts=[]){
-  $("conflict-count").textContent=`${conflicts.length} ${conflicts.length===1?"ITEM":"ITEMS"}`;
-  $("conflicts").innerHTML=conflicts.length?conflicts.map(c=>`<div class="conflict-item"><strong>${esc(c.conflict_type||c.type||"CONFLICT")}</strong><span>${esc(c.severity||"UNSPECIFIED")}</span><div class="question">${esc(c.unresolved_questions?.join(" • ")||c.description||"Unresolved question not supplied.")}</div></div>`).join(""):"NO CONFLICT DATA / NO DISAGREEMENT RETURNED";
+function renderConflicts(conflicts=[],horizon=[]){
+  const items=[...conflicts,...horizon];
+  $("conflict-count").textContent=`${items.length} ${items.length===1?"ITEM":"ITEMS"}`;
+  $("conflicts").innerHTML=items.length?items.map(c=>{const r=c.conflict_record||c;return `<div class="conflict-item"><strong>${esc(r.conflict_type||c.type||"CONFLICT")}</strong><span>${esc(r.severity||c.severity||"UNSPECIFIED")}</span><div class="question">${esc(r.unresolved_questions?.join(" • ")||c.description||"Unresolved question not supplied.")}</div></div>`}).join(""):"NO CONFLICT DATA / NO DISAGREEMENT RETURNED";
 }
 function renderRisk(sim={}){
-  const scenarios=sim.scenarios||sim.results||{};
+  const scenarios=Array.isArray(sim.scenarios)?Object.fromEntries(sim.scenarios.map(x=>[x.scenario,x])):(sim.scenarios||{});
   const names=["base","bull","bear","adversarial"];
   $("risk-grid").innerHTML=names.map(n=>{
     const x=scenarios[n];
     if(!x)return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>NOT AVAILABLE</strong><em>Backend metric not returned</em></div>`;
-    const value=x.final_value??x.mean??x.expected_value??x.median;
-    return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>${value==null?"AVAILABLE":esc(value)}</strong><em>${x.probability_of_loss==null?"Distribution returned":`loss probability ${esc(x.probability_of_loss)}`}</em></div>`;
+    return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>${esc(x.mean_terminal??"NOT AVAILABLE")}</strong><em>loss ${x.probability_loss==null?"NOT AVAILABLE":esc(x.probability_loss)} • drawdown ${x.max_drawdown_mean==null?"NOT AVAILABLE":esc(x.max_drawdown_mean)}</em></div>`;
   }).join("");
   $("risk-note").textContent=sim.independent_of_agents===false?"INDEPENDENCE FLAG FAILED":"Independent simulation output. Agent conclusions do not determine these results.";
 }
 function renderMemory(records=[]){
   const r=records.at(-1); if(!r)return;
   $("memory-belief").textContent=r.question||"NOT AVAILABLE";
-  $("memory-why").textContent=r.evidence?.length?`${r.evidence.length} evidence item(s)`:"NOT AVAILABLE";
+  const evidence=r.evidence||{};
+  $("memory-why").textContent=evidence.count==null?"NOT AVAILABLE":`${evidence.count} evidence item(s)`;
   $("memory-decision").textContent=r.synthesis?.verdict||"NOT AVAILABLE";
   $("memory-outcome").textContent=r.outcome?.status||"PENDING";
   $("memory-lesson").textContent=r.lesson||"AWAITING OUTCOME";
 }
 async function health(){try{const r=await fetch("/health");if(!r.ok)throw Error();$("api-dot").className="status-dot online";$("api-status").textContent="API ONLINE";}catch{$("api-dot").className="status-dot offline";$("api-status").textContent="API UNAVAILABLE";}}
-async function loadMemory(){try{const r=await fetch("/memory");if(!r.ok)throw Error();const data=await r.json();renderMemory(Array.isArray(data)?data:data.records||[]);}catch{$("memory-outcome").textContent="UNAVAILABLE";}}
-async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");$("core-question").textContent=$("question").value;try{const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:$("question").value,evidence:[],initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42})});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||data.perspectives||[]);renderConflicts(data.conflicts||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict||data.decision||"INVESTIGATE");$("evidence-state").textContent=(data.evidence?.length||0)+" SUPPLIED";$("research-state").textContent="COMPLETE";await loadMemory();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
-$("analysis-form").addEventListener("submit",runAnalysis);$("load-memory").addEventListener("click",loadMemory);renderPerspectives();renderRisk();health();loadMemory();
+async function loadMemory(){try{const r=await fetch("/memory");if(!r.ok)throw Error();const data=await r.json();renderMemory(data.records||[]);}catch{$("memory-outcome").textContent="UNAVAILABLE";}}
+async function loadLearning(){try{const r=await fetch("/observer/learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bins:10})});if(!r.ok)throw Error();const data=await r.json();if(Array.isArray(data.lessons)&&data.lessons.length){$("memory-lesson").textContent=data.lessons.join(" • ");}}catch{$("memory-lesson").textContent="LEARNING DATA UNAVAILABLE";}}
+async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");$("core-question").textContent=$("question").value;try{const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:$("question").value,evidence:[],initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42})});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||[]);renderConflicts(data.conflicts||[],data.horizon_divergences||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict);$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
+$("analysis-form").addEventListener("submit",runAnalysis);$("load-memory").addEventListener("click",()=>{loadMemory();loadLearning();});renderPerspectives();renderRisk();health();loadMemory();loadLearning();
