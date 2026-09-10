@@ -22,14 +22,14 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     with patch("app.analysis_pipeline.append_record"):
         result = run_analysis("Assess the opportunity", [], now=NOW, paths=100)
     assert result["evidence"]["usable_count"] == 0
-    assert len(result["agents"]) == 6
-    assert set(result["active_perspectives"]) == {"researcher", "quant", "investor", "systems", "skeptic", "contrarian"}
+    assert len(result["agents"]) == 7
+    assert set(result["active_perspectives"]) == {"researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian"}
     assert all(agent["direction"] == "NO_DATA" for agent in result["agents"])
     assert result["synthesis"]["verdict"] == "NO_DATA"
     assert result["audit"]["simulation_independent_of_agents"] is True
     assert result["governance"]["human_decision_required"] is True
     assert result["kaleidoscope"]["read_only"] is True
-    assert result["kaleidoscope"]["perspective_count"] == 6
+    assert result["kaleidoscope"]["perspective_count"] == 7
 
 
 def test_full_pipeline_feeds_only_validated_evidence_to_active_agents():
@@ -37,11 +37,18 @@ def test_full_pipeline_feeds_only_validated_evidence_to_active_agents():
         result = run_analysis("Assess the opportunity", evidence(), now=NOW, paths=100)
     assert result["evidence"]["count"] == 1
     assert result["evidence"]["usable_count"] == 1
-    assert len(result["agents"]) == 6
+    assert len(result["agents"]) == 7
+    assert {agent["agent_id"] for agent in result["agents"]} == {"researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian"}
     assert all(agent["evidence"] for agent in result["agents"])
+    assert all(agent["execution_capability"] is False for agent in result["agents"])
+    assert all(agent["brokerage_connectivity"] is False for agent in result["agents"])
+    assert all(agent["portfolio_mutation"] is False for agent in result["agents"])
     assert result["simulation"]["independent_of_agents"] is True
+    assert result["governance"]["human_decision_required"] is True
     assert result["governance"]["autonomous_execution"] is False
-    assert result["kaleidoscope"]["expected_perspective_count"] == 6
+    assert result["governance"]["brokerage_connectivity"] is False
+    assert result["governance"]["portfolio_mutation"] is False
+    assert result["kaleidoscope"]["expected_perspective_count"] == 7
     assert result["kaleidoscope"]["human_decision_required"] is True
     assert result["kaleidoscope"]["execution_capability"] is False
     assert result["kaleidoscope"]["brokerage_connectivity"] is False
