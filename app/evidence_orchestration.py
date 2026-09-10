@@ -1,13 +1,14 @@
 """Evidence-fed research orchestration boundary.
 
-Validated evidence is distributed to the selected eight active perspectives and
-executed through AgentRunner so provider substitution remains explicit and auditable.
+Validated evidence is distributed to the active reasoning perspectives and executed
+through AgentRunner. Meta-Intelligence is active in the Computational Kaleidoscope
+but is evaluated separately at process level, after reasoning and risk review.
 No execution, brokerage, credential, or portfolio-mutation capability is introduced.
 """
 
 from typing import Any, Dict, Iterable
 
-from app.agent_registry import active_perspective_ids, build_default_registry
+from app.agent_registry import active_perspective_ids, build_default_registry, reasoning_perspective_ids
 from app.agent_runner import AgentRunner
 from app.evidence import validate_evidence
 from app.model_provider import ModelProvider
@@ -17,7 +18,7 @@ def distribute_evidence(
     evidence: Iterable[Dict[str, Any]],
     agent_ids: Iterable[str],
 ) -> Dict[str, list[Dict[str, Any]]]:
-    """Provide the same validated evidence context to each perspective."""
+    """Provide the same validated evidence context to each reasoning perspective."""
     items = [dict(item) for item in evidence]
     return {agent_id: list(items) for agent_id in agent_ids}
 
@@ -30,7 +31,7 @@ def run_evidence_fed_agents(
     provider: ModelProvider | None = None,
     learning_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Run the eight active perspectives using the same validated evidence."""
+    """Run active evidence-fed reasoning perspectives, excluding process-level Meta-Intelligence."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
@@ -45,7 +46,8 @@ def run_evidence_fed_agents(
 
     registry = build_default_registry()
     active_ids = active_perspective_ids()
-    evidence_by_agent = distribute_evidence(usable, active_ids)
+    reasoning_ids = reasoning_perspective_ids()
+    evidence_by_agent = distribute_evidence(usable, reasoning_ids)
     runner = AgentRunner(provider)
     agents = [
         runner.run(
@@ -54,13 +56,14 @@ def run_evidence_fed_agents(
             evidence_by_agent.get(agent_id, []),
             learning_context=learning_context,
         )
-        for agent_id in active_ids
+        for agent_id in reasoning_ids
     ]
 
     return {
         "question": question,
         "agent_count": len(agents),
         "active_perspectives": active_ids,
+        "reasoning_perspectives": reasoning_ids,
         "registered_agent_count": len(registry.ids()),
         "agents": agents,
         "evidence_count": len(evidence_list),
