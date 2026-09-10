@@ -1,6 +1,6 @@
 """CRE adapter for the existing Computational Kaleidoscope."""
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Any, Sequence
 
 CRE_PERSPECTIVES = (
     "underwriter", "investor", "quant", "researcher", "macro", "systems", "contrarian", "risk"
@@ -23,6 +23,8 @@ class PerspectiveAssessment:
     unanswered_questions: Sequence[str] = field(default_factory=tuple)
     recommendation: str | None = None
     evidence_ids: Sequence[str] = field(default_factory=tuple)
+    economic_metrics: dict[str, float | None] = field(default_factory=dict)
+    economic_claims: Sequence[str] = field(default_factory=tuple)
     audit_metadata: Sequence[str] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
@@ -34,7 +36,4 @@ class PerspectiveAssessment:
 
 def empty_assessments(opportunity_id: str) -> tuple[PerspectiveAssessment, ...]:
     """Create inspectable placeholders; no perspective is silently invented."""
-    return tuple(
-        PerspectiveAssessment(opportunity_id, perspective, "Assessment not yet produced.")
-        for perspective in CRE_PERSPECTIVES
-    )
+    return tuple(PerspectiveAssessment(opportunity_id, perspective, "Assessment not yet produced.") for perspective in CRE_PERSPECTIVES)
