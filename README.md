@@ -75,41 +75,83 @@ EPISTEMIC MEMORY
 NEXT OPPORTUNITY
 ```
 
+## Current CRE Implementation
+
+The current branch contains a **first substantive CRE economic model**, not a complete institutional underwriting platform.
+
+Currently implemented:
+
+- explicit purchase price and NOI
+- going-in cap rate
+- equity requirement
+- loan-to-value handling
+- debt service
+- DSCR
+- debt yield
+- cash-on-cash return
+- projected NOI and cash flow
+- exit value
+- net sale proceeds
+- equity multiple
+- IRR
+- explicit observed / assumed / derived / unknown input status
+- five scenario CRE Monte Carlo distributions
+- basic one-variable sensitivity analysis
+- adversarial review of modeled downside
+- configurable research decision criteria
+
+The model remains intentionally conservative and transparent. It does not fabricate missing inputs.
+
+Still simplified or future work:
+
+- lease-level cash-flow modeling
+- tenant rollover and renewal probability
+- detailed expense and reimbursement structures
+- detailed debt schedules and refinancing
+- capex timing and leasing costs
+- detailed sale costs and transaction mechanics
+- capital structure and waterfalls
+- richer sensitivity attribution
+- external market-data ingestion and evidence acquisition
+
+These are architectural direction, not claims of current capability.
+
 ## Independent Simulation
 
-The risk engine is designed to test assumptions independently through scenario distributions rather than relying on a single predicted outcome. The CRE boundary in `app/cre_simulation.py` preserves explicit underwriting variables and missing values before they reach an independent simulator. Scenario contracts in `app/cre_scenarios.py` support Base, Bull, Bear, Adversarial, and Tail Risk without fabricating CRE assumptions.
+The CRE risk engine consumes explicit economic inputs and generates reproducible scenario distributions across **Base, Bull, Bear, Adversarial, and Tail Risk**. Agent conclusions do not determine simulation outcomes.
 
-Agents may supply assumptions. The simulator remains independently inspectable and its outputs are reviewable by Contrarian and Risk perspectives.
+The current simulation is a simplified CRE cash-flow and equity model. It is not yet a full property-level institutional underwriting simulator.
+
+The purpose of simulation is to expose distributions, downside, sensitivity, and uncertainty rather than produce a single predicted outcome.
 
 ## Commercial Real Estate
 
-CRE is the first real-world application. Typed contracts now separate the core concerns:
+CRE is the first real-world application. Typed contracts separate the core concerns:
 
 - `app/cre_intelligence.py` — conservative opportunity screening
-- `app/cre_underwriting.py` — property, assumption, underwriting, and decision contracts
+- `app/cre_underwriting.py` — property, provenance, economic model, and underwriting contracts
 - `app/cre_kaleidoscope.py` — structured multi-perspective CRE assessments
 - `app/cre_scenarios.py` — scenario/risk contracts
 - `app/cre_simulation.py` — explicit underwriting-to-simulation boundary
-- `app/cre_decision.py` — auditable decision record with human authority preserved
+- `app/cre_decision.py` — auditable decision record and configurable economic criteria
 - `app/cre_workflow.py` — ordered workflow boundaries
 
-The institutional intelligence path is:
+The connected CRE intelligence path is:
 
 ```text
 OPPORTUNITY
-→ SCREENING
+→ CONTEXT
 → UNDERWRITING
-→ DUE DILIGENCE
-→ SCENARIO ANALYSIS
-→ CAPITAL STRUCTURE
-→ VALUE CREATION
-→ INVESTMENT COMMITTEE
-→ CAPITAL / ASSET
-→ OBSERVE OUTCOME
-→ EPISTEMIC MEMORY
+→ ECONOMIC MODEL
+→ 8 PERSPECTIVES
+→ CONFLICT
+→ INDEPENDENT SIMULATION
+→ ADVERSARIAL REVIEW
+→ DECISION
+→ HUMAN AUTHORITY
 ```
 
-Underwriting is assumption-driven and evidence-aware. Missing required inputs produce **INSUFFICIENT EVIDENCE** rather than invented numbers. Explicit, evidence-supported failure conditions can produce **NO DEAL**. Neither state authorizes investment activity.
+Underwriting is assumption-driven and evidence-aware. Missing required inputs produce **INSUFFICIENT EVIDENCE** rather than invented numbers. Explicit configured economic failures can produce **NO DEAL**. Neither state authorizes investment activity.
 
 ## Institutional Memory
 
