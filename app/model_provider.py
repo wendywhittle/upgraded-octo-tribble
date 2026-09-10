@@ -50,8 +50,9 @@ class ResearcherOnlyModelProvider:
     def __init__(
         self,
         researcher_provider: ModelProvider,
-        scientist_provider: ModelProvider | None = None,
         fallback: ModelProvider | None = None,
+        *,
+        scientist_provider: ModelProvider | None = None,
     ) -> None:
         self.researcher_provider = researcher_provider
         self.scientist_provider = scientist_provider or researcher_provider
