@@ -44,8 +44,11 @@ class CREOpportunityContext:
 
     def missing_required(self) -> tuple[str, ...]:
         required = ("opportunity_id", "property_id", "asset_type", "location", "purchase_price", "noi")
-        missing = [name for name in required if not getattr(self, name)]
-        return tuple(missing)
+        missing = [
+            name for name in required
+            if getattr(self, name) is None or (isinstance(getattr(self, name), str) and not getattr(self, name).strip())
+        ]
+        return tuple(dict.fromkeys((*self.missing_inputs, *missing)))
 
     def evidence_quality_flags(self) -> tuple[str, ...]:
         flags: list[str] = []
