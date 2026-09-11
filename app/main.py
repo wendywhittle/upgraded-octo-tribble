@@ -16,28 +16,30 @@ from app.learning import build_learning_report
 from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
 from app.memory import append_record, read_records
+from app.phase9_visual_endpoint import router as phase9_visual_router
 from app.prediction_resolution import resolve_prediction
 from app.prediction_resolution_endpoint import PredictionResolutionRequest, build_prediction_resolution_router
 from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
+from app.workflow_endpoint import build_workflow_router
 
 app = FastAPI(title="AletheiaTelos", version="1.11.0", description="Research and decision intelligence system; not an autonomous trading system.")
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
-def timestamp() -> str:
+def timestamp():
     return datetime.now(timezone.utc).isoformat()
 
 
 app.include_router(build_analysis_router())
+app.include_router(phase9_visual_router)
 app.include_router(build_calibration_router())
 app.include_router(build_capital_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
+app.include_router(build_workflow_router())
 
-# Explicit application-boundary fallbacks keep the public routes observable even if
-# router composition is altered by a future integration refactor.
 if not any(getattr(route, "path", None) == "/observer/learning" for route in app.routes):
     @app.post("/observer/learning")
     def observer_learning(request: LearningRequest) -> Dict[str, Any]:
@@ -47,19 +49,10 @@ if not any(getattr(route, "path", None) == "/predictions/resolve" for route in a
     @app.post("/predictions/resolve")
     def resolve_prediction_route(request: PredictionResolutionRequest) -> Dict[str, Any]:
         prediction_id = request.prediction.get("prediction_id")
-        if any(
-            record.get("record_type") == "prediction_resolution"
-            and record.get("prediction_id") == prediction_id
-            for record in read_records()
-        ):
+        if any(record.get("record_type") == "prediction_resolution" and record.get("prediction_id") == prediction_id for record in read_records()):
             raise HTTPException(status_code=409, detail="prediction_id has already been resolved")
         try:
-            result = resolve_prediction(
-                request.prediction,
-                request.outcome,
-                request.resolved_at,
-                request.outcome_source,
-            )
+            result = resolve_prediction(request.prediction, request.outcome, request.resolved_at, request.outcome_source)
             append_record(result)
             return result
         except ValueError as exc:
@@ -77,17 +70,14 @@ if not any(getattr(route, "path", None) == "/experiments/EXP-001/run" for route 
 def root():
     return FileResponse(WEB_DIR / "index.html")
 
-
 @app.get("/health")
 def health():
     return {"status": "healthy", "timestamp": timestamp(), "live_market_data": live_market_enabled()}
-
 
 @app.get("/memory")
 def memory():
     records = read_records()
     return {"count": len(records), "records": records}
-
 
 @app.get("/web/{asset_path:path}")
 def web_asset(asset_path: str):
@@ -96,7 +86,6 @@ def web_asset(asset_path: str):
         raise HTTPException(status_code=404, detail="Frontend asset not found")
     return FileResponse(path)
 
-
 feed_urls = research_feed_urls()
 if feed_urls:
     app.include_router(build_research_router(feed_urls))
@@ -104,18 +93,9 @@ if feed_urls:
 if live_market_enabled():
     app.include_router(build_live_market_router(market_symbol_map()))
 
-
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
-    """Compatibility route delegating to the canonical analysis pipeline."""
-    result = run_analysis(
-        question=request.question,
-        evidence=[],
-        initial_value=request.initial_value,
-        horizon_steps=request.horizon_steps,
-        paths=request.paths,
-        seed=request.seed,
-    )
+    result = run_analysis(question=request.question, evidence=[], initial_value=request.initial_value, horizon_steps=request.horizon_steps, paths=request.paths, seed=request.seed)
     result["version"] = "1.11.0"
     result["timestamp"] = timestamp()
     result["breaker"] = {"status": "pending", "decision": "pending", "human_decision_required": True}
