@@ -1,1 +1,0 @@
-Insert the Phase 9 mount into the existing dashboard near the investment-case / decision-gate area: <div id="phase9-mount"></div><script src="/web/phase9-entry.js"></script>. No replacement of the existing dashboard is intended.
