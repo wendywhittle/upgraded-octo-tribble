@@ -78,7 +78,7 @@ def validate_evidence(evidence: Dict[str, Any], now: datetime | None = None,
             warnings.append("Point-in-time provenance is not explicitly established.")
 
     freshness_seconds = None
-    reference_time = observed or retrieved
+    reference_time = retrieved or observed
     if reference_time:
         freshness_seconds = max(0.0, (now - reference_time).total_seconds())
         if freshness_seconds > max_age_seconds:
