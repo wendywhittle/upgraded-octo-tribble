@@ -1,0 +1,1 @@
+Open the existing dashboard. The Phase 9 visual workstation is mounted by the dashboard integration and calls POST /phase9/visual. No browser-side financial calculations or authorization actions are implemented.
