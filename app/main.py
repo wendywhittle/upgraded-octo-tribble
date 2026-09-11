@@ -9,6 +9,7 @@ from app.analysis_endpoint import build_analysis_router
 from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
+from app.decision_gate_endpoint import build_decision_gate_router
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
 from app.experiment_001_runner import run_experiment_001_from_csv
 from app.learning import build_learning_report
@@ -33,6 +34,7 @@ app.include_router(build_calibration_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
+app.include_router(build_decision_gate_router())
 
 # Explicit application-boundary fallbacks keep the public routes observable even if
 # router composition is altered by a future integration refactor.
