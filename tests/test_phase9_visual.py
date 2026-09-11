@@ -1,3 +1,6 @@
+from fastapi.testclient import TestClient
+
+from app.main import app
 from app.phase9_visual import Phase9VisualRequest, assemble_visual_case
 
 
@@ -66,3 +69,24 @@ def test_visual_boundary_does_not_expose_authorization_controls():
     assert "authorization" not in result["assembly"]
     assert "portfolio" not in result["assembly"]
     assert "transaction" not in result["assembly"]
+
+
+def test_visual_http_boundary_returns_complete_phase9_payload_without_authority():
+    response = TestClient(app).post("/phase9/visual", json=request().model_dump())
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["assembly"]["case_identity"] == "VISUAL-CRE-001"
+    assert len(payload["assembly"]["scenarios"]) == 4
+    assert len(payload["assembly"]["simulations"]) == 4
+    assert payload["assembly"]["proforma"]["output_types"]["unlevered_irr"] == "CALCULATION"
+    assert payload["assembly"]["synthesis"]
+    assert payload["governance"]["authorization_created"] is False
+    assert payload["governance"]["workflow_mutated"] is False
+    assert payload["visual_integration"]["lender_evidence_status"] == "UNKNOWN / NOT PROVIDED"
+
+
+def test_visual_http_boundary_rejects_unknown_fields():
+    body = request().model_dump()
+    body["fake_probability"] = 0.99
+    response = TestClient(app).post("/phase9/visual", json=body)
+    assert response.status_code == 422
