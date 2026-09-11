@@ -25,6 +25,53 @@ def test_runner_delegates_to_contract_and_preserves_research_boundary():
     assert result["human_decision_required"] is True
 
 
+def test_runner_passes_research_context_without_changing_evidence():
+    class SpyProvider:
+        name = "spy"
+
+        def __init__(self):
+            self.received = None
+
+        def assess(self, agent, question, evidence, learning_context=None, research_context=None):
+            self.received = {
+                "evidence": list(evidence),
+                "research_context": research_context,
+            }
+            return {
+                "direction": "NO_DATA",
+                "confidence": 0.0,
+                "horizon": agent.spec.default_horizon,
+                "thesis": "No decision-usable evidence.",
+                "evidence_basis": [],
+                "contradictory_evidence_basis": [],
+                "invalidation_conditions": [],
+                "assumptions": [],
+            }
+
+    evidence = [{"evidence_id": "E1", "claim": "Observed fact", "decision_usable": True}]
+    research_context = {
+        "research_hypotheses": [
+            {"hypothesis_id": "H1", "statement": "The fact may affect an asset.", "epistemic_stage": "hypothesis"}
+        ]
+    }
+    provider = SpyProvider()
+    agent = DeterministicAgent(
+        spec=AgentSpec("researcher", "Research", "medium"),
+        thesis="Test thesis",
+        direction="NO_DATA",
+        confidence=0.0,
+    )
+
+    result = AgentRunner(provider).run(agent, "Test question", evidence, research_context=research_context)
+
+    assert provider.received["evidence"] == evidence
+    assert provider.received["research_context"] == research_context
+    assert result["evidence"] == evidence
+    assert result["research_context_used"] is True
+    assert result["execution_capability"] is False
+    assert result["human_decision_required"] is True
+
+
 def test_runner_rejects_execution_capability_even_if_provider_is_custom():
     agent = DeterministicAgent(
         spec=AgentSpec(
