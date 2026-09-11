@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 from app.analysis_endpoint import build_analysis_router
-from app.analysis_pipeline import run_analysis
+from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
 from app.calibration_endpoint import build_calibration_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
