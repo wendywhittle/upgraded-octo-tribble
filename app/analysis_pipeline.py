@@ -9,6 +9,7 @@ context only. No execution capability exists in this module.
 from typing import Any, Dict, Iterable
 
 from app.conflict_intelligence import detect_conflict_intelligence
+from app.epistemic_adapter import observer_to_epistemic_record
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -101,6 +102,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False}
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
+    observer_memory = observer_to_epistemic_record(observer)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed)
     record["meta_intelligence"] = meta_intelligence
     record["institutional_learning_context"] = {
@@ -110,6 +112,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "horizon_metrics": learning_context.get("horizon_metrics", {}),
         "informational_only": True,
     }
+    record["epistemic_memory"] = [observer_memory.model_dump() if hasattr(observer_memory, "model_dump") else observer_memory.dict()]
     append_record(record)
     kaleidoscope = build_kaleidoscope_view(
         agents=agents,
@@ -141,6 +144,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "synthesis": synthesis,
         "observer": observer,
         "governance": governance,
+        "epistemic_memory": [observer_memory.model_dump() if hasattr(observer_memory, "model_dump") else observer_memory.dict()],
         "kaleidoscope": kaleidoscope,
         "audit": {
             "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->governance->observer->memory",
