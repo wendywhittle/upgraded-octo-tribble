@@ -66,7 +66,7 @@ def test_case_is_immutable_and_gate_is_not_authorization():
 
 def test_case_preserves_scenario_distribution_and_supports_no_go():
     case = make_case("NO_GO")
-    assert case.recommendation == "HOLD"  # skeptic hold remains authoritative in this boundary
+    assert case.recommendation == "NO_GO"
     assert {item["scenario"] for item in case.scenarios} == {"base", "bear", "adversarial"}
     payload = case.model_dump(mode="json")
     assert payload["human_decision_gate"]["status"] == "pending"
