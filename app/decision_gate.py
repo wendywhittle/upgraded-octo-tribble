@@ -88,11 +88,7 @@ class DecisionGateResult:
 
     @property
     def display_status(self) -> str:
-        return (
-            "READY FOR HUMAN AUTHORITY"
-            if self.state is GateState.OPEN
-            else "GATE CLOSED"
-        )
+        return "READY FOR HUMAN AUTHORITY" if self.state is GateState.OPEN else "GATE CLOSED"
 
 
 @dataclass(frozen=True)
@@ -118,11 +114,13 @@ def evaluate_decision_gate(
     *,
     previous_state: GateState | None = None,
     system_recommendation: str | None = None,
+    hard_stop_overrides: Sequence[HardStop | str] = (),
 ) -> DecisionGateResult:
     """Evaluate readiness deterministically using independent mandatory criteria.
 
     Missing or invalid criteria fail closed. Recommendation, confidence, consensus,
     urgency, and expected return are intentionally not inputs to gate readiness.
+    Explicit hard-stop overrides are governance facts and always close the gate.
     """
     normalized: dict[str, CriterionStatus] = {}
     for name in MANDATORY_CRITERIA:
@@ -147,9 +145,13 @@ def evaluate_decision_gate(
         stop = HARD_STOP_FOR_CRITERION.get(criterion)
         if stop is not None and stop not in stops:
             stops.append(stop)
+    for raw_stop in hard_stop_overrides:
+        stop = raw_stop if isinstance(raw_stop, HardStop) else HardStop(raw_stop)
+        if stop not in stops:
+            stops.append(stop)
 
     blocking = tuple(stops)
-    state = GateState.OPEN if not failed else GateState.CLOSED
+    state = GateState.OPEN if not failed and not stops else GateState.CLOSED
     reopened = previous_state is GateState.OPEN and state is GateState.CLOSED
     event = GateAuditEvent(
         timestamp=datetime.now(timezone.utc).isoformat(),
