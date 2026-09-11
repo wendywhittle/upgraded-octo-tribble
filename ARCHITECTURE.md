@@ -1,0 +1,352 @@
+# AletheiaTelos Architecture
+
+## Institutional Intelligence Architecture
+
+AletheiaTelos is organized as an institutional intelligence system with two primary engines and a shared decision-governance substrate.
+
+```text
+                    ALETHEIAT ELOS
+               INSTITUTIONAL INTELLIGENCE
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+       CAPITAL ENGINE           ASSET ENGINE
+             │                       │
+       Public Markets              CRE
+       Quant Research           Industrial
+       Alternative Data          NNN
+       Macro                     Infrastructure
+       Factors                   Private Assets
+       Risk                      Development
+             │                       │
+             └───────────┬───────────┘
+                         ↓
+                COMPUTATIONAL
+                  KALEIDOSCOPE
+                         ↓
+              CONFLICT / COEXISTENCE
+                         ↓
+                 RISK SIMULATION
+                         ↓
+                CONTRARIAN REVIEW
+                         ↓
+              HUMAN INVESTMENT IC
+                         ↓
+                 DECISION RECORD
+                         ↓
+                OUTCOME OBSERVER
+                         ↓
+               EPISTEMIC MEMORY
+```
+
+This architecture is foundational. It should be preserved as the system evolves.
+
+## 1. Two Engines
+
+### Capital Engine
+
+The Capital Engine provides intelligence for financial-capital research, including:
+
+- Public markets
+- Quantitative research
+- Alternative data
+- Macro
+- Factors
+- Market regimes
+- Risk
+- Portfolio research
+
+It is a research and decision-intelligence engine, not an autonomous trading engine.
+
+### Asset Engine
+
+The Asset Engine provides intelligence for real assets and private investment opportunities, including:
+
+- Commercial real estate
+- Industrial
+- Triple-net / NNN
+- Infrastructure
+- Development
+- Private assets
+- Operations
+- Capital structure
+- Value creation
+
+The Asset Engine preserves the institutional CRE workflow rather than treating CRE as a secondary application of a trading architecture.
+
+## 2. Shared Intelligence Substrate
+
+The two engines converge on a common reasoning and governance architecture.
+
+The shared substrate is responsible for:
+
+1. Evidence integrity and provenance
+2. Independent perspectives
+3. Conflict analysis
+4. Scenario construction
+5. Independent risk simulation
+6. Adversarial / contrarian review
+7. Human investment-committee review
+8. Decision recording
+9. Outcome observation and attribution
+10. Persistent epistemic memory
+
+The engines share intelligence infrastructure without being forced into a single asset-class-specific model.
+
+## 3. Computational Kaleidoscope
+
+The Computational Kaleidoscope is the central multi-perspective reasoning layer.
+
+It examines investment questions through intentionally differentiated lenses, including:
+
+- Researcher
+- Quant
+- Investor
+- Scientist
+- Systems
+- Contrarian
+- Philosopher
+- Observer
+- Epistemic Memory
+- Meta-Intelligence
+- Governance / CHARTER
+
+The Kaleidoscope is not a consensus engine.
+
+Its purpose is to expose different assumptions, evidence, interpretations, failure modes, causal hypotheses, and possible consequences.
+
+Agreement is not the objective. Better judgment is.
+
+## 4. Conflict / Coexistence
+
+Disagreement is treated as information rather than noise.
+
+When perspectives differ, the system should identify whether the disagreement arises from:
+
+- different evidence
+- different evidence quality or freshness
+- different assumptions
+- different time horizons
+- different definitions
+- different causal models
+- different risk tolerances
+- different regime assumptions
+- genuinely unresolved uncertainty
+
+The system should preserve irreducible disagreement rather than averaging it away.
+
+## 5. Independent Risk Simulation
+
+Simulation is an independent analytical boundary.
+
+Agents provide hypotheses, assumptions, parameter ranges, and competing scenarios. They do not determine the simulation outcome.
+
+The risk engine should be capable of generating distributions across scenarios such as:
+
+- Base
+- Bull
+- Bear
+- Adversarial
+- Tail / stress
+
+Where appropriate, simulation should incorporate:
+
+- uncertainty
+- liquidity
+- transaction costs
+- financing conditions
+- drawdowns
+- regime variation
+- sensitivity to assumptions
+- path dependence
+- downside probability
+- fragility
+
+Simulation is not prediction. A simulated distribution is evidence about a modeled assumption set, not a guarantee about the future.
+
+## 6. Contrarian Review
+
+The Contrarian / Skeptic layer has an explicit thesis-destruction mandate.
+
+It should ask:
+
+- Why might this opportunity fail?
+- What evidence has been discounted?
+- Which assumptions are weakest?
+- What would make the downside materially worse?
+- What has the underwriting omitted?
+- What could make the apparent margin of safety illusory?
+- What evidence would invalidate the thesis?
+
+The system must be capable of recommending NO TRADE, NO DEAL, or NO ACTION.
+
+Avoiding a bad investment is a successful outcome.
+
+## 7. Human Investment Committee
+
+The Human Investment Committee is an explicit authority boundary.
+
+The system can research, model, challenge, synthesize, and recommend.
+
+It does not convert analytical output into capital authority.
+
+The architectural sequence is:
+
+```text
+analysis → recommendation → human authorization → execution
+```
+
+These stages remain separate.
+
+## 8. Decision Record
+
+The **Decision Record** is the central durable object of the architecture.
+
+Agents are not the primary institutional object. Trades are not the primary institutional object. Prompts are not the primary institutional object.
+
+A Decision Record should preserve, where applicable:
+
+- decision identity
+- opportunity / asset / research subject
+- evidence references
+- evidence provenance and freshness
+- analytical perspectives
+- competing claims
+- explicit assumptions
+- scenario definitions
+- simulation inputs and outputs
+- conflicts and unresolved dissent
+- contrarian objections
+- recommendation
+- NO ACTION / NO TRADE / NO DEAL state where applicable
+- human authorization state
+- decision timestamp
+- responsible human authority
+- subsequent outcome
+- attribution
+- lessons
+
+The Decision Record provides the bridge between intelligence, authority, and institutional memory.
+
+## 9. Outcome Observer
+
+The Observer compares what the system believed with what actually happened.
+
+Observation should preserve the original decision context rather than rewriting history with hindsight.
+
+The Observer evaluates:
+
+- thesis accuracy
+- assumption validity
+- evidence quality
+- simulation robustness
+- calibration where measurable
+- missed risks
+- successful dissent
+- unexpected outcomes
+- recurring failure modes
+
+Outcome attribution should distinguish bad decisions from bad outcomes and good decisions from lucky outcomes whenever the evidence permits.
+
+## 10. Epistemic Memory
+
+Epistemic Memory is the institutional learning layer.
+
+It should preserve the distinction between:
+
+```text
+OBSERVATION
+    ↓
+EVIDENCE
+    ↓
+INTERPRETATION
+    ↓
+HYPOTHESIS
+    ↓
+ASSUMPTION
+    ↓
+DECISION
+    ↓
+OUTCOME
+    ↓
+LESSON
+```
+
+Memory is not authority and historical belief is not automatically truth.
+
+Memory should retain provenance, context, uncertainty, contradiction, and outcome where available.
+
+## 11. Institutional Learning Loop
+
+The full architecture forms a closed learning loop:
+
+```text
+REAL WORLD
+    ↓
+OPPORTUNITY / QUESTION
+    ↓
+EVIDENCE
+    ↓
+CAPITAL ENGINE / ASSET ENGINE
+    ↓
+COMPUTATIONAL KALEIDOSCOPE
+    ↓
+CONFLICT / COEXISTENCE
+    ↓
+INDEPENDENT RISK SIMULATION
+    ↓
+CONTRARIAN REVIEW
+    ↓
+HUMAN INVESTMENT IC
+    ↓
+DECISION RECORD
+    ↓
+CAPITAL / ASSET / RESEARCH ACTION
+    ↓
+OUTCOME
+    ↓
+OBSERVER / ATTRIBUTION
+    ↓
+EPISTEMIC MEMORY
+    ↓
+NEXT OPPORTUNITY / QUESTION
+```
+
+This loop is the institutional intelligence architecture. The objective is not merely to produce an answer or execute a trade. The objective is to improve future decision quality because the system remembers what actually happened.
+
+## 12. Engineering Implications
+
+External agent frameworks, orchestration systems, tracing systems, evaluators, sandbox runtimes, tool adapters, and simulation libraries may be incorporated as implementation components.
+
+They must remain subordinate to this architecture and to `CHARTER.md`.
+
+In particular:
+
+- agent orchestration must not become agent authority
+- memory must not become truth by accumulation
+- confidence must not be treated as calibrated probability without validation
+- generated code must not silently become execution authority
+- simulation must remain analytically independent from the agents supplying its assumptions
+- performance metrics must not replace decision-quality evaluation
+- autonomous trading must not become the architectural center
+
+The architecture is decision-centric, not agent-centric.
+
+## 13. Foundational Invariants
+
+The following invariants should remain stable unless explicitly changed through human governance:
+
+1. Two engines: Capital and Asset.
+2. Shared Computational Kaleidoscope.
+3. Conflict is information.
+4. Risk simulation is independent.
+5. Contrarian review is mandatory for consequential investment decisions.
+6. Human Investment Committee remains the authority boundary.
+7. Decision Record is the central durable institutional object.
+8. Outcome observation closes the loop.
+9. Epistemic Memory preserves institutional learning.
+10. NO ACTION is a valid successful result.
+11. Intelligence does not imply authority.
+12. The system learns from outcomes without rewriting historical decisions.
+
+These invariants define the working architecture of AletheiaTelos.
