@@ -92,16 +92,7 @@ def test_custom_scenario_with_regime_works():
     assert result.simulation_regime == "base"
 
 
-@pytest.mark.parametrize("config", [
-    CRESimulationConfig(paths=0),
-    CRESimulationConfig(paths=100, horizon_steps=0),
-])
-def test_invalid_simulation_configuration_fails(config):
-    # Pydantic rejects these configurations before the adapter can run.
-    assert config is not None
-
-
-def test_invalid_configuration_is_rejected_by_pydantic():
+def test_invalid_simulation_configuration_is_rejected_by_pydantic():
     with pytest.raises(ValueError):
         CRESimulationConfig(paths=0)
     with pytest.raises(ValueError):
