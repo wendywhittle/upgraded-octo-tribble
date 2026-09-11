@@ -1,9 +1,8 @@
 """Provider boundary for model-backed AletheiaTelos reasoning.
 
 Providers may change how an Agent's reasoning is produced, but they cannot widen
-the Agent's capability profile. The deterministic contract provider remains the
-regression path; the active reasoning layer selectively routes Researcher, Scientist,
-and Governance to the configured real model.
+the Agent's capability profile. Research context is passed separately from evidence
+so hypotheses and relationships can inform testing without becoming facts.
 """
 
 from typing import Any, Dict, Iterable, Protocol
@@ -22,6 +21,7 @@ class ModelProvider(Protocol):
         question: str,
         evidence: Iterable[Dict[str, Any]],
         learning_context: Dict[str, Any] | None = None,
+        research_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]: ...
 
 
@@ -36,9 +36,10 @@ class ContractModelProvider:
         question: str,
         evidence: Iterable[Dict[str, Any]],
         learning_context: Dict[str, Any] | None = None,
+        research_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
-        # Deterministic contract agents do not consume learned guidance, but the
-        # boundary accepts it so model-backed providers can reason over it.
+        # Deterministic contract agents do not consume learned or cross-asset guidance.
+        # The boundary accepts both so model-backed providers can reason over them.
         return agent.assess(question, evidence)
 
 
@@ -66,6 +67,7 @@ class ResearcherOnlyModelProvider:
         question: str,
         evidence: Iterable[Dict[str, Any]],
         learning_context: Dict[str, Any] | None = None,
+        research_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         if agent.spec.agent_id == "researcher":
             provider = self.researcher_provider
@@ -75,4 +77,10 @@ class ResearcherOnlyModelProvider:
             provider = self.governance_provider
         else:
             provider = self.fallback
-        return provider.assess(agent, question, evidence, learning_context=learning_context)
+        return provider.assess(
+            agent,
+            question,
+            evidence,
+            learning_context=learning_context,
+            research_context=research_context,
+        )
