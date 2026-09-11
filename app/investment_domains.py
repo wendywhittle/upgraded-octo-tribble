@@ -108,16 +108,13 @@ def classify_cross_asset_links(
 def _hypothesis_relationship(relationship: str) -> tuple[str, str]:
     """Return a readable verb phrase for hypothesis prose and research questions."""
     phrase = relationship.replace("_", " ").strip()
-    if phrase.startswith("may "):
-        return phrase[4:].strip(), "may"
-    if phrase.startswith("can "):
-        return phrase[4:].strip(), "can"
-    if phrase.startswith("could "):
-        return phrase[6:].strip(), "could"
-    if phrase.startswith("might "):
-        return phrase[6:].strip(), "might"
+    modal_prefixes = ("may ", "can ", "could ", "might ")
+    for prefix in modal_prefixes:
+        if phrase.startswith(prefix):
+            return phrase[len(prefix):].strip(), prefix.strip()
     common_third_person = {
         "drives": "drive",
+        "drives demand for": "drive demand for",
         "supports": "support",
         "increases": "increase",
         "reduces": "reduce",
