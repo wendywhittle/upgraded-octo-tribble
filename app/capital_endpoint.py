@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from app.analysis_pipeline import run_analysis
 from app.capital_engine import AlternativeDataRegistry, CapitalResearchRequest
 from app.evidence_sources import SourceDocument, documents_to_evidence
-from app.investment_domains import CapitalResearchDomain
+from app.investment_domains import CapitalResearchDomain, CrossAssetLink, IntelligenceEntity, classify_cross_asset_links
 
 
 class CrossAssetEntityModel(BaseModel):
@@ -42,14 +42,26 @@ def _documents(values: list[Dict[str, Any]]) -> list[SourceDocument]:
     return [SourceDocument(**value) for value in values]
 
 
+def _cross_asset_links(values: list[CrossAssetLinkModel]) -> list[CrossAssetLink]:
+    return [
+        CrossAssetLink(
+            from_entity=IntelligenceEntity(**link.from_entity.model_dump()),
+            relationship=link.relationship,
+            to_entity=IntelligenceEntity(**link.to_entity.model_dump()),
+            evidence_ids=link.evidence_ids,
+        )
+        for link in values
+    ]
+
+
 def build_capital_router(registry: AlternativeDataRegistry | None = None) -> APIRouter:
     """Expose research-only Capital Engine entry points.
 
     Providers remain optional. The endpoint accepts normalized documents directly so
     the Capital Engine can be exercised without a paid data dependency.
 
-    Cross-asset links are contextual research structure only. They do not become
-    evidence unless explicitly backed by evidence IDs supplied in the request.
+    Cross-asset links are contextual research structure. They are classified as
+    evidence only when their referenced evidence IDs exist in this request.
     """
     router = APIRouter(prefix="/capital", tags=["capital-engine"])
     provider_registry = registry or AlternativeDataRegistry()
@@ -79,6 +91,8 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
                 providers = provider_registry.names() if documents else []
 
             evidence = documents_to_evidence(documents, claim=request.question)
+            cross_asset_links = _cross_asset_links(request.cross_asset_links)
+            evidence_ids = [item["evidence_id"] for item in evidence]
             result = run_analysis(
                 question=request.question,
                 evidence=evidence,
@@ -92,7 +106,7 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
                 "entities": request.entities,
                 "provider_names": providers,
                 "document_count": len(documents),
-                "cross_asset_links": [link.model_dump() for link in request.cross_asset_links],
+                "cross_asset_links": classify_cross_asset_links(cross_asset_links, evidence_ids),
                 "research_only": True,
             }
             return result
