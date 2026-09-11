@@ -60,9 +60,22 @@ def evaluate_financial_decision(
             rationale=" ".join(failures),
             evidence_ids=financial.evidence_ids,
         )
+    configured = (
+        criteria.min_dscr is not None
+        or criteria.min_cash_on_cash is not None
+        or criteria.min_irr is not None
+        or criteria.min_equity_multiple is not None
+        or criteria.max_ltv is not None
+    )
+    if configured:
+        return CREDecisionRecord(
+            state=UnderwritingDecision.ACT,
+            rationale="Financial model meets all explicitly configured research criteria; this is a recommendation only and still requires human authorization.",
+            evidence_ids=financial.evidence_ids,
+        )
     return CREDecisionRecord(
         state=UnderwritingDecision.WATCH,
-        rationale="Financial model meets all explicitly configured research criteria; further diligence and human decision remain required.",
+        rationale="Financial model is calculable but no explicit decision criteria were configured; further diligence and human decision remain required.",
         evidence_ids=financial.evidence_ids,
     )
 
