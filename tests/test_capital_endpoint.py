@@ -89,11 +89,17 @@ def test_capital_research_classifies_cross_asset_context():
         },
     )
     assert response.status_code == 200
-    link = response.json()["capital_engine"]["cross_asset_links"][0]
+    body = response.json()
+    link = body["capital_engine"]["cross_asset_links"][0]
     assert link["relationship"] == "drives_demand_for"
     assert link["evidence_backed"] is True
     assert link["epistemic_stage"] == "evidence"
     assert link["missing_evidence_ids"] == []
+
+    hypothesis = body["capital_engine"]["research_hypotheses"][0]
+    assert hypothesis["epistemic_stage"] == "hypothesis"
+    assert hypothesis["evidence_ids"] == ["evidence-1"]
+    assert hypothesis["domain"] == "asset"
 
 
 def test_capital_research_does_not_require_a_provider():
