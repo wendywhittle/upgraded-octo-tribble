@@ -14,6 +14,7 @@ BASE = dict(
     amortization_years=25,
     capital_expenditures=25_000,
     selling_cost_rate=0.02,
+    closing_costs=0.0,
 )
 
 
