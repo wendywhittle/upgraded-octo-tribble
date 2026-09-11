@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class ProFormaValidationError(ValueError):
@@ -23,7 +23,7 @@ class ProFormaInput(BaseModel):
     other_income: float = Field(default=0.0, ge=0)
     initial_occupancy: float = Field(ge=0, le=1)
     rent_growth: float = Field(default=0.0, ge=-1)
-    vacancy_rate: float | None = Field(default=None, ge=0, le=1)
+    vacancy_rate: float = Field(default=0.0, ge=0, le=1)
     operating_expenses: float = Field(ge=0)
     expense_growth: float = Field(default=0.0, ge=-1)
     management_expense: float = Field(default=0.0, ge=0)
@@ -41,7 +41,7 @@ class ProFormaInput(BaseModel):
 
     @model_validator(mode="after")
     def validate_occupancy(self) -> "ProFormaInput":
-        if self.vacancy_rate is not None and self.initial_occupancy + self.vacancy_rate > 1:
+        if self.initial_occupancy + self.vacancy_rate > 1:
             raise ValueError("initial_occupancy plus vacancy_rate cannot exceed 1")
         return self
 
@@ -95,9 +95,8 @@ def calculate_proforma(inputs: ProFormaInput) -> ProFormaResult:
         growth_factor = (1 + inputs.rent_growth) ** (year - 1)
         expense_factor = (1 + inputs.expense_growth) ** (year - 1)
         potential_rent = inputs.annual_rent * growth_factor
-        occupancy = inputs.initial_occupancy if year == 1 else inputs.initial_occupancy
-        vacancy = inputs.vacancy_rate if inputs.vacancy_rate is not None else 1 - occupancy
-        effective_rent = potential_rent * occupancy * (1 - vacancy)
+        effective_occupancy = inputs.initial_occupancy * (1 - inputs.vacancy_rate)
+        effective_rent = potential_rent * effective_occupancy
         other_income = inputs.other_income * growth_factor
         egi = effective_rent + other_income
         expenses = (
