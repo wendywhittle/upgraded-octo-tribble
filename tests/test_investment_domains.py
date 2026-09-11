@@ -5,6 +5,7 @@ from app.investment_domains import (
     IntelligenceEntity,
     InvestmentDomain,
     ResearchHypothesis,
+    classify_cross_asset_links,
     domain_manifest,
 )
 
@@ -37,3 +38,27 @@ def test_cross_asset_link_is_evidence_backed():
     assert link.to_entity.entity_type == "property"
     assert link.evidence_ids == ["e-1"]
     assert AssetResearchDomain.INDUSTRIAL.value == "industrial"
+
+
+def test_unbacked_cross_asset_link_remains_a_hypothesis():
+    company = IntelligenceEntity("company-1", "company", "Example Co")
+    property_ = IntelligenceEntity("property-1", "property", "Example Industrial Park")
+    link = CrossAssetLink(company, "may_drive_demand_for", property_, ["missing-evidence"])
+
+    classified = classify_cross_asset_links([link], evidence_ids=[])[0]
+
+    assert classified["evidence_backed"] is False
+    assert classified["epistemic_stage"] == "hypothesis"
+    assert classified["missing_evidence_ids"] == ["missing-evidence"]
+
+
+def test_backed_cross_asset_link_is_explicitly_evidence():
+    company = IntelligenceEntity("company-1", "company", "Example Co")
+    property_ = IntelligenceEntity("property-1", "property", "Example Industrial Park")
+    link = CrossAssetLink(company, "capital_expenditure_supports", property_, ["e-1"])
+
+    classified = classify_cross_asset_links([link], evidence_ids=["e-1"])[0]
+
+    assert classified["evidence_backed"] is True
+    assert classified["epistemic_stage"] == "evidence"
+    assert classified["missing_evidence_ids"] == []
