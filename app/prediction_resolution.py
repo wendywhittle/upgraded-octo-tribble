@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from app.epistemic_adapter import resolution_to_epistemic_records
+
 
 def _parse_timestamp(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip():
@@ -67,4 +69,8 @@ def resolve_prediction(
         "brokerage_connectivity": False,
         "portfolio_mutation": False,
     }
+    result["epistemic_memory"] = [
+        record.model_dump() if hasattr(record, "model_dump") else record.dict()
+        for record in resolution_to_epistemic_records(result)
+    ]
     return result
