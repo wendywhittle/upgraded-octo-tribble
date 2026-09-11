@@ -105,6 +105,31 @@ def classify_cross_asset_links(
     return classified
 
 
+def _hypothesis_relationship(relationship: str) -> tuple[str, str]:
+    """Return a readable verb phrase for hypothesis prose and research questions."""
+    phrase = relationship.replace("_", " ").strip()
+    if phrase.startswith("may "):
+        return phrase[4:].strip(), "may"
+    if phrase.startswith("can "):
+        return phrase[4:].strip(), "can"
+    if phrase.startswith("could "):
+        return phrase[6:].strip(), "could"
+    if phrase.startswith("might "):
+        return phrase[6:].strip(), "might"
+    common_third_person = {
+        "drives": "drive",
+        "supports": "support",
+        "increases": "increase",
+        "reduces": "reduce",
+        "affects": "affect",
+        "influences": "influence",
+        "creates": "create",
+        "constrains": "constrain",
+        "signals": "signal",
+    }
+    return common_third_person.get(phrase, phrase), "may"
+
+
 def cross_asset_hypotheses(
     links: Iterable[CrossAssetLink], evidence_ids: Iterable[str]
 ) -> List[ResearchHypothesis]:
@@ -119,11 +144,11 @@ def cross_asset_hypotheses(
     for index, link in enumerate(links, start=1):
         valid_evidence_ids = [item for item in link.evidence_ids if item in available]
         geography = f" in {link.to_entity.geography}" if link.to_entity.geography else ""
-        relationship = link.relationship.replace("_", " ")
-        statement = f"{link.from_entity.name} may {relationship} {link.to_entity.name}{geography}."
+        relationship, modal = _hypothesis_relationship(link.relationship)
+        statement = f"{link.from_entity.name} {modal} {relationship} {link.to_entity.name}{geography}."
         research_question = (
             f"What independent evidence would confirm or falsify whether "
-            f"{link.from_entity.name} {relationship} {link.to_entity.name}{geography}?"
+            f"{link.from_entity.name} {modal} {relationship} {link.to_entity.name}{geography}?"
         )
         hypotheses.append(
             ResearchHypothesis(
