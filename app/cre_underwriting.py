@@ -9,7 +9,6 @@ from .cre_financial_model import break_even_exit_cap, break_even_occupancy, debt
 class UnderwritingDecision(str, Enum):
     ACT = "ACT"
     WATCH = "WATCH"
-    REJECT = "REJECT"
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT EVIDENCE"
     NO_DEAL = "NO DEAL"
 
@@ -152,20 +151,35 @@ def _status_for(name: str, value: object, assumptions: Sequence[Assumption], der
 def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult:
     """Calculate transparent CRE economics from explicit inputs only."""
     missing: list[str] = []
-    if inputs.purchase_price is None or inputs.purchase_price <= 0: missing.append("purchase_price")
-    if inputs.noi is None or inputs.noi < 0: missing.append("noi")
-    if inputs.hold_period_years is None or inputs.hold_period_years <= 0: missing.append("hold_period_years")
-    if inputs.exit_cap_rate is None or inputs.exit_cap_rate <= 0: missing.append("exit_cap_rate")
+    required_values = {
+        "purchase_price": inputs.purchase_price,
+        "noi": inputs.noi,
+        "hold_period_years": inputs.hold_period_years,
+        "exit_cap_rate": inputs.exit_cap_rate,
+        "rent_growth": inputs.rent_growth,
+        "expense_growth": inputs.expense_growth,
+        "capital_expenditures": inputs.capital_expenditures,
+        "selling_cost_rate": inputs.selling_cost_rate,
+    }
+    for name, value in required_values.items():
+        if value is None or (isinstance(value, (int, float)) and value <= 0 and name not in {"expense_growth", "capital_expenditures"}):
+            missing.append(name)
+    if inputs.loan_amount is None and inputs.loan_to_value is None:
+        missing.append("loan_to_value")
+    if inputs.capital_expenditures is not None and inputs.capital_expenditures < 0:
+        missing.append("capital_expenditures")
+    if inputs.selling_cost_rate is not None and not 0 <= inputs.selling_cost_rate < 1:
+        missing.append("selling_cost_rate")
     derived: set[str] = set()
     if inputs.effective_income is None and inputs.gross_rent is not None and (inputs.occupancy is not None or inputs.vacancy is not None): derived.add("effective_income")
     if inputs.loan_amount is None and inputs.loan_to_value is not None and inputs.purchase_price is not None: derived.add("loan_amount")
     fields = {"purchase_price": inputs.purchase_price, "noi": inputs.noi, "gross_rent": inputs.gross_rent, "effective_income": inputs.effective_income, "occupancy": inputs.occupancy, "vacancy": inputs.vacancy, "operating_expenses": inputs.operating_expenses, "rent_growth": inputs.rent_growth, "expense_growth": inputs.expense_growth, "capital_expenditures": inputs.capital_expenditures, "loan_amount": inputs.loan_amount, "loan_to_value": inputs.loan_to_value, "interest_rate": inputs.interest_rate, "amortization_years": inputs.amortization_years, "exit_cap_rate": inputs.exit_cap_rate, "selling_cost_rate": inputs.selling_cost_rate, "closing_costs": inputs.closing_costs, "lease_term_years": inputs.lease_term_years, "rent_escalation": inputs.rent_escalation, "renewal_probability": inputs.renewal_probability}
     status = {name: _status_for(name, value, inputs.assumptions, derived) for name, value in fields.items()}
-    if missing: return CREFinancialResult("INSUFFICIENT EVIDENCE", status, tuple(missing), evidence_ids=tuple(inputs.evidence_ids))
+    if missing: return CREFinancialResult("INSUFFICIENT EVIDENCE", status, tuple(dict.fromkeys(missing)), evidence_ids=tuple(inputs.evidence_ids))
 
     price, noi, hold = float(inputs.purchase_price), float(inputs.noi), int(inputs.hold_period_years)
     cap = noi / price
-    loan = inputs.loan_amount if inputs.loan_amount is not None else price * float(inputs.loan_to_value or 0.0)
+    loan = inputs.loan_amount if inputs.loan_amount is not None else price * float(inputs.loan_to_value)
     if loan < 0: return CREFinancialResult("INSUFFICIENT EVIDENCE", status, ("loan_amount",), going_in_cap_rate=cap, evidence_ids=tuple(inputs.evidence_ids))
     equity = price + float(inputs.closing_costs or 0.0) - loan
     annual_ds = None
@@ -177,27 +191,27 @@ def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult
     projected_noi: list[float] = []; projected_cash_flow: list[float] = []; annual_equity_values: list[float] = []; current_noi = noi
     for year in range(1, hold + 1):
         if inputs.gross_rent is not None and inputs.operating_expenses is not None and (inputs.occupancy is not None or inputs.vacancy is not None):
-            income = inputs.gross_rent * (1 + (inputs.rent_growth or 0.0)) ** year
+            income = inputs.gross_rent * (1 + inputs.rent_growth) ** year
             vacancy = inputs.vacancy if inputs.vacancy is not None else 1 - float(inputs.occupancy)
             income = income * max(0.0, 1 - vacancy) + float(inputs.other_income or 0.0)
-            expenses = inputs.operating_expenses * (1 + (inputs.expense_growth or 0.0)) ** year
+            expenses = inputs.operating_expenses * (1 + inputs.expense_growth) ** year
             current_noi = income - expenses
-        elif inputs.rent_growth is not None:
+        else:
             current_noi = current_noi * (1 + inputs.rent_growth)
         projected_noi.append(current_noi)
-        projected_cash_flow.append(current_noi - float(annual_ds or 0.0) - float(inputs.capital_expenditures or 0.0))
-        balance = remaining_balance(loan, inputs.interest_rate or 0.0, inputs.amortization_years, year, inputs.interest_only)
+        projected_cash_flow.append(current_noi - float(annual_ds or 0.0) - float(inputs.capital_expenditures))
+        balance = remaining_balance(loan, inputs.interest_rate if inputs.interest_rate is not None else 0.0, inputs.amortization_years, year, inputs.interest_only)
         annual_equity_values.append(current_noi / inputs.exit_cap_rate - balance)
 
     exit_value = projected_noi[-1] / float(inputs.exit_cap_rate)
-    net_sale = exit_value * (1 - float(inputs.selling_cost_rate or 0.0)) - remaining_balance(loan, inputs.interest_rate or 0.0, inputs.amortization_years, hold, inputs.interest_only)
+    net_sale = exit_value * (1 - float(inputs.selling_cost_rate)) - remaining_balance(loan, inputs.interest_rate if inputs.interest_rate is not None else 0.0, inputs.amortization_years, hold, inputs.interest_only)
     cash_on_cash = projected_cash_flow[0] / equity if equity > 0 else None
     equity_multiple = (sum(projected_cash_flow) + net_sale) / equity if equity > 0 else None
     irr_value = irr([-equity, *projected_cash_flow[:-1], projected_cash_flow[-1] + net_sale]) if equity > 0 else None
     dscr_value = noi / annual_ds if annual_ds and annual_ds > 0 else None
     debt_yield_value = noi / loan if loan > 0 else None
-    break_occ = break_even_occupancy(inputs.gross_rent, inputs.operating_expenses, annual_ds or 0.0, inputs.capital_expenditures or 0.0, inputs.other_income or 0.0) if inputs.gross_rent is not None and inputs.operating_expenses is not None else None
-    break_exit = break_even_exit_cap(projected_noi[-1], equity, float(inputs.selling_cost_rate or 0.0)) if equity > 0 else None
+    break_occ = break_even_occupancy(inputs.gross_rent, inputs.operating_expenses, annual_ds or 0.0, inputs.capital_expenditures, inputs.other_income or 0.0) if inputs.gross_rent is not None and inputs.operating_expenses is not None else None
+    break_exit = break_even_exit_cap(projected_noi[-1], equity, inputs.selling_cost_rate) if equity > 0 else None
     target_cap = next((float(a.value) for a in inputs.assumptions if a.name == "target_cap_rate" and isinstance(a.value, (int, float))), None)
     target_dscr = next((float(a.value) for a in inputs.assumptions if a.name == "minimum_dscr" and isinstance(a.value, (int, float))), None)
     max_price = max_purchase_price_for_cap(noi, target_cap) if target_cap is not None else None
