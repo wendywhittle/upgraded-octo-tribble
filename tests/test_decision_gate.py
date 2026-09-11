@@ -56,6 +56,15 @@ def test_consensus_is_not_a_gate_input():
     assert not hasattr(result, "consensus_score")
 
 
+def test_explicit_hard_stop_override_closes_even_when_criteria_pass():
+    result = evaluate_decision_gate(
+        passing_criteria(),
+        hard_stop_overrides=[HardStop.UNVERIFIED_MATERIAL_ASSUMPTION],
+    )
+    assert result.state is GateState.CLOSED
+    assert HardStop.UNVERIFIED_MATERIAL_ASSUMPTION in result.hard_stops
+
+
 def test_human_exception_does_not_rewrite_failed_gate():
     criteria = passing_criteria()
     criteria["EVIDENCE_INTEGRITY"] = False
