@@ -2,57 +2,101 @@
 
 ## Institutional Investment Intelligence
 
-AletheiaTelos is an AI-native institutional investment intelligence platform designed to combine institutional CRE and real-asset investment discipline, public-market and quantitative research, multi-perspective computational reasoning, independent risk simulation, and persistent organizational learning.
+AletheiaTelos is an AI-native institutional investment intelligence system designed to combine institutional CRE and real-asset investment discipline, public-market and quantitative research, multi-perspective computational reasoning, independent risk simulation, and persistent organizational learning.
 
-The objective is not to replace investment judgment.
+### The Goal
 
-It is to build an intelligence layer around the institutional investment process that makes evidence more rigorous, assumptions more visible, disagreement more useful, downside more explicit, and institutional knowledge increasingly cumulative.
+The goal is **not** to build another multi-agent trading demo, another CRE scraper, or an AI that spits out investment recommendations.
 
-**Human investment authority remains explicit.**
+The goal is to build **AletheiaTelos as an institutional intelligence system**.
+
+The AI is the intelligence layer around the institutional investment process.
+
+It is:
+
+* not the owner of the capital
+* not the Investment Committee
+* not the trader
+* not the principal
+* not the thing that decides what reality means after the fact
+
+Human investment authority remains explicit.
 
 ---
 
-## The Core Idea
+## The North Star
 
-Investment intelligence is not a single decision, an agent, a trade, or a dashboard.
+> **Build an investment intelligence organization that gets smarter because it remembers what actually happened.**
 
-It is a continuous institutional process:
+At the highest level:
 
 ```text
-REAL WORLD
-    ↓
-DATA / EVIDENCE
-    ↓
-RESEARCH / UNDERWRITING
-    ↓
+CAPITAL ENGINE + ASSET ENGINE
+            ↓
 COMPUTATIONAL KALEIDOSCOPE
-    ↓
+            ↓
 CONFLICT / COEXISTENCE
-    ↓
+            ↓
 INDEPENDENT RISK SIMULATION
-    ↓
-CONTRARIAN / SKEPTIC REVIEW
-    ↓
-HUMAN INVESTMENT COMMITTEE
-    ↓
+            ↓
+CONTRARIAN REVIEW
+            ↓
+HUMAN INVESTMENT IC
+            ↓
 DECISION RECORD
-    ↓
+            ↓
 CAPITAL / ASSET
-    ↓
+            ↓
 OUTCOME
-    ↓
-ATTRIBUTION
-    ↓
+            ↓
+OBSERVATION
+            ↓
 EPISTEMIC MEMORY
-    ↓
+            ↓
 BETTER NEXT DECISION
 ```
+
+This is the architecture's governing direction.
 
 The system is **decision-centric, not agent-centric**.
 
 Agents are reasoning components. They are not the institutional unit of truth, authority, or memory.
 
-The durable object is the **Decision Record**. Evidence, reasoning, assumptions, simulations, dissent, decisions, outcomes, and lessons should ultimately converge on a versioned, auditable record of what was believed, why it was believed, what humans decided, and what actually happened.
+The durable institutional object is the **Decision Record**. Evidence, reasoning, assumptions, simulations, dissent, decisions, outcomes, and lessons should converge on a versioned, auditable record of what was believed, why it was believed, what humans decided, and what actually happened.
+
+---
+
+## The Economic Objective
+
+Underneath the intelligence architecture is the economic objective of an institutional investment organization:
+
+> **Find, evaluate, acquire, improve, operate, finance, and ultimately compound capital through superior investment decisions.**
+
+The system therefore supports the full capital and asset cycle rather than optimizing for isolated predictions, trades, or property discoveries.
+
+```text
+FIND
+  ↓
+EVALUATE
+  ↓
+ACQUIRE
+  ↓
+IMPROVE
+  ↓
+OPERATE
+  ↓
+FINANCE / RECYCLE
+  ↓
+REALIZE OUTCOME
+  ↓
+RETURN / REINVEST CAPITAL
+  ↓
+COMPOUND
+```
+
+This includes the institutional logic of funds, SPVs, joint ventures, debt, sponsor capital, asset operations, refinancing, disposition, and reinvestment.
+
+AletheiaTelos is intended to improve the quality of decisions throughout that cycle.
 
 ---
 
@@ -61,13 +105,14 @@ The durable object is the **Decision Record**. Evidence, reasoning, assumptions,
 ### CAPITAL ENGINE
 
 * Public markets
-* Quantitative research
+* Quantitative strategies and research
 * Alternative data
 * Macro
 * Factors
 * Market regimes
 * Risk
-* Portfolio research
+* Portfolio construction
+* Capital allocation research
 
 ### ASSET ENGINE
 
@@ -79,14 +124,13 @@ The durable object is the **Decision Record**. Evidence, reasoning, assumptions,
 * Private assets
 * Operations
 * Capital structure
+* Value creation
 
-The two engines share the same downstream intelligence architecture:
+The two engines share one institutional intelligence substrate:
 
 **Evidence → Computational Reasoning → Conflict / Coexistence → Independent Simulation → Contrarian Review → Human Authority → Decision Record → Outcome → Epistemic Memory**
 
-AletheiaTelos is therefore not two unrelated systems. Capital markets and real assets are different domains connected by a common institutional intelligence substrate.
-
-See `README_INSTITUTIONAL_INTELLIGENCE.md` and `ARCHITECTURE.md` for the expanded architecture.
+Capital markets and real assets are different domains connected by a common architecture.
 
 ---
 
@@ -116,49 +160,9 @@ Dissent is information. Consensus must not be manufactured merely to produce a c
 
 ---
 
-## Evidence Architecture
+## Institutional Investment Process
 
-External data is never treated as investment authority.
-
-```text
-DATA PROVIDERS
-      ↓
-NORMALIZATION
-      ↓
-EVIDENCE REGISTRY
-      ↓
-INTEGRITY / PROVENANCE / FRESHNESS
-      ↓
-CORROBORATION
-      ↓
-AGENT REASONING
-```
-
-The provider boundary is intentionally vendor-neutral. Alternative-data providers can feed the evidence layer without becoming a hard dependency or decision authority.
-
-The epistemic boundary remains:
-
-```text
-OBSERVATION
-    ↓
-EVIDENCE
-    ↓
-INTERPRETATION
-    ↓
-HYPOTHESIS
-    ↓
-SCENARIO ASSUMPTION
-    ↓
-SIMULATION
-```
-
-Agents must not manufacture evidence, and provider output does not automatically become an investment conclusion.
-
----
-
-## Institutional CRE Workflow
-
-AletheiaTelos maps computational intelligence onto the institutional investment process.
+### CRE / Real Assets
 
 ```text
 MARKET / OPPORTUNITY
@@ -180,17 +184,82 @@ INVESTMENT MEMO
 HUMAN INVESTMENT COMMITTEE
 ```
 
-The question is not merely:
+The institutional question is not merely:
 
 > Does this property look interesting?
 
-The institutional question is:
+It is:
 
 > **Is this actually a deal?**
 
-NO-GO is a legitimate outcome at screening and Investment Committee stages.
+### Capital Markets
 
-A rejected opportunity does not simply disappear. The reasoning behind the rejection can become institutional memory and improve future decisions.
+The Capital Engine evaluates securities, quantitative strategies, factors, regimes, alternative-data signals, risk, portfolio hypotheses, and capital-allocation questions before human review.
+
+In both engines, **NO-GO** is a legitimate outcome.
+
+---
+
+## Evidence Architecture
+
+External data is never treated as investment authority.
+
+```text
+DATA PROVIDERS
+      ↓
+NORMALIZATION
+      ↓
+EVIDENCE REGISTRY
+      ↓
+INTEGRITY / PROVENANCE / FRESHNESS
+      ↓
+CORROBORATION
+      ↓
+REASONING
+```
+
+The provider boundary is intentionally vendor-neutral. External providers can feed the evidence layer without becoming a hard dependency or decision authority.
+
+The epistemic boundary remains:
+
+```text
+OBSERVATION
+    ↓
+EVIDENCE
+    ↓
+INTERPRETATION
+    ↓
+HYPOTHESIS
+    ↓
+SCENARIO ASSUMPTION
+    ↓
+SIMULATION
+```
+
+A proposed relationship is not an observation merely because an agent proposes it.
+
+---
+
+## Conflict / Coexistence
+
+AletheiaTelos does not treat disagreement as an error to be averaged away.
+
+Conflicting perspectives may reflect different:
+
+* time horizons
+* assumptions
+* regimes
+* evidence sets
+* risk tolerances
+* causal models
+* liquidity conditions
+* definitions of success
+
+The Conflict / Coexistence layer makes those differences explicit.
+
+The objective is not forced consensus.
+
+The objective is to understand **why perspectives agree, why they disagree, and whether they can coexist under different conditions**.
 
 ---
 
@@ -209,21 +278,32 @@ It should report distributions, downside probabilities, drawdowns, uncertainty, 
 
 Agents provide assumptions and competing hypotheses to the simulator. They do not determine its results.
 
-The simulator should remain independently parameterized and should account for relevant sources of fragility such as:
-
-* liquidity
-* transaction costs
-* market impact
-* regime variation
-* volatility
-* gaps and discontinuities
-* stale or degraded evidence
-* capacity constraints
-* microstructure effects where applicable
+The simulator should remain independently parameterized and account for relevant sources of fragility such as liquidity, transaction costs, market impact, regime variation, volatility, gaps, stale evidence, capacity constraints, and microstructure effects where applicable.
 
 **Simulation ≠ prediction.**
 
-The Contrarian / Skeptic layer reviews the resulting distributions and challenges both the thesis and the assumptions that produced the scenario set.
+The Contrarian / Skeptic layer reviews the resulting distributions and challenges both the thesis and the assumptions underlying the scenarios.
+
+---
+
+## Contrarian Review
+
+The Contrarian is not a decorative opposing opinion.
+
+Its purpose is to actively search for reasons the investment thesis could fail:
+
+* disconfirming evidence
+* hidden assumptions
+* asymmetric downside
+* adverse regime changes
+* liquidity and execution problems
+* structural fragility
+* resolution risk
+* model risk
+* evidence-quality problems
+* reasons the apparent opportunity should be rejected
+
+The system must be capable of reaching **NO** after substantial analytical work.
 
 ---
 
@@ -231,15 +311,14 @@ The Contrarian / Skeptic layer reviews the resulting distributions and challenge
 
 The **Decision Record is the central durable institutional object**.
 
-It is not the agent.
+It is not:
 
-It is not the trade.
+* the agent
+* the trade
+* the portfolio
+* the prompt
 
-It is not the portfolio.
-
-It is not the prompt.
-
-A Decision Record should ultimately preserve, as applicable:
+A Decision Record should preserve, as applicable:
 
 * decision identity and versioning
 * opportunity / subject
@@ -256,27 +335,31 @@ A Decision Record should ultimately preserve, as applicable:
 * human authorization state
 * Investment Committee decision
 * eventual outcome
-* attribution
+* observation and attribution
 * lessons and memory links
 * timestamps and audit history
 
-This creates a durable institutional memory of both **the decision and the reasoning that produced it**.
+The Decision Record preserves both **the decision and the reasoning that produced it**.
 
 ---
 
-## Institutional Learning Loop
+## Outcome, Observation, and Epistemic Memory
+
+The system does not end when the Investment Committee makes a decision.
 
 ```text
-CAPITAL / ASSET
-      ↓
 DECISION
-      ↓
-OUTCOME
-      ↓
+   ↓
+CAPITAL / ASSET
+   ↓
+REAL WORLD
+   ↓
+OBSERVATION
+   ↓
 ATTRIBUTION
-      ↓
+   ↓
 EPISTEMIC MEMORY
-      ↓
+   ↓
 BETTER NEXT DECISION
 ```
 
@@ -284,25 +367,21 @@ The Observer captures what actually happened.
 
 Outcome Attribution compares reality with the original thesis, evidence, assumptions, and expectations.
 
-Epistemic Memory preserves what was learned with provenance and distinction between facts, evidence, assumptions, hypotheses, decisions, dissent, predictions, outcomes, and lessons.
+Epistemic Memory preserves what was learned with provenance and distinguishes facts, evidence, assumptions, hypotheses, decisions, dissent, predictions, outcomes, and lessons.
 
-The objective is not simply to accumulate information.
+The original decision remains intact. The system does not rewrite history simply because the outcome disagreed with the thesis.
+
+The objective is not merely to accumulate information.
 
 It is to accumulate **validated institutional knowledge**.
 
-```text
-REAL WORLD → INTELLIGENCE → DECISION → OUTCOME → MEMORY → INTELLIGENCE
-```
-
 ---
 
-## Capital Preservation and Decision Quality
+## Capital Preservation and the Discipline to Say No
 
 AletheiaTelos is designed to optimize for **decision quality, not activity**.
 
-A successful system does not need to force a trade, force a deal, or produce a recommendation when evidence is insufficient.
-
-Valid outcomes include:
+If the evidence does not justify committing capital, AletheiaTelos should be able to say:
 
 * **NO TRADE**
 * **NO DEAL**
@@ -310,18 +389,11 @@ Valid outcomes include:
 * insufficient evidence
 * defer / monitor
 
+That is not failure.
+
+**That is intelligence.**
+
 Capital preservation can take precedence over forced activity when the margin of safety is inadequate.
-
-Important epistemic laws include:
-
-* Simulation ≠ prediction
-* Confidence ≠ probability
-* Performance ≠ correctness
-* Agent consensus ≠ truth
-* Recommendation ≠ authorization
-* Reasoning ≠ execution
-* Memory ≠ authority
-* Self-modification ≠ permission
 
 ---
 
@@ -351,42 +423,7 @@ CRE / infrastructure / industrial activity
 → capital allocation hypotheses
 ```
 
-These relationships remain evidence-backed and testable. A proposed relationship is not an observation merely because an agent proposes it.
-
----
-
-## Capital & Asset Engine
-
-The platform models the movement of capital into assets and research hypotheses without granting autonomous execution authority.
-
-```text
-LP / PRIVATE CAPITAL
-JV CAPITAL
-DEBT
-SPONSOR CAPITAL
-        ↓
-    SPV / FUND
-        ↓
-    REAL ASSET
-```
-
-The asset can then enter the operating cycle:
-
-```text
-ACQUIRE
-   ↓
-IMPROVE
-   ↓
-OPERATE
-   ↓
-REFINANCE / RECYCLE
-   ↓
-EXIT
-```
-
-The institutional objective is not merely to identify assets. It is to support a repeatable process in which superior decisions can lead to capital formation, asset-level value creation, realized outcomes, and reinvestment.
-
-For public-market research, the corresponding Capital Engine evaluates securities, factors, regimes, risk, alternative-data signals, and portfolio hypotheses before human review.
+These relationships must remain evidence-backed and testable.
 
 ---
 
@@ -425,21 +462,19 @@ Useful infrastructure patterns include:
 
 These are implementation mechanisms, not the governing philosophy of the system.
 
-AletheiaTelos remains **decision-centric rather than agent-centric**, and the architecture must preserve the human authority boundary.
+**Steal the good engineering. Leave the ideology.**
 
-The governing principle is simple:
-
-> **Steal the good engineering. Leave the ideology.**
+AletheiaTelos remains decision-centric, human-authorized, evidence-bound, and institutionally oriented.
 
 ---
 
 ## Governance
 
-The system operates under an explicit governing framework represented by `CHARTER.md`.
+The system operates under the explicit governing framework represented by `CHARTER.md`.
 
 The Charter takes precedence over agents, prompts, workflows, tools, models, and optimization objectives.
 
-Governance defines the boundaries surrounding:
+Governance defines boundaries surrounding:
 
 * agency
 * tools
@@ -460,23 +495,23 @@ It is to ensure that increasing capability does not silently become increasing a
 
 ## The Vision
 
-AletheiaTelos is an experiment in rebuilding institutional investment intelligence around a different architecture.
+AletheiaTelos is not an AI that makes investments.
 
-Not an AI that makes investments.
+It is not a dashboard that merely displays information.
 
-Not a dashboard that merely displays information.
+It is not a collection of disconnected agents.
 
-Not a collection of disconnected agents.
+It is not another multi-agent trading demo.
 
-Not an autonomous trading system.
+It is not merely a CRE scraper.
 
-But an **institutional learning system** in which evidence, research, capital, real assets, outcomes, and memory continuously inform one another.
+It is not an AI recommendation engine.
 
-The long-term objective is simple:
+It is an **institutional intelligence system** designed to put computational intelligence around the full investment process and make the organization better through accumulated experience.
 
-> **Build an investment intelligence organization that gets better because it remembers what actually happened.**
+The north star remains:
 
-The architecture should remain useful whether the subject is a public security, an industrial property, a NNN asset, infrastructure, a private investment, or a broader capital-allocation hypothesis.
+> **Build an investment intelligence organization that gets smarter because it remembers what actually happened.**
 
 The domain can change.
 
