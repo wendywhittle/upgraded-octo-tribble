@@ -22,7 +22,7 @@ def cre_context():
         opportunity_id="cre-1", property_id="prop-1", asset_type="industrial", location="Vancouver, WA",
         purchase_price=10_000_000, noi=700_000, occupancy=0.95, rent_growth=0.03, expense_growth=0.02, vacancy=0.05,
         interest_rate=0.06, hold_period=5, capital_expenditures=25_000, evidence=("E-1",),
-        assumptions=("normalized NOI",), exit_assumptions={"exit_cap_rate": 0.07, "selling_cost_rate": 0.02},
+        assumptions=("normalized NOI",), exit_assumptions={"exit_cap_rate": 0.07, "selling_cost_rate": 0.02, "closing_costs": 0.0},
         financing_assumptions={"loan_to_value": 0.65, "amortization_years": 25},
     )
 
