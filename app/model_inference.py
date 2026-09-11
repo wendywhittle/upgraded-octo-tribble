@@ -34,6 +34,7 @@ class CallableModelProvider:
         question: str,
         evidence: Iterable[Dict[str, Any]],
         learning_context: Dict[str, Any] | None = None,
+        research_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         context = {
             "question": question,
@@ -45,6 +46,7 @@ class CallableModelProvider:
             },
             "evidence": [dict(item) for item in evidence],
             "institutional_learning": dict(learning_context or {}),
+            "research_context": dict(research_context or {}),
             "instructions": {
                 "task": "Produce a research assessment for the assigned perspective.",
                 "output_contract": "AgentOutput",
