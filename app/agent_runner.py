@@ -23,7 +23,14 @@ class AgentRunner:
         material = f"{agent_id}|{model_version}|{question.strip()}|{','.join(evidence_ids)}".encode("utf-8")
         return f"pred-{sha256(material).hexdigest()[:16]}"
 
-    def run(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def run(
+        self,
+        agent: Agent,
+        question: str,
+        evidence: Iterable[Dict[str, Any]],
+        learning_context: Dict[str, Any] | None = None,
+        research_context: Dict[str, Any] | None = None,
+    ) -> Dict[str, Any]:
         capabilities = agent.spec.capability_profile
         if capabilities.get("execute", False):
             raise ValueError("Agent execution capability is prohibited.")
@@ -33,10 +40,16 @@ class AgentRunner:
             raise ValueError("Agent portfolio mutation capability is prohibited.")
 
         evidence_list = [dict(item) for item in evidence]
-        if learning_context is None:
+        if learning_context is None and research_context is None:
             result = self.provider.assess(agent, question, evidence_list)
         else:
-            result = self.provider.assess(agent, question, evidence_list, learning_context=learning_context)
+            result = self.provider.assess(
+                agent,
+                question,
+                evidence_list,
+                learning_context=learning_context,
+                research_context=research_context,
+            )
         if not isinstance(result, dict):
             raise ValueError("Model provider must return a dictionary.")
         result = dict(result)
@@ -71,6 +84,7 @@ class AgentRunner:
         output["agent_runner"] = self.__class__.__name__
         output["provider"] = self.provider.name
         output["learning_context_used"] = bool(learning_context)
+        output["research_context_used"] = bool(research_context)
         output["execution_capability"] = False
         output["brokerage_connectivity"] = False
         output["portfolio_mutation"] = False
