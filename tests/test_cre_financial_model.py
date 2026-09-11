@@ -66,31 +66,31 @@ def test_explicit_criteria_can_produce_no_deal_without_authority():
 
 
 def test_cre_simulation_uses_economic_outputs_not_price_paths():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=11, occupancy=.95, rent_growth=.03, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, capital_expenditures=25_000, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, capital_expenditures=25_000, amortization_years=25)
     base = next(item for item in result["scenarios"] if item["scenario"] == "BASE")
     assert base["mean_exit_value"] != 100.0 and base["mean_dscr"] is not None and base["mean_equity_multiple"] is not None and base["mean_irr"] is not None
 
 
 def test_scenarios_have_different_economic_assumptions():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=11, occupancy=.95, rent_growth=.03, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
     scenarios = {s["scenario"]: s for s in result["scenarios"]}
     assert scenarios["BASE"]["scenario_assumptions"] != scenarios["BEAR"]["scenario_assumptions"]
     assert scenarios["ADVERSARIAL"]["scenario_assumptions"]["exit_cap_rate"] > scenarios["BASE"]["scenario_assumptions"]["exit_cap_rate"]
 
 
 def test_financing_unknown_prevents_simulation_from_inventing_rate():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=10, loan_to_value=.65, exit_cap_rate=.07)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=10, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, exit_cap_rate=.07)
     assert result["status"] == "INSUFFICIENT EVIDENCE" and "interest_rate" in result["missing_inputs"]
 
 
 def test_sensitivity_changes_the_requested_variable():
-    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07)
+    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=None, loan_to_value=0.0, exit_cap_rate=.07)
     outcomes = [row["base_scenario"]["mean_equity_outcome"] for row in result["variables"]["exit_cap_rate"]]
     assert outcomes[0] > outcomes[-1]
 
 
 def test_perspectives_share_the_same_economic_metrics():
-    ctx = CREOpportunityContext("opp", "prop", "industrial", "Vancouver, WA", purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, interest_rate=.06, hold_period=5, exit_assumptions={"exit_cap_rate":.07}, financing_assumptions={"loan_to_value":.65, "amortization_years":25}, evidence=("ev-price", "ev-noi"))
+    ctx = CREOpportunityContext("opp", "prop", "industrial", "Vancouver, WA", purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, hold_period=5, exit_assumptions={"exit_cap_rate":.07}, financing_assumptions={"loan_to_value":.65, "amortization_years":25}, evidence=("ev-price", "ev-noi"))
     assessments = assess_cre_opportunity(ctx, underwrite_financial_model(model_inputs()))
     assert len(assessments) == 8 and len({a.perspective_id for a in assessments}) == 8
     assert all(a.economic_metrics["going_in_cap_rate"] == pytest.approx(.07) for a in assessments)
@@ -98,7 +98,7 @@ def test_perspectives_share_the_same_economic_metrics():
 
 
 def test_conflict_preserves_economic_interpretations_without_averaging():
-    ctx = CREOpportunityContext("opp", "prop", "industrial", "Vancouver, WA", purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, interest_rate=.06, hold_period=5, exit_assumptions={"exit_cap_rate":.07}, financing_assumptions={"loan_to_value":.65, "amortization_years":25}, evidence=("ev-price", "ev-noi"))
+    ctx = CREOpportunityContext("opp", "prop", "industrial", "Vancouver, WA", purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, hold_period=5, exit_assumptions={"exit_cap_rate":.07}, financing_assumptions={"loan_to_value":.65, "amortization_years":25}, evidence=("ev-price", "ev-noi"))
     assessments = assess_cre_opportunity(ctx, underwrite_financial_model(model_inputs()))
     conflicts = detect_cre_conflicts(assessments)
     assert conflicts
@@ -108,7 +108,7 @@ def test_conflict_preserves_economic_interpretations_without_averaging():
 
 def test_adversarial_review_references_actual_financial_outputs():
     model = underwrite_financial_model(model_inputs())
-    sim = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=7, occupancy=.95, rent_growth=.03, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
+    sim = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
     review = review_cre_simulation(sim, ("rent_growth=.03",), ("ev-price",), model)
     assert any("break-even occupancy" in item for item in review.challenges)
     assert any("Worst modeled scenario" in item for item in review.challenges)
