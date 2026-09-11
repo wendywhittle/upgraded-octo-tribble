@@ -1,9 +1,8 @@
 """Guarded model backends for AletheiaTelos.
 
 The callable backend remains the generic test seam. The OpenAI Responses backend
-is the first real model implementation and is deliberately limited to structured
-research output. Research context is supplied separately from evidence and cannot
-be promoted to evidence by the backend.
+is deliberately limited to structured research output. Research context is supplied
+separately from evidence and cannot be promoted to evidence by the backend.
 """
 
 from __future__ import annotations
@@ -36,22 +35,11 @@ class CallableModelBackend:
     def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         context = {
             "question": question,
-            "agent": {
-                "agent_id": agent.spec.agent_id,
-                "role": agent.spec.role,
-                "default_horizon": agent.spec.default_horizon,
-                "capability_profile": dict(agent.spec.capability_profile),
-            },
+            "agent": {"agent_id": agent.spec.agent_id, "role": agent.spec.role, "default_horizon": agent.spec.default_horizon, "capability_profile": dict(agent.spec.capability_profile)},
             "evidence": [dict(item) for item in evidence],
             "institutional_learning": dict(learning_context or {}),
             "research_context": dict(research_context or {}),
-            "constraints": {
-                "research_only": True,
-                "execution_capability": False,
-                "brokerage_connectivity": False,
-                "portfolio_mutation": False,
-                "human_decision_required": True,
-            },
+            "constraints": {"research_only": True, "execution_capability": False, "brokerage_connectivity": False, "portfolio_mutation": False, "human_decision_required": True},
         }
         try:
             result = self._invoke(context)
@@ -81,7 +69,7 @@ _RESEARCH_OUTPUT_SCHEMA: Dict[str, Any] = {
     "properties": {
         "direction": {"type": "string", "enum": ["LONG", "SHORT", "NEUTRAL", "NO_DATA"]},
         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        "horizon": {"type": "string},
+        "horizon": {"type": "string"},
         "thesis": {"type": "string"},
         "evidence_basis": {"type": "array", "items": {"type": "string"}},
         "contradictory_evidence_basis": {"type": "array", "items": {"type": "string"}},
@@ -102,26 +90,20 @@ class OpenAIResponsesModelBackend:
         self.model_name = (model_name or os.getenv("ALETHEIA_MODEL_NAME", "gpt-5.6-terra")).strip()
         self.endpoint = (endpoint or os.getenv("ALETHEIA_MODEL_ENDPOINT", "https://api.openai.com/v1/responses")).strip()
         self._post_json = post_json or self._default_post_json
-        if not self.api_key:
-            raise ModelBackendError("ALETHEIA_MODEL_API_KEY is required for the real model backend.")
-        if not self.model_name:
-            raise ModelBackendError("ALETHEIA_MODEL_NAME cannot be empty.")
-        if not self.endpoint:
-            raise ModelBackendError("ALETHEIA_MODEL_ENDPOINT cannot be empty.")
+        if not self.api_key: raise ModelBackendError("ALETHEIA_MODEL_API_KEY is required for the real model backend.")
+        if not self.model_name: raise ModelBackendError("ALETHEIA_MODEL_NAME cannot be empty.")
+        if not self.endpoint: raise ModelBackendError("ALETHEIA_MODEL_ENDPOINT cannot be empty.")
 
     @staticmethod
     def _default_post_json(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
         request = Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
-            with urlopen(request, timeout=60) as response:
-                return json.loads(response.read().decode("utf-8"))
+            with urlopen(request, timeout=60) as response: return json.loads(response.read().decode("utf-8"))
         except HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             raise ModelBackendError(f"model API returned HTTP {exc.code}: {body[:500]}") from exc
-        except URLError as exc:
-            raise ModelBackendError(f"model API request failed: {exc.reason}") from exc
-        except json.JSONDecodeError as exc:
-            raise ModelBackendError("model API returned invalid JSON") from exc
+        except URLError as exc: raise ModelBackendError(f"model API request failed: {exc.reason}") from exc
+        except json.JSONDecodeError as exc: raise ModelBackendError("model API returned invalid JSON") from exc
 
     @staticmethod
     def _extract_structured_output(response: Mapping[str, Any]) -> Dict[str, Any]:
@@ -147,13 +129,7 @@ class OpenAIResponsesModelBackend:
             role_prompt = "You are the Governance perspective in AletheiaTelos. You are an independent review and oversight component, not an investment authority and not a decision-maker. Review whether system behavior remains inside the CHARTER and authority boundary. Use only supplied decision-usable evidence; do not add facts or sources. Treat research context as non-evidentiary hypotheses and relationships. Check preservation of human investment authority, research-only operation, prohibition of autonomous execution, brokerage, portfolio mutation, and capital movement, and integrity of evidence validation and provenance. Identify conflicts, unauthorized autonomy, unsupported authority claims, missing escalation, or conditions requiring human review. Do not override perspectives or make an investment decision. If evidence is insufficient, return NO_DATA with confidence 0. Do not fabricate evidence or grant authority. Preserve human decision authority. Return only the requested structured object."
         else:
             role_prompt = "You are the Researcher perspective in AletheiaTelos. You are an evidence-bound research component, not an investment authority. Use only supplied evidence; do not add facts, sources, market data, or claims from outside it. Treat research context as hypotheses and research leads, not evidence. Identify which supplied evidence supports or contradicts the assessment. Use research hypotheses to formulate tests and identify missing evidence, but never cite a hypothesis as evidence. If evidence is insufficient, return NO_DATA with confidence 0. Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. Confidence is not probability. Return only the requested structured object."
-        return (
-            role_prompt + "\n\n"
-            f"Question: {question}\nPerspective role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\n"
-            f"Evidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\n"
-            f"Research context JSON (non-evidentiary): {json.dumps(research_context, ensure_ascii=False, sort_keys=True)}\n"
-            f"Prior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
-        )
+        return role_prompt + "\n\n" + f"Question: {question}\nPerspective role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\nEvidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\nResearch context JSON (non-evidentiary): {json.dumps(research_context, ensure_ascii=False, sort_keys=True)}\nPrior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
 
     def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         evidence_list = [dict(item) for item in evidence]
