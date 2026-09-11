@@ -9,10 +9,10 @@ from app.simulator import run_cre_monte_carlo
 def make_context(**overrides):
     values = dict(
         opportunity_id="opp-1", property_id="prop-1", asset_type="industrial", location="Vancouver, WA",
-        purchase_price=10_000_000, noi=700_000, occupancy=0.95, rent_growth=0.03, vacancy=0.05,
+        purchase_price=10_000_000, noi=700_000, occupancy=0.95, rent_growth=0.03, expense_growth=0.02, vacancy=0.05,
         interest_rate=0.06, hold_period=5, cap_rate=0.065, capital_expenditures=25_000,
         evidence=("lease-1", "rent-roll-1"), assumptions=("normalized NOI", "exit cap verified"),
-        exit_assumptions={"exit_cap_rate": 0.07}, financing_assumptions={"loan_to_value": 0.65, "amortization_years": 25},
+        exit_assumptions={"exit_cap_rate": 0.07, "selling_cost_rate": 0.02, "closing_costs": 0.0}, financing_assumptions={"loan_to_value": 0.65, "amortization_years": 25},
     )
     values.update(overrides)
     return CREOpportunityContext(**values)
@@ -52,14 +52,14 @@ def test_cre_conflict_projection_preserves_disagreement_dimensions():
 
 
 def test_simulation_is_independent_and_has_all_required_scenarios():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0)
     assert result["independent_of_agents"] is True
     assert {s["scenario"] for s in result["scenarios"]} == {"BASE", "BULL", "BEAR", "ADVERSARIAL", "TAIL RISK"}
     assert all("probability_loss" in s for s in result["scenarios"])
 
 
 def test_adversarial_review_uses_simulation_results():
-    simulation = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
+    simulation = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0)
     review = review_cre_simulation(simulation, ("rent growth", "exit cap"), ("lease-1",))
     assert review.status == "reviewed"
     assert review.evidence_ids == ("lease-1",)
