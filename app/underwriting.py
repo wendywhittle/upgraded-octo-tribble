@@ -130,6 +130,7 @@ class CREUnderwritingProForma(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     underwriting_id: str = Field(min_length=1)
+    opportunity_id: Optional[str] = Field(default=None, min_length=1)
     created_at: datetime
     property: PropertyIdentity
     acquisition: AcquisitionTerms
@@ -171,11 +172,13 @@ def build_cre_underwriting(
     source_refs: List[str] | None = None,
     uncertainty: List[str] | None = None,
     status: UnderwritingStatus = "projected",
+    opportunity_id: str | None = None,
     created_at: datetime | None = None,
 ) -> CREUnderwritingProForma:
     """Construct an immutable underwriting artifact without inventing missing data."""
     return CREUnderwritingProForma(
         underwriting_id=underwriting_id,
+        opportunity_id=opportunity_id,
         created_at=created_at or utc_now(),
         property=property,
         acquisition=acquisition,

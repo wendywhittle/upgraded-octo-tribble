@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.capital_stack import CapitalStack, LenderEvidence
+from app.opportunity import CREOpportunityDeal
 from app.underwriting import CREUnderwritingProForma
 
 
@@ -55,6 +56,7 @@ class StructuredInvestmentCase(BaseModel):
     created_at: datetime
     question: str = Field(min_length=1)
     opportunity: Dict[str, Any] = Field(default_factory=dict)
+    opportunity_deal: Optional[CREOpportunityDeal] = None
     evidence: Dict[str, Any] = Field(default_factory=dict)
     evidence_refs: List[InvestmentCaseRef] = Field(default_factory=list)
     independent_reasoning: List[Dict[str, Any]] = Field(default_factory=list)
@@ -92,6 +94,7 @@ def build_structured_investment_case(
     skeptic: Dict[str, Any],
     synthesis: Dict[str, Any],
     meta_intelligence: Dict[str, Any] | None = None,
+    opportunity_deal: CREOpportunityDeal | None = None,
     underwriting: CREUnderwritingProForma | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
@@ -131,6 +134,8 @@ def build_structured_investment_case(
         gaps.append("No usable evidence references were supplied to the Investment Case.")
     if not any(agent.get("assumptions") for agent in agents):
         gaps.append("No explicit agent assumptions were available.")
+    if opportunity_deal is None:
+        gaps.append("Canonical CRE opportunity / deal representation is not yet supplied.")
     if underwriting is None:
         gaps.append("CRE underwriting / property-level pro forma is not yet supplied.")
     if capital_stack is None:
@@ -151,6 +156,7 @@ def build_structured_investment_case(
         created_at=now,
         question=question,
         opportunity={"question": question},
+        opportunity_deal=opportunity_deal,
         evidence=evidence,
         evidence_refs=evidence_refs,
         independent_reasoning=agents,
