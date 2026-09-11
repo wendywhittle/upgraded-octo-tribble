@@ -17,8 +17,8 @@ class CREDecisionRecord:
     autonomous_execution: bool = False
 
     def __post_init__(self) -> None:
-        if self.state is UnderwritingDecision.REJECT:
-            raise ValueError("REJECT is not a supported CRE decision state")
+        if self.state.value not in {"ACT", "WATCH", "NO DEAL", "INSUFFICIENT EVIDENCE"}:
+            raise ValueError("unsupported CRE decision state")
         if not self.human_decision_required:
             raise ValueError("human decision authority must remain explicit")
         if self.autonomous_execution:
