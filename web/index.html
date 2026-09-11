@@ -60,8 +60,30 @@
       <div class="kaleidoscope-core"><span>SHARED QUESTION</span><strong id="core-question">AWAITING INPUT</strong></div>
     </section>
 
+    <section class="panel gate-panel" aria-labelledby="gate-title">
+      <div class="panel-head"><span id="gate-title">03 / DECISION GATE</span><span id="gate-system-status">READINESS NOT EVALUATED</span></div>
+      <div class="gate-flow"><span>SYSTEM ANALYSIS</span><b>→</b><span>CHALLENGE</span><b>→</b><span>SYNTHESIS</span><b>→</b><span>READINESS</span><b>→</b><strong>GATE</strong><b>→</b><span>HUMAN AUTHORITY</span></div>
+      <div class="gate-body">
+        <div class="gate-kaleidoscope-rail"><span>COMPUTATIONAL KALEIDOSCOPE</span><div>EVIDENCE</div><div>UNDERWRITING</div><div>SCENARIOS</div><div>CONFLICT</div><div>CONTRARIAN</div><div>UNCERTAINTY</div></div>
+        <div class="gate-threshold">
+          <div class="gate-readiness"><span>READINESS CHECK</span><div id="gate-criteria"></div></div>
+          <div id="gate-seal" class="gate-seal closed"><span>DECISION GATE</span><strong>CLOSED</strong><em>NOT READY</em></div>
+          <div id="gate-blockers" class="gate-blockers">Awaiting analysis.</div>
+        </div>
+        <div class="human-zone">
+          <span>HUMAN AUTHORITY</span>
+          <div class="authority-note">SYSTEM CANNOT CROSS THIS THRESHOLD</div>
+          <div class="human-record"><div><small>SYSTEM RECOMMENDATION</small><strong id="gate-recommendation">NOT AVAILABLE</strong></div><div><small>HUMAN DECISION</small><strong id="gate-human-decision">NOT RECORDED</strong></div><div><small>AUTHORITY</small><strong>HUMAN</strong></div><div><small>RATIONALE</small><strong id="gate-rationale">NOT RECORDED</strong></div></div>
+          <div id="gate-actions" class="gate-actions" hidden>
+            <button data-disposition="PROCEED">PROCEED</button><button data-disposition="HOLD">HOLD</button><button data-disposition="REQUEST MORE DILIGENCE">REQUEST MORE DILIGENCE</button><button data-disposition="REVISE ASSUMPTIONS">REVISE ASSUMPTIONS</button><button data-disposition="DECLINE">DECLINE</button><button data-disposition="NO INVESTMENT">NO INVESTMENT</button>
+          </div>
+        </div>
+      </div>
+      <div class="gate-principle">READINESS IS NOT APPROVAL • INTELLIGENCE IS NOT AUTHORITY • THE SYSTEM MAY REFUSE TO CERTIFY • ONLY THE HUMAN MAY AUTHORIZE</div>
+    </section>
+
     <section class="panel cre-panel">
-      <div class="panel-head"><span>03 / CRE ECONOMIC MODEL</span><span>OBSERVED • ASSUMED • DERIVED • UNKNOWN</span></div>
+      <div class="panel-head"><span>04 / CRE ECONOMIC MODEL</span><span>OBSERVED • ASSUMED • DERIVED • UNKNOWN</span></div>
       <div id="cre-grid" class="cre-grid"></div>
       <div id="cre-breaks" class="cre-breaks"></div>
       <div class="model-note">The financial model calculates economics. Perspectives interpret it. Simulation tests distributions. No component has investment authority.</div>
@@ -86,18 +108,18 @@
     </section>
 
     <section class="panel conflict-panel">
-      <div class="panel-head"><span>04 / CONFLICT INTELLIGENCE</span><span id="conflict-count">0 MATERIAL</span></div>
+      <div class="panel-head"><span>05 / CONFLICT INTELLIGENCE</span><span id="conflict-count">0 MATERIAL</span></div>
       <div id="conflicts" class="empty-state">NO CONFLICT DATA YET</div>
     </section>
 
     <section class="panel risk-panel">
-      <div class="panel-head"><span>05 / INDEPENDENT RISK ENGINE</span><span>SIMULATION ≠ AGENT CONCLUSION</span></div>
+      <div class="panel-head"><span>06 / INDEPENDENT RISK ENGINE</span><span>SIMULATION ≠ AGENT CONCLUSION</span></div>
       <div id="risk-grid" class="risk-grid"></div>
       <div id="risk-note" class="muted">Run an analysis to populate independent scenario results.</div>
     </section>
 
     <section class="panel ic-panel">
-      <div class="panel-head"><span>06 / INVESTMENT COMMITTEE</span><span>HUMAN AUTHORITY</span></div>
+      <div class="panel-head"><span>07 / INVESTMENT COMMITTEE</span><span>HUMAN AUTHORITY</span></div>
       <div class="decision-strip"><span>CRE DECISION</span><strong id="cre-decision">UNKNOWN</strong></div>
       <div class="ic-state" id="ic-state">NO DATA</div>
       <div id="decision-rationale" class="decision-rationale">No decision rationale returned.</div>
@@ -106,7 +128,7 @@
     </section>
 
     <section class="panel memory-panel">
-      <div class="panel-head"><span>07 / INSTITUTIONAL MEMORY</span><span>APPEND-ONLY</span></div>
+      <div class="panel-head"><span>08 / INSTITUTIONAL MEMORY</span><span>APPEND-ONLY</span></div>
       <div class="memory-grid">
         <div><span>WHAT WE BELIEVED</span><strong id="memory-belief">NOT AVAILABLE</strong></div>
         <div><span>WHY</span><strong id="memory-why">NOT AVAILABLE</strong></div>
@@ -120,5 +142,6 @@
 
   <footer><span>ALETHEIA/TELOS TERMINAL</span><span>RESEARCH-ONLY SYSTEM • HUMAN DECISION REQUIRED</span></footer>
   <script src="/web/app.js" defer></script>
+  <script src="/web/decision_gate.js" defer></script>
 </body>
 </html>
