@@ -68,7 +68,7 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
 
     Cross-asset links are contextual research structure. They are classified as
     evidence only when their referenced evidence IDs exist in this request, and they
-    can produce explicit hypotheses for downstream research without becoming facts.
+    can produce explicit hypotheses and follow-up research questions without becoming facts.
     """
     router = APIRouter(prefix="/capital", tags=["capital-engine"])
     provider_registry = registry or AlternativeDataRegistry()
@@ -100,6 +100,7 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
             evidence = documents_to_evidence(documents, claim=request.question)
             cross_asset_links = _cross_asset_links(request.cross_asset_links)
             evidence_ids = [item["evidence_id"] for item in evidence]
+            hypotheses = cross_asset_hypotheses(cross_asset_links, evidence_ids)
             result = run_analysis(
                 question=request.question,
                 evidence=evidence,
@@ -123,9 +124,10 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
                         "evidence_ids": hypothesis.evidence_ids,
                         "assumptions": hypothesis.assumptions,
                         "invalidation_conditions": hypothesis.invalidation_conditions,
+                        "research_questions": hypothesis.research_questions,
                         "epistemic_stage": "hypothesis",
                     }
-                    for hypothesis in cross_asset_hypotheses(cross_asset_links, evidence_ids)
+                    for hypothesis in hypotheses
                 ],
                 "research_only": True,
             }
