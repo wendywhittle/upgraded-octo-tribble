@@ -6,6 +6,7 @@ learning/calibration code remains authoritative for derived results.
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from hashlib import sha256
 from typing import Any, Dict, List
@@ -27,6 +28,13 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def serialize_record(record: EpistemicRecord) -> Dict[str, Any]:
+    """Serialize a typed record without changing its in-memory immutability."""
+    if hasattr(record, "model_dump"):
+        return record.model_dump(mode="json")
+    return json.loads(record.json())
 
 
 def _record(
