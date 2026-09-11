@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.capital_stack import CapitalStack, LenderEvidence
 from app.cre_evidence import CREEvidence
+from app.due_diligence import CREPropertyDueDiligence
 from app.opportunity import CREOpportunityDeal
 from app.screening import CREOpportunityScreening
 from app.underwriting import CREUnderwritingProForma
@@ -62,6 +63,7 @@ class StructuredInvestmentCase(BaseModel):
     evidence: Dict[str, Any] = Field(default_factory=dict)
     cre_evidence: List[CREEvidence] = Field(default_factory=list)
     screening: Optional[CREOpportunityScreening] = None
+    due_diligence: Optional[CREPropertyDueDiligence] = None
     evidence_refs: List[InvestmentCaseRef] = Field(default_factory=list)
     independent_reasoning: List[Dict[str, Any]] = Field(default_factory=list)
     claims_and_interpretations: List[Dict[str, Any]] = Field(default_factory=list)
@@ -101,6 +103,7 @@ def build_structured_investment_case(
     opportunity_deal: CREOpportunityDeal | None = None,
     cre_evidence: List[CREEvidence] | None = None,
     screening: CREOpportunityScreening | None = None,
+    due_diligence: CREPropertyDueDiligence | None = None,
     underwriting: CREUnderwritingProForma | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
@@ -145,6 +148,8 @@ def build_structured_investment_case(
         gaps.append("Canonical CRE opportunity / deal representation is not yet supplied.")
     if screening is None:
         gaps.append("CRE opportunity screening is not yet supplied.")
+    if due_diligence is None:
+        gaps.append("CRE property due diligence is not yet supplied.")
     if underwriting is None:
         gaps.append("CRE underwriting / property-level pro forma is not yet supplied.")
     if capital_stack is None:
@@ -169,6 +174,7 @@ def build_structured_investment_case(
         evidence=evidence,
         cre_evidence=cre_evidence_records,
         screening=screening,
+        due_diligence=due_diligence,
         evidence_refs=evidence_refs,
         independent_reasoning=agents,
         claims_and_interpretations=[
