@@ -8,13 +8,7 @@ from pydantic import BaseModel, Field
 from app.analysis_pipeline import run_analysis
 from app.capital_engine import AlternativeDataRegistry, CapitalResearchRequest
 from app.evidence_sources import SourceDocument, documents_to_evidence
-from app.investment_domains import (
-    CapitalResearchDomain,
-    CrossAssetLink,
-    IntelligenceEntity,
-    classify_cross_asset_links,
-    cross_asset_hypotheses,
-)
+from app.investment_domains import CapitalResearchDomain, CrossAssetLink, IntelligenceEntity, classify_cross_asset_links, cross_asset_hypotheses
 
 
 class CrossAssetEntityModel(BaseModel):
@@ -49,26 +43,15 @@ def _documents(values: list[Dict[str, Any]]) -> list[SourceDocument]:
 
 
 def _cross_asset_links(values: list[CrossAssetLinkModel]) -> list[CrossAssetLink]:
-    return [
-        CrossAssetLink(
-            from_entity=IntelligenceEntity(**link.from_entity.model_dump()),
-            relationship=link.relationship,
-            to_entity=IntelligenceEntity(**link.to_entity.model_dump()),
-            evidence_ids=link.evidence_ids,
-        )
-        for link in values
-    ]
+    return [CrossAssetLink(from_entity=IntelligenceEntity(**link.from_entity.model_dump()), relationship=link.relationship, to_entity=IntelligenceEntity(**link.to_entity.model_dump()), evidence_ids=link.evidence_ids) for link in values]
 
 
 def build_capital_router(registry: AlternativeDataRegistry | None = None) -> APIRouter:
     """Expose research-only Capital Engine entry points.
 
-    Providers remain optional. The endpoint accepts normalized documents directly so
-    the Capital Engine can be exercised without a paid data dependency.
-
-    Cross-asset links are contextual research structure. They are classified as
-    evidence only when their referenced evidence IDs exist in this request, and they
-    can produce explicit hypotheses and follow-up research questions without becoming facts.
+    Providers remain optional. Normalized documents are evidence; cross-asset
+    relationships are supplied as non-evidentiary research context and enter the
+    canonical reasoning loop without being promoted to evidence.
     """
     router = APIRouter(prefix="/capital", tags=["capital-engine"])
     provider_registry = registry or AlternativeDataRegistry()
@@ -76,7 +59,6 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
     @router.get("/manifest")
     def manifest() -> Dict[str, Any]:
         from app.capital_engine import capital_engine_manifest
-
         result = capital_engine_manifest()
         result["registered_providers"] = provider_registry.names()
         return result
@@ -84,11 +66,7 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
     @router.post("/research")
     def research(request: CapitalResearchRequestModel) -> Dict[str, Any]:
         try:
-            capital_request = CapitalResearchRequest(
-                question=request.question,
-                domains=request.domains,
-                entities=request.entities,
-            )
+            capital_request = CapitalResearchRequest(question=request.question, domains=request.domains, entities=request.entities)
             documents = _documents(request.documents)
             if not documents and provider_registry.names():
                 packet = provider_registry.acquire(capital_request)
@@ -101,19 +79,7 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
             cross_asset_links = _cross_asset_links(request.cross_asset_links)
             evidence_ids = [item["evidence_id"] for item in evidence]
             hypotheses = cross_asset_hypotheses(cross_asset_links, evidence_ids)
-            result = run_analysis(
-                question=request.question,
-                evidence=evidence,
-                initial_value=request.initial_value,
-                horizon_steps=request.horizon_steps,
-                paths=request.paths,
-                seed=request.seed,
-            )
-            result["capital_engine"] = {
-                "domains": [domain.value for domain in request.domains],
-                "entities": request.entities,
-                "provider_names": providers,
-                "document_count": len(documents),
+            research_context = {
                 "cross_asset_links": classify_cross_asset_links(cross_asset_links, evidence_ids),
                 "research_hypotheses": [
                     {
@@ -129,8 +95,9 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
                     }
                     for hypothesis in hypotheses
                 ],
-                "research_only": True,
             }
+            result = run_analysis(question=request.question, evidence=evidence, initial_value=request.initial_value, horizon_steps=request.horizon_steps, paths=request.paths, seed=request.seed, research_context=research_context)
+            result["capital_engine"] = {"domains": [domain.value for domain in request.domains], "entities": request.entities, "provider_names": providers, "document_count": len(documents), "cross_asset_links": research_context["cross_asset_links"], "research_hypotheses": research_context["research_hypotheses"], "research_only": True}
             return result
         except (TypeError, ValueError, RuntimeError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
