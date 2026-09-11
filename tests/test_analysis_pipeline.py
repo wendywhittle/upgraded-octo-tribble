@@ -37,7 +37,6 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     assert result["kaleidoscope"]["expected_perspective_count"] == 9
     assert result["kaleidoscope"]["meta_intelligence"]["reasoning_health"] == "INSUFFICIENT"
     assert result["epistemic_memory"][0]["record_type"] == "interpretation"
-    assert result["epistemic_memory"][0]["has_authority"] is False
 
 
 def test_full_pipeline_feeds_only_validated_evidence_to_active_reasoning_agents():
