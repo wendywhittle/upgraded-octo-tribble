@@ -68,6 +68,7 @@ def run_evidence_fed_agents(
         "agents": agents,
         "evidence_count": len(evidence_list),
         "usable_evidence_count": len(usable),
+        "usable_evidence": usable,
         "blocked_evidence_count": len(evidence_list) - len(usable),
         "validation": validation,
         "provider": runner.provider.name,
