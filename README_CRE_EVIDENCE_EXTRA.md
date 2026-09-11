@@ -1,0 +1,1 @@
+CRE evidence is immutable, opportunity-scoped source observation. It preserves provenance and uncertainty and does not grant investment, transaction, or portfolio authority.
