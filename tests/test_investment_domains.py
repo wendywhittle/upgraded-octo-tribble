@@ -81,3 +81,5 @@ def test_cross_asset_relationship_generates_testable_hypothesis():
         "Example Co may drives demand for Example Industrial Park in Pacific Northwest."
     )
     assert hypotheses[0].invalidation_conditions
+    assert hypotheses[0].research_questions
+    assert "confirm or falsify" in hypotheses[0].research_questions[0]
