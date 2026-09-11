@@ -17,6 +17,7 @@ BASE = dict(
     exit_cap_rate=0.07,
     selling_cost_rate=0.02,
     capital_expenditures=25_000,
+    closing_costs=0.0,
     evidence_ids=("EV-PRICE", "EV-NOI", "EV-OCCUPANCY", "EV-LEASE", "EV-FINANCING"),
 )
 
