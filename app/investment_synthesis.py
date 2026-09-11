@@ -43,6 +43,7 @@ class InvestmentThesis(BaseModel):
     supporting_evidence: list[Dict[str, Any]] = Field(default_factory=list)
     key_assumptions: list[str] = Field(default_factory=list)
     scenario_resilience: list[str] = Field(default_factory=list)
+    simulation_observations: list[str] = Field(default_factory=list)
     principal_risks: list[str] = Field(default_factory=list)
     contrarian_objections: list[str] = Field(default_factory=list)
     unresolved_questions: list[str] = Field(default_factory=list)
@@ -158,8 +159,8 @@ def synthesize_investment_case(*, case_identity: str, proforma: ProFormaResult |
         raise SynthesisValidationError("case_identity is required")
     agents = [dict(x) for x in agent_perspectives]; _reject_agent_calculations(agents)
     scenario_list, simulation_list, evidence_list = list(scenarios), list(simulations), [dict(x) for x in evidence]
-    if proforma is None and not scenario_list and not simulation_list and contrarian is None:
-        raise SynthesisValidationError("At least one validated analytical output is required")
+    if proforma is None and not scenario_list and not simulation_list and contrarian is None and not disagreements:
+        raise SynthesisValidationError("At least one validated analytical output or structured disagreement is required")
     if proforma and scenario_list and any(r.proforma.asset_id != proforma.asset_id for r in scenario_list):
         raise SynthesisValidationError("Scenario and Pro Forma asset identities do not match")
     if scenario_list and simulation_list:
@@ -192,7 +193,8 @@ def synthesize_investment_case(*, case_identity: str, proforma: ProFormaResult |
     if proforma: assumptions.extend(["Pro Forma financial outputs are authoritative calculations from the existing engine.", "Underlying underwriting assumptions require evidence validation."])
     assumptions = _unique(assumptions)
     material_disagreement = any(d.status in {"MATERIAL_DISAGREEMENT", "UNRESOLVED", "INSUFFICIENT_DATA"} for d in structured_disagreements)
-    if not evidence_list and not scenario_list and not simulation_list and not contrarian: status: ThesisStatus = "UNDETERMINED"
+    if not evidence_list and not scenario_list and not simulation_list and not contrarian and not structured_disagreements:
+        status: ThesisStatus = "UNDETERMINED"
     elif unresolved or material_disagreement: status = "CONDITIONAL"
     elif dominant_risks: status = "FRAGILE"
     else: status = "SUPPORTED" if (proforma or scenario_list or simulation_list) else "UNDETERMINED"
@@ -202,9 +204,9 @@ def synthesize_investment_case(*, case_identity: str, proforma: ProFormaResult |
     original = investment_thesis or {}
     rationale = _unique(scenario_obs + simulation_obs)
     if not rationale and proforma: rationale = ["Deterministic Pro Forma outputs were reviewed without recalculation."]
-    thesis = InvestmentThesis(opportunity=str(original.get("opportunity") or "Opportunity requires human review of the available investment case."), economic_rationale=rationale, supporting_evidence=evidence_list, key_assumptions=assumptions, scenario_resilience=scenario_obs, principal_risks=dominant_risks, contrarian_objections=contrarian_risks, unresolved_questions=unresolved, required_diligence=_unique(diligence), thesis_dependencies=["validated evidence", "underwriting assumptions"])
-    synthesis = f"The investment case is analytically {status.lower()}. {len(agents)} perspective(s), {len(evidence_ids)} evidence record(s), {len(scenario_list)} scenario(s), and {len(simulation_list)} simulation result(s) were reviewed. {len(dominant_risks)} dominant risk(s) and {len(unresolved)} unresolved issue(s) remain. This synthesis is analytical and does not constitute authorization."
-    return InvestmentCaseSynthesis(case_identity=case_identity, perspectives_reviewed=[str(p["agent_id"]) for p in agents if p.get("agent_id")], evidence_reviewed=evidence_ids, scenarios_reviewed=[r.scenario.name for r in scenario_list], simulations_reviewed=[f"{r.scenario.name}:{r.simulation_config.seed}" for r in simulation_list], contrarian_reviewed=contrarian is not None, agreements=["Validated calculation outputs remain authoritative in their originating engines."], disagreements=structured_disagreements, dominant_risks=dominant_risks, thesis=thesis, thesis_status=status, key_assumptions=assumptions, unresolved_questions=unresolved, recommended_diligence=_unique(diligence), synthesis=synthesis, provenance={"layers": ["EVIDENCE", "AGENT_REASONING", "PRO_FORMA", "SCENARIO", "SIMULATION", "CONTRARIAN"]}, output_type="INTERPRETATION")
+    thesis = InvestmentThesis(opportunity=str(original.get("opportunity") or "Opportunity requires human review of the available investment case."), economic_rationale=rationale, supporting_evidence=evidence_list, key_assumptions=assumptions, scenario_resilience=scenario_obs, simulation_observations=simulation_obs, principal_risks=dominant_risks, contrarian_objections=contrarian_risks, unresolved_questions=unresolved, required_diligence=_unique(diligence), thesis_dependencies=["validated evidence", "underwriting assumptions"])
+    synthesis = f"The investment case is analytically {status.lower()}. {len(agents)} perspective(s), {len(evidence_ids)} evidence record(s), {len(scenario_list)} scenario(s), and {len(simulation_list)} simulation result(s) were reviewed. {len(dominant_risks)} dominant risk(s) and {len(unresolved)} unresolved issue(s) remain. Simulation observations, where available, are interpretations of existing Monte Carlo calculations. This synthesis is analytical and does not constitute authorization."
+    return InvestmentCaseSynthesis(case_identity=case_identity, perspectives_reviewed=[str(p["agent_id"]) for p in agents if p.get("agent_id")], evidence_reviewed=evidence_ids, scenarios_reviewed=[r.scenario.name for r in scenario_list], simulations_reviewed=[f"{r.scenario.name}:{r.simulation_config.seed}" for r in simulation_list], contrarian_reviewed=contrarian is not None, agreements=["Validated calculation outputs remain authoritative in their originating engines."], disagreements=structured_disagreements, dominant_risks=dominant_risks, thesis=thesis, thesis_status=status, key_assumptions=assumptions, unresolved_questions=unresolved, recommended_diligence=_unique(diligence), synthesis=synthesis, provenance={"layers": ["EVIDENCE", "AGENT_REASONING", "PRO_FORMA", "SCENARIO", "SIMULATION", "CONTRARIAN", "META_INTELLIGENCE"]}, output_type="INTERPRETATION")
 
 
 def apply_synthesis_to_case(case: InvestmentCase, result: InvestmentCaseSynthesis) -> InvestmentCase:
