@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.capital_stack import CapitalStack, LenderEvidence
+from app.cre_evidence import CREEvidence
 from app.opportunity import CREOpportunityDeal
 from app.underwriting import CREUnderwritingProForma
 
@@ -58,6 +59,7 @@ class StructuredInvestmentCase(BaseModel):
     opportunity: Dict[str, Any] = Field(default_factory=dict)
     opportunity_deal: Optional[CREOpportunityDeal] = None
     evidence: Dict[str, Any] = Field(default_factory=dict)
+    cre_evidence: List[CREEvidence] = Field(default_factory=list)
     evidence_refs: List[InvestmentCaseRef] = Field(default_factory=list)
     independent_reasoning: List[Dict[str, Any]] = Field(default_factory=list)
     claims_and_interpretations: List[Dict[str, Any]] = Field(default_factory=list)
@@ -95,6 +97,7 @@ def build_structured_investment_case(
     synthesis: Dict[str, Any],
     meta_intelligence: Dict[str, Any] | None = None,
     opportunity_deal: CREOpportunityDeal | None = None,
+    cre_evidence: List[CREEvidence] | None = None,
     underwriting: CREUnderwritingProForma | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
@@ -105,6 +108,7 @@ def build_structured_investment_case(
     """Converge existing outputs without inventing missing CRE components."""
     now = created_at or datetime.now(timezone.utc)
     lender_records = list(lender_evidence or [])
+    cre_evidence_records = list(cre_evidence or [])
     evidence_refs = [
         InvestmentCaseRef(ref_type="evidence", ref_id=str(item["evidence_id"]), source=str(item.get("source", "unknown")))
         for item in evidence.get("items", [])
@@ -130,7 +134,7 @@ def build_structured_investment_case(
         recommendation = "HOLD"
 
     gaps: List[str] = []
-    if not evidence_refs:
+    if not evidence_refs and not cre_evidence_records:
         gaps.append("No usable evidence references were supplied to the Investment Case.")
     if not any(agent.get("assumptions") for agent in agents):
         gaps.append("No explicit agent assumptions were available.")
@@ -158,6 +162,7 @@ def build_structured_investment_case(
         opportunity={"question": question},
         opportunity_deal=opportunity_deal,
         evidence=evidence,
+        cre_evidence=cre_evidence_records,
         evidence_refs=evidence_refs,
         independent_reasoning=agents,
         claims_and_interpretations=[
