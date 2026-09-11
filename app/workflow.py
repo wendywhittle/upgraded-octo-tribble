@@ -251,6 +251,8 @@ class WorkflowService:
 
     def transition(self, deal_id: str, new_state: WorkflowState, actor: str, actor_type: ActorType,
                    reason: str, authorization_id: Optional[str] = None) -> Deal:
+        if actor_type is ActorType.AGENT:
+            raise WorkflowError("Agents may reason and recommend but cannot mutate workflow state")
         deal = self.get_deal(deal_id)
         if new_state not in _ALLOWED.get(deal.state, set()):
             raise WorkflowError(f"Illegal transition: {deal.state.value} -> {new_state.value}")
