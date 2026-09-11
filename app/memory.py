@@ -17,13 +17,21 @@ def build_record(question: str, agents: List[Dict[str, Any]], conflicts: Dict[st
                  synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int,
                  decision: Dict[str, Any] | None = None) -> Dict[str, Any]:
     assumptions = []
+    evidence_ids = []
     for agent in agents:
         assumptions.extend(agent.get("assumptions", []))
+        for item in agent.get("evidence", []):
+            if isinstance(item, dict):
+                evidence_id = item.get("evidence_id") or item.get("id")
+                if evidence_id is not None:
+                    evidence_ids.append(evidence_id)
+            elif item is not None:
+                evidence_ids.append(item)
     return {
         "record_type": "decision_observation",
         "recorded_at": _now(),
         "question": question,
-        "evidence": {"ids": sorted({item for agent in agents for item in agent.get("evidence", [])})},
+        "evidence": {"ids": list(dict.fromkeys(evidence_ids))},
         "assumptions": list(dict.fromkeys(assumptions)),
         "agents": agents,
         "conflicts": conflicts,
