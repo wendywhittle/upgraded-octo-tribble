@@ -100,6 +100,7 @@ def test_capital_research_classifies_cross_asset_context():
     assert hypothesis["epistemic_stage"] == "hypothesis"
     assert hypothesis["evidence_ids"] == ["evidence-1"]
     assert hypothesis["domain"] == "asset"
+    assert hypothesis["research_questions"]
 
 
 def test_capital_research_does_not_require_a_provider():
