@@ -9,9 +9,9 @@ from app.epistemic_memory import ContradictionRecord, EpistemicRecord, Epistemic
 NOW = datetime(2026, 9, 11, tzinfo=timezone.utc)
 
 
-def make_record(record_type="belief", **overrides):
+def make_record(record_type="knowledge", **overrides):
     data = {
-        "record_id": "belief:001",
+        "record_id": "knowledge:001",
         "record_type": record_type,
         "created_at": NOW,
         "source_refs": ["evidence:001"],
