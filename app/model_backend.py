@@ -2,7 +2,8 @@
 
 The callable backend remains the generic test seam. The OpenAI Responses backend
 is the first real model implementation and is deliberately limited to structured
-research output. It has no tool access and never receives execution authority.
+research output. Research context is supplied separately from evidence and cannot
+be promoted to evidence by the backend.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ class CallableModelBackend:
         self._invoke = invoke
         self.model_name = model_name.strip() or "unspecified"
 
-    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         context = {
             "question": question,
             "agent": {
@@ -43,6 +44,7 @@ class CallableModelBackend:
             },
             "evidence": [dict(item) for item in evidence],
             "institutional_learning": dict(learning_context or {}),
+            "research_context": dict(research_context or {}),
             "constraints": {
                 "research_only": True,
                 "execution_capability": False,
@@ -70,33 +72,23 @@ class CallableModelProvider(ModelProvider):
     def __init__(self, invoke: Callable[[Mapping[str, Any]], Dict[str, Any]], model_name: str = "unspecified") -> None:
         self.backend = CallableModelBackend(invoke, model_name=model_name)
 
-    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
-        return self.backend.assess(agent, question, evidence, learning_context=learning_context)
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        return self.backend.assess(agent, question, evidence, learning_context=learning_context, research_context=research_context)
 
 
 _RESEARCH_OUTPUT_SCHEMA: Dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
+    "type": "object", "additionalProperties": False,
     "properties": {
         "direction": {"type": "string", "enum": ["LONG", "SHORT", "NEUTRAL", "NO_DATA"]},
         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        "horizon": {"type": "string"},
+        "horizon": {"type": "string},
         "thesis": {"type": "string"},
         "evidence_basis": {"type": "array", "items": {"type": "string"}},
         "contradictory_evidence_basis": {"type": "array", "items": {"type": "string"}},
         "invalidation_conditions": {"type": "array", "items": {"type": "string"}},
         "assumptions": {"type": "array", "items": {"type": "string"}},
     },
-    "required": [
-        "direction",
-        "confidence",
-        "horizon",
-        "thesis",
-        "evidence_basis",
-        "contradictory_evidence_basis",
-        "invalidation_conditions",
-        "assumptions",
-    ],
+    "required": ["direction", "confidence", "horizon", "thesis", "evidence_basis", "contradictory_evidence_basis", "invalidation_conditions", "assumptions"],
 }
 
 
@@ -135,96 +127,48 @@ class OpenAIResponsesModelBackend:
     def _extract_structured_output(response: Mapping[str, Any]) -> Dict[str, Any]:
         output_text = response.get("output_text")
         if isinstance(output_text, str) and output_text.strip():
-            try:
-                parsed = json.loads(output_text)
-            except json.JSONDecodeError as exc:
-                raise ModelBackendError("model returned non-JSON structured output") from exc
-            if isinstance(parsed, dict):
-                return parsed
+            try: parsed = json.loads(output_text)
+            except json.JSONDecodeError as exc: raise ModelBackendError("model returned non-JSON structured output") from exc
+            if isinstance(parsed, dict): return parsed
         for item in response.get("output", []) or []:
             for content in item.get("content", []) or []:
                 text = content.get("text")
                 if isinstance(text, str) and text.strip():
-                    try:
-                        parsed = json.loads(text)
-                    except json.JSONDecodeError as exc:
-                        raise ModelBackendError("model returned non-JSON structured output") from exc
-                    if isinstance(parsed, dict):
-                        return parsed
+                    try: parsed = json.loads(text)
+                    except json.JSONDecodeError as exc: raise ModelBackendError("model returned non-JSON structured output") from exc
+                    if isinstance(parsed, dict): return parsed
         raise ModelBackendError("model response contained no structured output")
 
     @staticmethod
-    def _prompt(agent: Agent, question: str, evidence: list[Dict[str, Any]], learning_context: Dict[str, Any]) -> str:
+    def _prompt(agent: Agent, question: str, evidence: list[Dict[str, Any]], learning_context: Dict[str, Any], research_context: Dict[str, Any]) -> str:
         if agent.spec.agent_id == "scientist":
-            role_prompt = (
-                "You are the Scientist perspective in AletheiaTelos. "
-                "You are a scientific and epistemic validity component, not an investment authority. "
-                "Ask: What would have to be true for this conclusion to be valid, and what evidence could prove it wrong? "
-                "Use only the supplied decision-usable evidence; do not add facts, sources, market data, or claims from outside it. "
-                "Distinguish observations from interpretations. Formulate testable hypotheses and examine causal claims for confounding, reverse causality, selection effects, survivorship bias, measurement artifacts, and alternative explanations. "
-                "Evaluate evidence quality, representativeness, recency, independence, methodological validity, statistical weakness, model sensitivity, and regime dependence. "
-                "Identify assumptions, falsification tests, failure modes, unknowns, limitations, and what evidence would change the conclusion. "
-                "If the evidence is insufficient, return NO_DATA with confidence 0. "
-                "Confidence is not probability. Do not fabricate evidence or recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
-                "Preserve human decision authority. Return only the requested structured object."
-            )
+            role_prompt = "You are the Scientist perspective in AletheiaTelos. You are a scientific and epistemic validity component, not an investment authority. Ask what would have to be true for this conclusion to be valid, and what evidence could prove it wrong. Use only supplied decision-usable evidence; do not add facts or sources. Treat research context as hypotheses and relationships to test, never as evidence. Distinguish observations from interpretations. Examine causal claims for confounding, reverse causality, selection effects, survivorship bias, measurement artifacts, and alternative explanations. Evaluate evidence quality, representativeness, recency, independence, methodological validity, statistical weakness, model sensitivity, and regime dependence. Identify assumptions, falsification tests, failure modes, unknowns, limitations, and what evidence would change the conclusion. If evidence is insufficient, return NO_DATA with confidence 0. Confidence is not probability. Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. Preserve human decision authority. Return only the requested structured object."
         elif agent.spec.agent_id == "governance":
-            role_prompt = (
-                "You are the Governance perspective in AletheiaTelos. "
-                "You are an independent review and oversight component, not an investment authority and not a decision-maker. "
-                "Review whether the system's behavior remains inside the CHARTER and its stated authority boundary. "
-                "Use only the supplied decision-usable evidence; do not add facts, sources, market data, or claims from outside it. "
-                "Check preservation of human investment authority, research-only operation, prohibition of autonomous execution, brokerage, portfolio mutation, and capital movement, and the integrity of evidence validation and provenance. "
-                "Identify conflicts between observed system behavior and stated governance, unauthorized autonomy, unsupported authority claims, missing escalation, or conditions that require immediate human review. "
-                "Do not override other perspectives or make an investment decision. "
-                "If the evidence is insufficient, return NO_DATA with confidence 0. "
-                "Confidence is not probability. Do not fabricate evidence or grant authority through your response. "
-                "Preserve human decision authority. Return only the requested structured object."
-            )
+            role_prompt = "You are the Governance perspective in AletheiaTelos. You are an independent review and oversight component, not an investment authority and not a decision-maker. Review whether system behavior remains inside the CHARTER and authority boundary. Use only supplied decision-usable evidence; do not add facts or sources. Treat research context as non-evidentiary hypotheses and relationships. Check preservation of human investment authority, research-only operation, prohibition of autonomous execution, brokerage, portfolio mutation, and capital movement, and integrity of evidence validation and provenance. Identify conflicts, unauthorized autonomy, unsupported authority claims, missing escalation, or conditions requiring human review. Do not override perspectives or make an investment decision. If evidence is insufficient, return NO_DATA with confidence 0. Do not fabricate evidence or grant authority. Preserve human decision authority. Return only the requested structured object."
         else:
-            role_prompt = (
-                "You are the Researcher perspective in AletheiaTelos. "
-                "You are an evidence-bound research component, not an investment authority. "
-                "Use only the supplied evidence; do not add facts, sources, market data, or claims from outside it. "
-                "Identify which supplied evidence supports the assessment and which supplied evidence contradicts it. "
-                "If the evidence is insufficient, return NO_DATA with confidence 0. "
-                "Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. "
-                "Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. "
-                "Confidence is not probability. Return only the requested structured object."
-            )
+            role_prompt = "You are the Researcher perspective in AletheiaTelos. You are an evidence-bound research component, not an investment authority. Use only supplied evidence; do not add facts, sources, market data, or claims from outside it. Treat research context as hypotheses and research leads, not evidence. Identify which supplied evidence supports or contradicts the assessment. Use research hypotheses to formulate tests and identify missing evidence, but never cite a hypothesis as evidence. If evidence is insufficient, return NO_DATA with confidence 0. Distinguish observations from interpretation in the thesis. State assumptions and concrete invalidation conditions. Do not recommend execution, brokerage activity, portfolio mutation, or autonomous action. Confidence is not probability. Return only the requested structured object."
         return (
             role_prompt + "\n\n"
             f"Question: {question}\nPerspective role: {agent.spec.role}\nDefault horizon: {agent.spec.default_horizon}\n"
             f"Evidence JSON: {json.dumps(evidence, ensure_ascii=False, sort_keys=True)}\n"
+            f"Research context JSON (non-evidentiary): {json.dumps(research_context, ensure_ascii=False, sort_keys=True)}\n"
             f"Prior institutional learning (advisory only): {json.dumps(learning_context, ensure_ascii=False, sort_keys=True)}"
         )
 
-    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
         evidence_list = [dict(item) for item in evidence]
         if not evidence_list:
-            return {
-                "direction": "NO_DATA", "confidence": 0.0, "horizon": agent.spec.default_horizon,
-                "thesis": "No decision-usable evidence was supplied.", "evidence_basis": [],
-                "contradictory_evidence_basis": [], "invalidation_conditions": ["Decision-usable evidence becomes available."],
-                "assumptions": [], "model_version": self.model_name,
-            }
-        payload = {
-            "model": self.model_name,
-            "input": self._prompt(agent, question, evidence_list, dict(learning_context or {})),
-            "text": {"format": {"type": "json_schema", "name": "aletheia_researcher_output", "strict": True, "schema": _RESEARCH_OUTPUT_SCHEMA}},
-        }
+            return {"direction": "NO_DATA", "confidence": 0.0, "horizon": agent.spec.default_horizon, "thesis": "No decision-usable evidence was supplied.", "evidence_basis": [], "contradictory_evidence_basis": [], "invalidation_conditions": ["Decision-usable evidence becomes available."], "assumptions": [], "model_version": self.model_name}
+        payload = {"model": self.model_name, "input": self._prompt(agent, question, evidence_list, dict(learning_context or {}), dict(research_context or {})), "text": {"format": {"type": "json_schema", "name": "aletheia_researcher_output", "strict": True, "schema": _RESEARCH_OUTPUT_SCHEMA}}}
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         response = self._post_json(self.endpoint, payload, headers)
-        if not isinstance(response, dict):
-            raise ModelBackendError("model API response must be an object")
+        if not isinstance(response, dict): raise ModelBackendError("model API response must be an object")
         result = self._extract_structured_output(response)
         allowed_ids = {str(item.get("evidence_id")) for item in evidence_list if item.get("evidence_id")}
         for field in ("evidence_basis", "contradictory_evidence_basis"):
             values = result.get(field)
-            if not isinstance(values, list) or not all(str(value) in allowed_ids for value in values):
-                raise ModelBackendError(f"model returned invalid {field}; evidence provenance was not preserved")
-        if result.get("direction") != "NO_DATA" and not result["evidence_basis"]:
-            raise ModelBackendError("Active perspective must cite at least one supplied evidence item")
+            if not isinstance(values, list) or not all(str(value) in allowed_ids for value in values): raise ModelBackendError(f"model returned invalid {field}; evidence provenance was not preserved")
+        if result.get("direction") != "NO_DATA" and not result["evidence_basis"]: raise ModelBackendError("Active perspective must cite at least one supplied evidence item")
         result["model_version"] = self.model_name
         result["evidence"] = evidence_list
         contradictory_ids = {str(v) for v in result["contradictory_evidence_basis"]}
@@ -237,11 +181,10 @@ class OpenAIResponsesModelProvider(ModelProvider):
 
     name = "openai-responses"
 
-    def __init__(self, **kwargs: Any) -> None:
-        self.backend = OpenAIResponsesModelBackend(**kwargs)
+    def __init__(self, **kwargs: Any) -> None: self.backend = OpenAIResponsesModelBackend(**kwargs)
 
-    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
-        return self.backend.assess(agent, question, evidence, learning_context=learning_context)
+    def assess(self, agent: Agent, question: str, evidence: Iterable[Dict[str, Any]], learning_context: Dict[str, Any] | None = None, research_context: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        return self.backend.assess(agent, question, evidence, learning_context=learning_context, research_context=research_context)
 
 
 def build_default_model_provider() -> ModelProvider:
