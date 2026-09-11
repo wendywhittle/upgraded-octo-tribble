@@ -9,7 +9,7 @@ def result(state=UnderwritingDecision.NO_DEAL):
 
 
 def model(**overrides):
-    values = dict(purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, interest_rate=.06, amortization_years=25, hold_period_years=5, exit_cap_rate=.07, selling_cost_rate=.02, capital_expenditures=25_000, evidence_ids=("ev-1",))
+    values = dict(purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, interest_rate=.06, amortization_years=25, hold_period_years=5, exit_cap_rate=.07, selling_cost_rate=.02, capital_expenditures=25_000, closing_costs=0.0, evidence_ids=("ev-1",))
     values.update(overrides)
     return underwrite_financial_model(CREFinancialInputs(**values))
 
