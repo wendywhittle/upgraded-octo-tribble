@@ -71,10 +71,11 @@ def test_same_inputs_and_overrides_are_deterministic():
         overrides=(ScenarioOverride(input_name="vacancy_credit_loss", value=50_000),),
         created_at=fixed_time(),
     )
-    first = build_cre_scenario(scenario_id="base-a", **kwargs)
-    second = build_cre_scenario(scenario_id="base-b", **kwargs)
+    first = build_cre_scenario(scenario_id="base-identity", **kwargs)
+    second = build_cre_scenario(scenario_id="base-identity", **kwargs)
     assert first.inputs == second.inputs
     assert first.calculations == second.calculations
+    assert first.model_dump(mode="json") == second.model_dump(mode="json")
     assert first.calculations[0].value == 950_000
 
 
