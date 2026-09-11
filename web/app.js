@@ -1,76 +1,22 @@
-const ACTIVE = new Set(["researcher","quant","investor","scientist","systems","skeptic","contrarian","observer","governance"]);
-const PERSPECTIVES = [
-  ["researcher","RESEARCHER","Evidence-bound fundamental research"],["quant","QUANT","Quantitative and statistical interpretation"],["investor","INVESTOR","Investment thesis"],["scientist","SCIENTIST","Scientific and Epistemic Validity"],["systems","SYSTEMS","Systems risk"],["contrarian","CONTRARIAN","Strongest credible opposing case"],["skeptic","SKEPTIC","Evidence and assumption challenge"],["observer","OBSERVER","Outcome observation"],["governance","GOVERNANCE","CHARTER and Authority Boundary"]
-];
 const $=id=>document.getElementById(id);
+const PIPELINE=["DEAL","PRO FORMA","SCENARIOS","SIMULATION","CONTRARIAN","CAPITAL STACK","LENDER EVIDENCE","INVESTMENT SYNTHESIS","INVESTMENT CASE","HUMAN GATE"];
+const FIELDS=[["acquisition_price","ACQUISITION PRICE",10000000],["acquisition_costs","ACQUISITION COSTS",250000],["annual_rent","ANNUAL RENT",850000],["other_income","OTHER INCOME",25000],["initial_occupancy","INITIAL OCCUPANCY",0.95],["vacancy_rate","VACANCY RATE",0.02],["rent_growth","RENT GROWTH",0.03],["operating_expenses","OPERATING EXPENSES",170000],["expense_growth","EXPENSE GROWTH",0.03],["management_expense","MANAGEMENT EXPENSE",20000],["property_tax","PROPERTY TAX",65000],["insurance","INSURANCE",18000],["maintenance","MAINTENANCE",15000],["utilities","UTILITIES",8000],["capex","CAPEX",10000],["reserves","RESERVES",10000],["tenant_improvements","TENANT IMPROVEMENTS",5000],["leasing_commissions","LEASING COMMISSIONS",5000],["entry_cap_rate","ENTRY CAP RATE",0.06],["exit_cap_rate","EXIT CAP RATE",0.065],["exit_costs","EXIT COSTS",250000],["debt_amount","DEBT AMOUNT",6000000],["interest_rate","INTEREST RATE",0.065],["amortization_years","AMORTIZATION YEARS",25],["maturity_years","MATURITY YEARS",10],["equity_contribution","EQUITY CONTRIBUTION",4250000],["simulation_paths","SIMULATION PATHS",5000],["simulation_seed","SIMULATION SEED",42]];
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
-function listText(value, fallback="NOT AVAILABLE"){
-  if(Array.isArray(value)) return value.length?value.join(" • "):fallback;
-  if(value==null || value==="") return fallback;
-  return String(value);
-}
-function riskText(value, fallback="NOT AVAILABLE"){
-  if(Array.isArray(value)) return value.length?`${value.length} concern${value.length===1?"":"s"}`: "NONE IDENTIFIED";
-  return value==null || value===""?fallback:String(value);
-}
-function renderPerspectives(outputs=[]){
-  const byId=Object.fromEntries(outputs.map(x=>[x.agent_id||x.agent?.agent_id,x]));
-  $("perspectives").innerHTML=PERSPECTIVES.map(([id,name,detail])=>{
-    const active=ACTIVE.has(id), out=byId[id];
-    const status=active?(out?"RETURNED":"ACTIVE"):"NOT YET ACTIVE";
-    const signal=out?.direction||out?.recommendation||"";
-    return `<article class="agent ${active?"active":"inactive"}"><div class="agent-name"><span>${name}</span><span class="agent-status">${status}</span></div><div class="agent-detail">${esc(signal||detail)}</div></article>`;
-  }).join("");
-}
-function renderMeta(meta={}){
-  const has=meta && typeof meta === "object" && Object.keys(meta).length>0;
-  $("meta-status").textContent=has?(meta.status||"EVALUATED").toUpperCase():"AWAITING ANALYSIS";
-  $("meta-health").textContent=has?esc(meta.reasoning_health||"UNKNOWN"):"NOT AVAILABLE";
-  $("meta-review").textContent=has&&meta.human_review_required!==false?"HUMAN REVIEW REQUIRED":"REVIEW STATUS NOT RETURNED";
-  $("meta-consensus").textContent=has?riskText(meta.false_consensus_risk):"NOT AVAILABLE";
-  $("meta-correlation").textContent=has?riskText(meta.correlated_reasoning_risk):"NOT AVAILABLE";
-  $("meta-evidence").textContent=has?riskText(meta.evidence_quality_concern):"NOT AVAILABLE";
-  $("meta-assumptions").textContent=has?riskText(meta.assumption_concentration):"NOT AVAILABLE";
-  $("meta-conflicts").textContent=has?(Array.isArray(meta.unresolved_conflicts)?meta.unresolved_conflicts.length:riskText(meta.unresolved_conflicts,"0")):"0";
-  $("meta-uncertainty").textContent=has?riskText(meta.uncertainty_concern):"NOT AVAILABLE";
-  $("meta-regime").textContent=has?riskText(meta.regime_or_invalidation_concern):"NOT AVAILABLE";
-  $("meta-blind-spots").textContent=has?(Array.isArray(meta.process_blind_spots)?meta.process_blind_spots.length:riskText(meta.process_blind_spots,"0")):"0";
-  $("meta-next-step").textContent=has?(meta.recommended_next_step||"NOT AVAILABLE"):"AWAITING ANALYSIS";
-  $("meta-observations").innerHTML=has?esc(listText(meta.observations,"No process observations returned.")).replace(/ • /g,"<br>"):"No Meta-Intelligence evaluation yet.";
-}
-function setDecision(value){
-  const raw=String(value||"");
-  const normalized=raw==="HOLD"||raw==="CONDITIONAL GO"?"INVESTIGATE":raw;
-  const allowed=new Set(["NO DATA","INVESTIGATE","NO-GO","READY FOR IC REVIEW"]);
-  const v=allowed.has(normalized)?normalized:"NO DATA";
-  $("decision-state").textContent=v; $("ic-state").textContent=v;
-}
-function renderConflicts(conflicts=[],horizon=[]){
-  const items=[...conflicts,...horizon];
-  $("conflict-count").textContent=`${items.length} ${items.length===1?"ITEM":"ITEMS"}`;
-  $("conflicts").innerHTML=items.length?items.map(c=>{const r=c.conflict_record||c;return `<div class="conflict-item"><strong>${esc(r.conflict_type||c.type||"CONFLICT")}</strong><span>${esc(r.severity||c.severity||"UNSPECIFIED")}</span><div class="question">${esc(r.unresolved_questions?.join(" • ")||c.description||"Unresolved question not supplied.")}</div></div>`}).join(""):"NO CONFLICT DATA / NO DISAGREEMENT RETURNED";
-}
-function renderRisk(sim={}){
-  const scenarios=Array.isArray(sim.scenarios)?Object.fromEntries(sim.scenarios.map(x=>[x.scenario,x])):(sim.scenarios||{});
-  const names=["base","bull","bear","adversarial"];
-  $("risk-grid").innerHTML=names.map(n=>{
-    const x=scenarios[n];
-    if(!x)return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>NOT AVAILABLE</strong><em>Backend metric not returned</em></div>`;
-    return `<div class="risk-card"><span>${n.toUpperCase()}</span><strong>${esc(x.mean_terminal??"NOT AVAILABLE")}</strong><em>loss ${x.probability_loss==null?"NOT AVAILABLE":esc(x.probability_loss)} • drawdown ${x.max_drawdown_mean==null?"NOT AVAILABLE":esc(x.max_drawdown_mean)}</em></div>`;
-  }).join("");
-  $("risk-note").textContent=sim.independent_of_agents===false?"INDEPENDENCE FLAG FAILED":"Independent simulation output. Agent conclusions do not determine these results.";
-}
-function renderMemory(records=[]){
-  const r=records.at(-1); if(!r)return;
-  $("memory-belief").textContent=r.question||"NOT AVAILABLE";
-  const evidence=r.evidence||{};
-  $("memory-why").textContent=evidence.count==null?"NOT AVAILABLE":`${evidence.count} evidence item(s)`;
-  $("memory-decision").textContent=r.synthesis?.verdict||"NOT AVAILABLE";
-  $("memory-outcome").textContent=r.outcome?.status||"PENDING";
-  $("memory-lesson").textContent=r.lesson||"AWAITING OUTCOME";
-}
+function money(v){return v==null?"UNKNOWN":new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(v)}
+function pct(v){return v==null?"UNKNOWN":`${(Number(v)*100).toFixed(2)}%`}
+function kv(items,fmt=v=>String(v??"UNKNOWN"),tag="CALCULATION"){return `<div class="kv">${items.map(([k,v])=>`<div><span class="tag calc">${tag}</span><span>${esc(k)}</span><strong>${esc(fmt(v))}</strong></div>`).join("")}</div>`}
+function renderForm(){$("fields").innerHTML=FIELDS.map(([id,label,value])=>`<div><label for="${id}">${label}</label><input id="${id}" type="number" value="${value}" step="any"></div>`).join("");}
+function renderPipeline(active=-1){$("pipeline").innerHTML=PIPELINE.map((x,i)=>`<div class="pipe ${i<=active?"live":""}">${String(i+1).padStart(2,"0")}<br>${x}<small>${i<active?"COMPLETE":i===active?"ACTIVE":"PENDING"}</small></div>`).join("");}
+function payload(){const p={asset_id:$('asset_id').value};FIELDS.forEach(([id])=>p[id]=Number($(id).value));return p;}
+function renderDeal(p){$("deal").innerHTML=kv([["ASSET / DEAL ID",p.asset_id]],v=>v,"ASSUMPTION")+`<p class="section-note">Entered underwriting values are ASSUMPTIONS. They are not represented as market facts.</p>`;}
+function renderProforma(x){const y=x.annual||[],last=y.at(-1)||{};$("proforma").innerHTML=kv([["ACQUISITION BASIS",x.acquisition_basis],["YEAR 1 NOI",y[0]?.noi],["PROJECTED NOI / FINAL YEAR",last.noi],["YEAR 1 PROPERTY CASH FLOW",y[0]?.property_cash_flow],["FINAL PROPERTY CASH FLOW",last.property_cash_flow],["ENTRY VALUATION",x.entry_valuation],["EXIT VALUATION",x.exit_valuation],["UNLEVERED IRR",x.unlevered_irr],["EQUITY MULTIPLE",x.unlevered_equity_multiple]],v=>typeof v==="number"&&Math.abs(v)<1?pct(v):money(v))+`<div class="section-note">${y.length} projected year(s) • calculate_proforma() is authoritative.</div>`;}
+function renderScenarios(xs){$("scenarios").innerHTML=xs.map(s=>{const p=s.proforma||{},a=s.scenario||{},o=a.overrides||{};return `<div class="scenario-card"><div class="scenario-title"><b>${esc(a.name)}</b><span class="tag interpretation">${esc(a.provenance?.assumption_type||"HYPOTHESIS")}</span></div><p>${esc(a.description||"")}</p>${kv([["FINAL NOI",p.annual?.at(-1)?.noi],["EXIT VALUATION",p.exit_valuation],["UNLEVERED IRR",p.unlevered_irr],["EQUITY MULTIPLE",p.unlevered_equity_multiple]],v=>typeof v==="number"&&Math.abs(v)<1?pct(v):money(v))}<div class="section-note"><b>OVERRIDES:</b> ${Object.keys(o).length?esc(JSON.stringify(o)):"NONE"}</div></div>`}).join("");}
+function renderSimulation(xs){$("simulation").innerHTML=xs.map(s=>{const z=s.simulation||{},q=z.summary||{};return `<div class="scenario-card"><div class="scenario-title"><b>${esc(s.scenario?.name||s.simulation_regime)}</b><span class="tag calc">CALCULATION</span></div>${kv([["MEAN TERMINAL",q.mean_terminal],["MEDIAN TERMINAL",q.median_terminal],["P05 TERMINAL",q.p05_terminal],["P95 TERMINAL",q.p95_terminal],["PROBABILITY OF LOSS",q.probability_loss],["MEAN MAX DRAWDOWN",q.max_drawdown_mean]],v=>typeof v==="number"&&Math.abs(v)<1?pct(v):money(v))}<div class="section-note">Paths ${esc(z.paths)} • Horizon ${esc(z.horizon_steps)} • Seed ${esc(z.seed)} • ${esc(z.engine)} • independent_of_agents=${esc(z.independent_of_agents)}</div></div>`}).join("");}
+function renderContrarian(x){if(!x){$("contrarian").textContent="NO CONTRARIAN RESULT";return}$("contrarian").innerHTML=`<h2>HOW COULD THIS INVESTMENT LOSE?</h2>${kv([["MARGIN OF SAFETY",x.margin_of_safety?.status||x.margin_of_safety]],v=>v,"INTERPRETATION")}<h3>FINDINGS</h3>${(x.findings||[]).map(f=>`<div class="finding"><b>${esc(f.severity||"UNSPECIFIED")} • ${esc(f.category||"RISK")}</b><p>${esc(f.description)}</p><small>${esc(f.affected_assumption||"")}</small></div>`).join("")||"NO MATERIAL FINDINGS RETURNED"}<h3>UNRESOLVED QUESTIONS</h3><div class="mono-list">${esc((x.unresolved_questions||[]).join("\n")||"NONE RETURNED")}</div>`;}
+function renderCapital(x){if(!x){$("capital").textContent="NO FINANCING ANALYSIS PROVIDED";return}$("capital").innerHTML=kv([["TOTAL SOURCES",x.total_sources],["TOTAL USES",x.total_uses],["VARIANCE",x.variance],["BALANCED",x.balanced],["TOTAL DEBT",x.total_debt],["EQUITY REQUIREMENT",x.equity_requirement],["LTV",x.loan_to_value],["LTC",x.loan_to_cost],["ANNUAL DEBT SERVICE",x.annual_debt_service],["DSCR",x.debt_service_coverage_ratio],["DEBT YIELD",x.debt_yield]],v=>typeof v==="boolean"?String(v).toUpperCase():typeof v==="number"&&Math.abs(v)<1?pct(v):money(v))+`<div class="section-note">FINANCING CONSEQUENCES • NOT FINANCING AUTHORIZATION</div>${(x.debt_analyses||[]).map(d=>`<div class="scenario-card">${kv([["LOAN",d.loan_amount],["RATE",d.interest_rate],["AMORTIZATION",d.amortization_years],["MATURITY",d.maturity_years],["BALLOON",d.balloon_balance]],v=>typeof v==="number"&&v<1?pct(v):money(v))}</div>`).join("")}`;}
+function renderLender(a){if(!(a.lender_terms||[]).length&&!(a.lender_profiles||[]).length){$("lender").innerHTML=`<strong>NO LENDER EVIDENCE PROVIDED</strong><p class="tag unknown">UNKNOWN / NOT PROVIDED</p><p class="section-note">No lender terms were supplied. The system does not manufacture lender evidence.</p>`;return}$("lender").innerHTML=`<div class="mono-list">${esc(JSON.stringify({profiles:a.lender_profiles,terms:a.lender_terms},null,2))}</div>`;}
+function renderSynthesis(x){if(!x){$("synthesis").textContent="NO SYNTHESIS RETURNED";return}const t=x.thesis||{};$("synthesis").innerHTML=`<div class="scenario-card"><span class="tag interpretation">INTERPRETATION • THESIS STATUS</span><h3>${esc(t.status||x.thesis_status||"UNDETERMINED")}</h3><p>${esc(t.statement||t.description||"")}</p></div><div class="scenario-card"><span class="tag interpretation">SUPPORTING EVIDENCE</span><div class="mono-list">${esc(JSON.stringify(t.supporting_evidence||[],null,2))}</div></div><div class="scenario-card"><span class="tag interpretation">CONTRADICTIONS / DISAGREEMENTS</span><div class="mono-list">${esc(JSON.stringify({contradictory:t.contradictory_evidence||[],disagreements:x.disagreements||[]},null,2))}</div></div><div class="scenario-card"><span class="tag recommendation">RECOMMENDATION</span><h3>${esc(x.recommendation||"NOT RETURNED")}</h3><div class="mono-list">${esc((x.recommendation_rationale||[]).join("\n"))}</div></div>`;}
+function renderAssembly(a){$("assembly-status").textContent=a.status||"UNKNOWN";$("assembly").innerHTML=kv([["ASSEMBLY STATUS",a.status],["RECOMMENDATION",a.recommendation],["CASE IDENTITY",a.case_identity]],v=>v,"INTERPRETATION")+`<div class="section-note">System interpretation/recommendation only. Human authorization remains separate.</div>`;}
+async function run(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.textContent="RUNNING PHASE 9…";$("run-state").textContent="RUNNING";const p=payload();renderDeal(p);try{const r=await fetch("/phase9/visual",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});const data=await r.json();if(!r.ok)throw Error(data.detail||"Phase 9 failed");const a=data.assembly;renderProforma(a.proforma);renderPipeline(1);renderScenarios(a.scenarios);renderPipeline(2);renderSimulation(a.simulations);renderPipeline(3);renderContrarian(a.contrarian);renderPipeline(4);renderCapital(a.financing);renderPipeline(5);renderLender(a);renderPipeline(6);renderSynthesis(a.synthesis);renderPipeline(7);renderAssembly(a);renderPipeline(9);$("run-state").textContent="COMPLETE • HUMAN GATE";}catch(err){$("run-state").textContent="ERROR";$("assembly").innerHTML=`<span class="error">${esc(err.message)}</span>`;}finally{b.disabled=false;b.textContent="RUN PHASE 9 INVESTMENT CASE";}}
 async function health(){try{const r=await fetch("/health");if(!r.ok)throw Error();$("api-dot").className="status-dot online";$("api-status").textContent="API ONLINE";}catch{$("api-dot").className="status-dot offline";$("api-status").textContent="API UNAVAILABLE";}}
-async function loadMemory(){try{const r=await fetch("/memory");if(!r.ok)throw Error();const data=await r.json();renderMemory(data.records||[]);}catch{$("memory-outcome").textContent="UNAVAILABLE";}}
-async function loadLearning(){try{const r=await fetch("/observer/learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bins:10})});if(!r.ok)throw Error();const data=await r.json();if(Array.isArray(data.lessons)&&data.lessons.length){$("memory-lesson").textContent=data.lessons.join(" • ");}}catch{$("memory-lesson").textContent="LEARNING DATA UNAVAILABLE";}}
-async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");renderMeta({});$("core-question").textContent=$("question").value;try{const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:$("question").value,evidence:[],initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42})});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||[]);renderMeta(data.meta_intelligence||{});renderConflicts(data.conflicts||[],data.horizon_divergences||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict);$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";renderMeta({status:"unavailable"});}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
-$("analysis-form").addEventListener("submit",runAnalysis);$("load-memory").addEventListener("click",()=>{loadMemory();loadLearning();});renderPerspectives();renderMeta();renderRisk();health();loadMemory();loadLearning();
+renderForm();renderPipeline();$("phase9-form").addEventListener("submit",run);health();
