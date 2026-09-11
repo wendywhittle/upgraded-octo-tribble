@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.capital_stack import CapitalStack, LenderEvidence
+from app.underwriting import CREUnderwritingProForma
 
 
 CaseRecommendation = Literal[
@@ -59,7 +60,7 @@ class StructuredInvestmentCase(BaseModel):
     independent_reasoning: List[Dict[str, Any]] = Field(default_factory=list)
     claims_and_interpretations: List[Dict[str, Any]] = Field(default_factory=list)
     validated_assumptions: List[str] = Field(default_factory=list)
-    pro_forma: Optional[Dict[str, Any]] = None
+    pro_forma: Optional[CREUnderwritingProForma] = None
     calculations: List[Dict[str, Any]] = Field(default_factory=list)
     scenarios: List[Dict[str, Any]] = Field(default_factory=list)
     simulation: Dict[str, Any] = Field(default_factory=dict)
@@ -91,6 +92,7 @@ def build_structured_investment_case(
     skeptic: Dict[str, Any],
     synthesis: Dict[str, Any],
     meta_intelligence: Dict[str, Any] | None = None,
+    underwriting: CREUnderwritingProForma | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
     financing_assumptions: List[str] | None = None,
@@ -129,7 +131,8 @@ def build_structured_investment_case(
         gaps.append("No usable evidence references were supplied to the Investment Case.")
     if not any(agent.get("assumptions") for agent in agents):
         gaps.append("No explicit agent assumptions were available.")
-    gaps.append("CRE pro forma / property-level financial model is not present in the inspected architecture.")
+    if underwriting is None:
+        gaps.append("CRE underwriting / property-level pro forma is not yet supplied.")
     if capital_stack is None:
         gaps.append("Capital stack is not present in the inspected architecture.")
     if not lender_records:
@@ -156,6 +159,7 @@ def build_structured_investment_case(
             {"type": "meta_intelligence", "content": meta_intelligence or {}},
         ],
         validated_assumptions=list(dict.fromkeys(assumptions)),
+        pro_forma=underwriting,
         calculations=[],
         scenarios=scenarios,
         simulation=simulation,
