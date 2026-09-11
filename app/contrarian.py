@@ -164,9 +164,10 @@ def _simulation_findings(simulations: list[CRESimulationResult]) -> list[Contrar
     for result in simulations:
         summary = _simulation_summary(result)
         regime = result.simulation_regime.upper()
+        severity: FindingSeverity = "MATERIAL" if regime == "ADVERSARIAL" else "LOW"
         findings.append(ContrarianFinding(
             category="MODEL",
-            severity="NOTED" if False else ("MATERIAL" if regime == "ADVERSARIAL" else "LOW"),
+            severity=severity,
             description=f"Simulation distribution reviewed for {result.scenario.name} using the existing {regime} regime.",
             affected_scenario=result.scenario.name,
             supporting_simulation_output=summary,
@@ -245,15 +246,6 @@ def review_contrarian(
     if any(f.category == "EVIDENCE" and f.status == "INSUFFICIENT_DATA" for f in findings):
         margin_status = "UNDETERMINED"
         margin_rationale = ["Evidence sufficiency is unresolved; margin of safety cannot be established from supplied inputs."]
-
-    no_go = margin_status == "INSUFFICIENT"
-    if no_go:
-        findings.append(ContrarianFinding(
-            category="ASSUMPTION", severity="CRITICAL",
-            description="NO_GO_RECOMMENDATION",
-            rationale="Margin of safety is insufficient based on explicit findings.",
-            provenance="RECOMMENDATION", output_type="RECOMMENDATION",
-        ))
 
     return ContrarianResult(
         case_identity=case_identity,
