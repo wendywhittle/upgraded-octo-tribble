@@ -4,7 +4,6 @@ from app.investment_case import build_structured_investment_case
 from app.opportunity import PropertyIdentityReference, build_cre_opportunity
 from app.underwriting import (
     AcquisitionTerms,
-    CREUnderwritingProForma,
     OperatingAssumptions,
     PropertyIdentity,
     UnderwritingProvenance,
@@ -73,4 +72,4 @@ def test_structured_investment_case_can_carry_opportunity_without_authority():
     assert case.authority == "none"
     assert case.execution_capability is False
     assert case.portfolio_mutation is False
-    assert any("opportunity" in gap.lower() is False for gap in case.gaps)
+    assert not any("canonical CRE opportunity" in gap for gap in case.gaps)
