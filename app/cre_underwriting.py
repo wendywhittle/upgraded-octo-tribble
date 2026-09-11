@@ -162,7 +162,7 @@ def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult
         "selling_cost_rate": inputs.selling_cost_rate,
     }
     for name, value in required_values.items():
-        if value is None or (isinstance(value, (int, float)) and value <= 0 and name not in {"expense_growth", "capital_expenditures"}):
+        if value is None or (isinstance(value, (int, float)) and value <= 0 and name in {"purchase_price", "noi", "hold_period_years", "exit_cap_rate"}):
             missing.append(name)
     if inputs.loan_amount is None and inputs.loan_to_value is None:
         missing.append("loan_to_value")
