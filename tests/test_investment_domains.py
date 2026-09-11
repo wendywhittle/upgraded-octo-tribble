@@ -78,7 +78,7 @@ def test_cross_asset_relationship_generates_testable_hypothesis():
     assert hypotheses[0].domain is InvestmentDomain.ASSET
     assert hypotheses[0].evidence_ids == ["e-1"]
     assert hypotheses[0].statement == (
-        "Example Co may drives demand for Example Industrial Park in Pacific Northwest."
+        "Example Co may drive demand for Example Industrial Park in Pacific Northwest."
     )
     assert hypotheses[0].invalidation_conditions
     assert hypotheses[0].research_questions
