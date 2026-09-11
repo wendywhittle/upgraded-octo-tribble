@@ -8,7 +8,13 @@ from pydantic import BaseModel, Field
 from app.analysis_pipeline import run_analysis
 from app.capital_engine import AlternativeDataRegistry, CapitalResearchRequest
 from app.evidence_sources import SourceDocument, documents_to_evidence
-from app.investment_domains import CapitalResearchDomain, CrossAssetLink, IntelligenceEntity, classify_cross_asset_links
+from app.investment_domains import (
+    CapitalResearchDomain,
+    CrossAssetLink,
+    IntelligenceEntity,
+    classify_cross_asset_links,
+    cross_asset_hypotheses,
+)
 
 
 class CrossAssetEntityModel(BaseModel):
@@ -61,7 +67,8 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
     the Capital Engine can be exercised without a paid data dependency.
 
     Cross-asset links are contextual research structure. They are classified as
-    evidence only when their referenced evidence IDs exist in this request.
+    evidence only when their referenced evidence IDs exist in this request, and they
+    can produce explicit hypotheses for downstream research without becoming facts.
     """
     router = APIRouter(prefix="/capital", tags=["capital-engine"])
     provider_registry = registry or AlternativeDataRegistry()
@@ -107,6 +114,19 @@ def build_capital_router(registry: AlternativeDataRegistry | None = None) -> API
                 "provider_names": providers,
                 "document_count": len(documents),
                 "cross_asset_links": classify_cross_asset_links(cross_asset_links, evidence_ids),
+                "research_hypotheses": [
+                    {
+                        "hypothesis_id": hypothesis.hypothesis_id,
+                        "statement": hypothesis.statement,
+                        "domain": hypothesis.domain.value,
+                        "research_domains": hypothesis.research_domains,
+                        "evidence_ids": hypothesis.evidence_ids,
+                        "assumptions": hypothesis.assumptions,
+                        "invalidation_conditions": hypothesis.invalidation_conditions,
+                        "epistemic_stage": "hypothesis",
+                    }
+                    for hypothesis in cross_asset_hypotheses(cross_asset_links, evidence_ids)
+                ],
                 "research_only": True,
             }
             return result
