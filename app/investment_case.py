@@ -18,6 +18,7 @@ from app.due_diligence import CREPropertyDueDiligence
 from app.opportunity import CREOpportunityDeal
 from app.scenario_analysis import CREScenarioAnalysis
 from app.screening import CREOpportunityScreening
+from app.simulation import CRESimulation
 from app.underwriting import CREUnderwritingProForma
 
 
@@ -74,6 +75,7 @@ class StructuredInvestmentCase(BaseModel):
     scenarios: List[Dict[str, Any]] = Field(default_factory=list)
     cre_scenarios: List[CREScenarioAnalysis] = Field(default_factory=list)
     simulation: Dict[str, Any] = Field(default_factory=dict)
+    cre_simulations: List[CRESimulation] = Field(default_factory=list)
     contrarian_review: Dict[str, Any] = Field(default_factory=dict)
     capital_stack: Optional[CapitalStack] = None
     lender_evidence: List[LenderEvidence] = Field(default_factory=list)
@@ -108,6 +110,7 @@ def build_structured_investment_case(
     due_diligence: CREPropertyDueDiligence | None = None,
     underwriting: CREUnderwritingProForma | None = None,
     cre_scenarios: List[CREScenarioAnalysis] | None = None,
+    cre_simulations: List[CRESimulation] | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
     financing_assumptions: List[str] | None = None,
@@ -119,6 +122,7 @@ def build_structured_investment_case(
     lender_records = list(lender_evidence or [])
     cre_evidence_records = list(cre_evidence or [])
     scenario_records = list(cre_scenarios or [])
+    simulation_records = list(cre_simulations or [])
     evidence_refs = [
         InvestmentCaseRef(ref_type="evidence", ref_id=str(item["evidence_id"]), source=str(item.get("source", "unknown")))
         for item in evidence.get("items", [])
@@ -191,6 +195,7 @@ def build_structured_investment_case(
         scenarios=scenarios,
         cre_scenarios=scenario_records,
         simulation=simulation,
+        cre_simulations=simulation_records,
         contrarian_review=skeptic,
         capital_stack=capital_stack,
         lender_evidence=lender_records,
