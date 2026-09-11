@@ -10,6 +10,7 @@ from typing import Any, Dict, Iterable
 
 from app.conflict_intelligence import detect_conflict_intelligence
 from app.evidence_orchestration import run_evidence_fed_agents
+from app.investment_case import build_structured_investment_case
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
 from app.memory import append_record, build_record, read_records
@@ -123,11 +124,27 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         observer=observer,
         governance=governance,
     )
+    evidence_for_case = {
+        "count": agent_stage["evidence_count"],
+        "usable_count": agent_stage["usable_evidence_count"],
+        "validation": agent_stage["validation"],
+        "items": agent_stage.get("usable_evidence", []),
+    }
+    investment_case = build_structured_investment_case(
+        question=question,
+        evidence=evidence_for_case,
+        agents=agents,
+        simulation=simulation,
+        skeptic=skeptic,
+        synthesis=synthesis,
+        meta_intelligence=meta_intelligence,
+        created_at=now,
+    )
     return {
         "system": "AletheiaTelos",
         "question": question,
         "institutional_learning": learning_context,
-        "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        "evidence": evidence_for_case,
         "agents": agents,
         "active_perspectives": agent_stage["active_perspectives"],
         "reasoning_perspectives": agent_stage["reasoning_perspectives"],
@@ -142,8 +159,9 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         "observer": observer,
         "governance": governance,
         "kaleidoscope": kaleidoscope,
+        "structured_investment_case": investment_case.model_dump(mode="json"),
         "audit": {
-            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->governance->observer->memory",
+            "pipeline": "prior_learning->evidence->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->structured_investment_case->human_decision_gate",
             "simulation_independent_of_agents": True,
             "simulation_seed": seed,
             "memory_recorded": True,
@@ -154,5 +172,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
             "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"],
             "meta_intelligence_directional_vote": False,
             "meta_intelligence_execution_capability": False,
+            "investment_case_is_authorization": False,
+            "human_decision_gate_pending": True,
         },
     }
