@@ -75,7 +75,7 @@ class StructuredInvestmentCase(BaseModel):
 
 
 def _case_id(question: str, created_at: datetime) -> str:
-    """Stable-format case identifier; not an authority identifier."""
+    """Create a case identifier without introducing authority."""
     stamp = created_at.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     return f"investment-case:{stamp}:{abs(hash(question)) % 10**8:08d}"
 
@@ -107,11 +107,12 @@ def build_structured_investment_case(
     scenarios = list(simulation.get("scenarios", []))
     recommendation = {
         "NO_DATA": "NO_DATA",
+        "NO_GO": "NO_GO",
         "HOLD": "HOLD",
         "CONDITIONAL GO": "CONDITIONAL_GO",
         "INVESTIGATE": "INVESTIGATE",
     }.get(str(synthesis.get("verdict")), "INVESTIGATE")
-    if skeptic.get("recommendation") == "hold":
+    if recommendation != "NO_GO" and skeptic.get("recommendation") == "hold":
         recommendation = "HOLD"
 
     gaps: List[str] = []
