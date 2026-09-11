@@ -12,6 +12,8 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.capital_stack import CapitalStack, LenderEvidence
+
 
 CaseRecommendation = Literal[
     "NO_DATA",
@@ -62,8 +64,8 @@ class StructuredInvestmentCase(BaseModel):
     scenarios: List[Dict[str, Any]] = Field(default_factory=list)
     simulation: Dict[str, Any] = Field(default_factory=dict)
     contrarian_review: Dict[str, Any] = Field(default_factory=dict)
-    capital_stack: Optional[Dict[str, Any]] = None
-    lender_evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    capital_stack: Optional[CapitalStack] = None
+    lender_evidence: List[LenderEvidence] = Field(default_factory=list)
     synthesis: Dict[str, Any] = Field(default_factory=dict)
     recommendation: CaseRecommendation
     recommendation_basis: List[str] = Field(default_factory=list)
@@ -89,10 +91,15 @@ def build_structured_investment_case(
     skeptic: Dict[str, Any],
     synthesis: Dict[str, Any],
     meta_intelligence: Dict[str, Any] | None = None,
+    capital_stack: CapitalStack | None = None,
+    lender_evidence: List[LenderEvidence] | None = None,
+    financing_assumptions: List[str] | None = None,
+    financing_risks: List[str] | None = None,
     created_at: datetime | None = None,
 ) -> StructuredInvestmentCase:
     """Converge existing outputs without inventing missing CRE components."""
     now = created_at or datetime.now(timezone.utc)
+    lender_records = list(lender_evidence or [])
     evidence_refs = [
         InvestmentCaseRef(ref_type="evidence", ref_id=str(item["evidence_id"]), source=str(item.get("source", "unknown")))
         for item in evidence.get("items", [])
@@ -104,12 +111,14 @@ def build_structured_investment_case(
         for assumption in agent.get("assumptions", [])
         if isinstance(assumption, str)
     ]
+    assumptions.extend(item for item in (financing_assumptions or []) if isinstance(item, str))
     scenarios = list(simulation.get("scenarios", []))
     recommendation = {
         "NO_DATA": "NO_DATA",
         "NO_GO": "NO_GO",
         "HOLD": "HOLD",
         "CONDITIONAL GO": "CONDITIONAL_GO",
+        "CONDITIONAL_GO": "CONDITIONAL_GO",
         "INVESTIGATE": "INVESTIGATE",
     }.get(str(synthesis.get("verdict")), "INVESTIGATE")
     if recommendation != "NO_GO" and skeptic.get("recommendation") == "hold":
@@ -121,8 +130,12 @@ def build_structured_investment_case(
     if not any(agent.get("assumptions") for agent in agents):
         gaps.append("No explicit agent assumptions were available.")
     gaps.append("CRE pro forma / property-level financial model is not present in the inspected architecture.")
-    gaps.append("Capital stack is not present in the inspected architecture.")
-    gaps.append("Lender evidence is not present in the inspected architecture.")
+    if capital_stack is None:
+        gaps.append("Capital stack is not present in the inspected architecture.")
+    if not lender_records:
+        gaps.append("Lender evidence is not present in the inspected architecture.")
+    if financing_risks:
+        gaps.extend(f"Financing risk: {risk}" for risk in financing_risks)
 
     basis = list(synthesis.get("unresolved_questions", []))
     if skeptic.get("challenges"):
@@ -147,6 +160,8 @@ def build_structured_investment_case(
         scenarios=scenarios,
         simulation=simulation,
         contrarian_review=skeptic,
+        capital_stack=capital_stack,
+        lender_evidence=lender_records,
         synthesis=synthesis,
         recommendation=recommendation,
         recommendation_basis=list(dict.fromkeys(basis)),
