@@ -4,7 +4,7 @@ from hashlib import sha256
 from typing import Any, Dict, Iterable
 
 from app.agent_contract import Agent
-from app.epistemic_adapter import prediction_to_epistemic_records
+from app.epistemic_adapter import prediction_to_epistemic_records, serialize_record
 from app.model_provider import ModelProvider
 from app.schemas import AgentOutput
 
@@ -76,8 +76,5 @@ class AgentRunner:
         output["brokerage_connectivity"] = False
         output["portfolio_mutation"] = False
         output["human_decision_required"] = True
-        output["epistemic_memory"] = [
-            record.model_dump() if hasattr(record, "model_dump") else record.dict()
-            for record in prediction_to_epistemic_records(output)
-        ]
+        output["epistemic_memory"] = [serialize_record(record) for record in prediction_to_epistemic_records(output)]
         return output
