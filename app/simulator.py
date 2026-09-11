@@ -135,7 +135,7 @@ def run_cre_monte_carlo(purchase_price, noi, hold_period=5, paths=5000, seed=42,
         raise ValueError("occupancy must be between 0 and 1")
     else:
         missing = ()
-    for name, value in (("rent_growth", rent_growth), ("expense_growth", expense_growth), ("loan_to_value", loan_to_value)):
+    for name, value in (("rent_growth", rent_growth), ("expense_growth", expense_growth), ("loan_to_value", loan_to_value), ("capital_expenditures", capital_expenditures), ("selling_cost_rate", selling_cost_rate), ("closing_costs", closing_costs)):
         if value is None:
             missing = (*missing, name)
     if missing:
@@ -153,11 +153,11 @@ def run_cre_monte_carlo(purchase_price, noi, hold_period=5, paths=5000, seed=42,
         return {"engine": "AletheiaTelos Independent CRE Monte Carlo Risk Engine v2", "independent_of_agents": True, "status": "INSUFFICIENT EVIDENCE", "missing_inputs": ("interest_rate",), "scenarios": [], "assumptions": assumptions or []}
     if debt > 0 and not interest_only and (amortization_years is None or amortization_years <= 0):
         return {"engine": "AletheiaTelos Independent CRE Monte Carlo Risk Engine v2", "independent_of_agents": True, "status": "INSUFFICIENT EVIDENCE", "missing_inputs": ("amortization_years",), "scenarios": [], "assumptions": assumptions or []}
-    rate = float(interest_rate or 0.0)
+    rate = float(interest_rate) if interest_rate is not None else 0.0
     ds, method = _annual_debt_service(debt, rate, amortization_years, interest_only)
-    equity_initial = price + float(closing_costs or 0) - debt
-    capex = float(capital_expenditures or 0)
-    sale_cost = float(selling_cost_rate or 0)
+    equity_initial = price + float(closing_costs) - debt
+    capex = float(capital_expenditures)
+    sale_cost = float(selling_cost_rate)
     scenario_overrides = scenario_overrides or {}
     defaults = {"BASE": {"rent_growth_delta": 0, "occupancy_delta": 0, "exit_cap_delta": 0, "shock": 0, "growth_vol": .02}, "BULL": {"rent_growth_delta": .015, "occupancy_delta": .03, "exit_cap_delta": -.005, "shock": 0, "growth_vol": .01}, "BEAR": {"rent_growth_delta": -.02, "occupancy_delta": -.08, "exit_cap_delta": .01, "shock": 0, "growth_vol": .05}, "ADVERSARIAL": {"rent_growth_delta": -.04, "occupancy_delta": -.15, "exit_cap_delta": .02, "shock": -.10, "growth_vol": .08}, "TAIL RISK": {"rent_growth_delta": -.07, "occupancy_delta": -.25, "exit_cap_delta": .04, "shock": -.25, "growth_vol": .12}}
     summaries = []
@@ -182,10 +182,12 @@ def run_cre_monte_carlo(purchase_price, noi, hold_period=5, paths=5000, seed=42,
 
 def cre_sensitivity(purchase_price, noi, hold_period=5, occupancy=None, rent_growth=None, interest_rate=None, loan_to_value=None, exit_cap_rate=None, expense_growth=None, operating_expenses=None, capital_expenditures=None, paths=1000, seed=42):
     """One-variable sensitivity using changes relative to supplied base assumptions."""
-    base_cap = exit_cap_rate or noi / purchase_price
-    base_kwargs = dict(occupancy=occupancy, rent_growth=rent_growth, interest_rate=interest_rate, loan_to_value=loan_to_value, exit_cap_rate=base_cap, expense_growth=expense_growth, operating_expenses=operating_expenses, capital_expenditures=capital_expenditures)
+    if exit_cap_rate is None:
+        return {"status": "INSUFFICIENT EVIDENCE", "missing_inputs": ("exit_cap_rate",), "base": None, "variables": {}}
+    base_cap = exit_cap_rate
+    base_kwargs = dict(occupancy=occupancy, rent_growth=rent_growth, interest_rate=interest_rate, loan_to_value=loan_to_value, exit_cap_rate=base_cap, expense_growth=expense_growth, operating_expenses=operating_expenses, capital_expenditures=capital_expenditures, selling_cost_rate=0.0, closing_costs=0.0)
     base = run_cre_monte_carlo(purchase_price, noi, hold_period, paths, seed, **base_kwargs)
-    cases = {"rent_growth": [(-.02, "-2.0%"), (0, "0.0%"), (.02, "+2.0%")], "occupancy": [(.75, "75%"), (.90, "90%"), (.98, "98%")], "interest_rate": [(.05, "5.0%"), (.07, "7.0%"), (.09, "9.0%")], "exit_cap_rate": [(max(.0001, base_cap - .01), f"{max(.0001, base_cap - .01):.2%}"), (base_cap, f"{base_cap:.2%}"), (base_cap + .01, f"{base_cap + .01:.2%}")], "purchase_price": [(purchase_price * .9, "-10%"), (purchase_price, "Base"), (purchase_price * 1.1, "+10%")], "operating_expenses": [(max(0, (operating_expenses or 0) * .9), "-10%"), (operating_expenses or 0, "Base"), (operating_expenses * 1.1 if operating_expenses is not None else 0, "+10%")], "loan_to_value": [(.50, "50%"), (.65, "65%"), (.75, "75%")]}
+    cases = {"rent_growth": [(-.02, "-2.0%"), (0, "0.0%"), (.02, "+2.0%")], "occupancy": [(.75, "75%"), (.90, "90%"), (.98, "98%")], "interest_rate": [(.05, "5.0%"), (.07, "7.0%"), (.09, "9.0%")], "exit_cap_rate": [(max(.0001, base_cap - .01), f"{max(.0001, base_cap - .01):.2%}"), (base_cap, f"{base_cap:.2%}"), (base_cap + .01, f"{base_cap + .01:.2%}")], "purchase_price": [(purchase_price * .9, "-10%"), (purchase_price, "Base"), (purchase_price * 1.1, "+10%")], "operating_expenses": [(max(0, (operating_expenses or 0) * .9), "-10%"), (operating_expenses or 0, "Base"), (operating_expenses * 1.1 if operating_expenses is not None else 0, "+10%")], "loan_to_value": [(.50, "50%"), (.65, "65%"), (.75, "75%" )]}
     results = {"base": base, "variables": {}}
     for variable, values in cases.items():
         rows = []
