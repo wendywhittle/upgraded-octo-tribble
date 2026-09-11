@@ -67,6 +67,7 @@ class ResearchHypothesis:
     evidence_ids: List[str] = field(default_factory=list)
     assumptions: List[str] = field(default_factory=list)
     invalidation_conditions: List[str] = field(default_factory=list)
+    research_questions: List[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -118,9 +119,11 @@ def cross_asset_hypotheses(
     for index, link in enumerate(links, start=1):
         valid_evidence_ids = [item for item in link.evidence_ids if item in available]
         geography = f" in {link.to_entity.geography}" if link.to_entity.geography else ""
-        statement = (
-            f"{link.from_entity.name} may {link.relationship.replace('_', ' ')} "
-            f"{link.to_entity.name}{geography}."
+        relationship = link.relationship.replace("_", " ")
+        statement = f"{link.from_entity.name} may {relationship} {link.to_entity.name}{geography}."
+        research_question = (
+            f"What independent evidence would confirm or falsify whether "
+            f"{link.from_entity.name} {relationship} {link.to_entity.name}{geography}?"
         )
         hypotheses.append(
             ResearchHypothesis(
@@ -131,6 +134,7 @@ def cross_asset_hypotheses(
                 evidence_ids=valid_evidence_ids,
                 assumptions=["The stated cross-asset relationship is testable and may be false."],
                 invalidation_conditions=["Available evidence fails to support the stated relationship."],
+                research_questions=[research_question],
             )
         )
     return hypotheses
