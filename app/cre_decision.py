@@ -50,29 +50,38 @@ def evaluate_financial_decision(
         )
     failures: list[str] = []
     satisfied: list[str] = []
+    unknowns: list[str] = []
     if criteria.min_dscr is not None:
-        if financial.dscr is None or financial.dscr < criteria.min_dscr:
-            failures.append(f"DSCR {financial.dscr if financial.dscr is not None else 'UNKNOWN'} is below configured minimum {criteria.min_dscr:.2f}x.")
+        if financial.dscr is None:
+            unknowns.append("DSCR is UNKNOWN; configured minimum DSCR cannot be verified.")
+        elif financial.dscr < criteria.min_dscr:
+            failures.append(f"DSCR {financial.dscr:.2f}x is below configured minimum {criteria.min_dscr:.2f}x.")
         else:
             satisfied.append(f"DSCR >= {criteria.min_dscr:.2f}x")
     if criteria.min_cash_on_cash is not None:
-        if financial.cash_on_cash is None or financial.cash_on_cash < criteria.min_cash_on_cash:
+        if financial.cash_on_cash is None:
+            unknowns.append("Cash-on-cash return is UNKNOWN; configured minimum cannot be verified.")
+        elif financial.cash_on_cash < criteria.min_cash_on_cash:
             failures.append("Cash-on-cash return is below the configured minimum.")
         else:
             satisfied.append(f"Cash-on-cash >= {criteria.min_cash_on_cash:.2%}")
     if criteria.min_irr is not None:
-        if financial.irr is None or financial.irr < criteria.min_irr:
+        if financial.irr is None:
+            unknowns.append("IRR is UNKNOWN; configured minimum cannot be verified.")
+        elif financial.irr < criteria.min_irr:
             failures.append("IRR is below the configured minimum.")
         else:
             satisfied.append(f"IRR >= {criteria.min_irr:.2%}")
     if criteria.min_equity_multiple is not None:
-        if financial.equity_multiple is None or financial.equity_multiple < criteria.min_equity_multiple:
+        if financial.equity_multiple is None:
+            unknowns.append("Equity multiple is UNKNOWN; configured minimum cannot be verified.")
+        elif financial.equity_multiple < criteria.min_equity_multiple:
             failures.append("Equity multiple is below the configured minimum.")
         else:
             satisfied.append(f"Equity multiple >= {criteria.min_equity_multiple:.2f}x")
     if criteria.max_ltv is not None:
         if supplied_ltv is None:
-            failures.append("LTV is UNKNOWN; configured maximum LTV cannot be verified.")
+            unknowns.append("LTV is UNKNOWN; configured maximum LTV cannot be verified.")
         elif supplied_ltv > criteria.max_ltv:
             failures.append(f"LTV {supplied_ltv:.2%} exceeds configured maximum {criteria.max_ltv:.2%}.")
         else:
@@ -83,6 +92,15 @@ def evaluate_financial_decision(
             rationale=" ".join(failures),
             criteria_satisfied=tuple(satisfied),
             criteria_failed=tuple(failures),
+            unresolved_questions=tuple(unknowns),
+            evidence_ids=financial.evidence_ids,
+        )
+    if unknowns:
+        return CREDecisionRecord(
+            state=UnderwritingDecision.INSUFFICIENT_EVIDENCE,
+            rationale="Configured criteria cannot be fully evaluated because material decision inputs remain unknown: " + " ".join(unknowns),
+            criteria_satisfied=tuple(satisfied),
+            unresolved_questions=tuple(unknowns),
             evidence_ids=financial.evidence_ids,
         )
     configured = (
