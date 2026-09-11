@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 EpistemicRecordType = Literal[
@@ -34,6 +34,8 @@ RecordStatus = Literal["active", "superseded", "unresolved", "resolved", "observ
 
 class EpistemicRecord(BaseModel):
     """Common immutable envelope for an institutional memory record."""
+
+    model_config = ConfigDict(frozen=True)
 
     record_id: str = Field(min_length=1)
     record_type: EpistemicRecordType
@@ -59,6 +61,8 @@ class EpistemicRecord(BaseModel):
 class EpistemicRevision(BaseModel):
     """Explicit historical transition; never an in-place mutation."""
 
+    model_config = ConfigDict(frozen=True)
+
     revision_id: str = Field(min_length=1)
     prior_record_id: str = Field(min_length=1)
     new_record_id: str = Field(min_length=1)
@@ -69,6 +73,8 @@ class EpistemicRevision(BaseModel):
 
 class ContradictionRecord(BaseModel):
     """First-class disagreement record; resolution is intentionally external."""
+
+    model_config = ConfigDict(frozen=True)
 
     record_id: str = Field(min_length=1)
     record_type: Literal["contradiction"] = "contradiction"
