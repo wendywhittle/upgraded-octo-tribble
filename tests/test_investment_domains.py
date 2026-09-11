@@ -6,6 +6,7 @@ from app.investment_domains import (
     InvestmentDomain,
     ResearchHypothesis,
     classify_cross_asset_links,
+    cross_asset_hypotheses,
     domain_manifest,
 )
 
@@ -62,3 +63,21 @@ def test_backed_cross_asset_link_is_explicitly_evidence():
     assert classified["evidence_backed"] is True
     assert classified["epistemic_stage"] == "evidence"
     assert classified["missing_evidence_ids"] == []
+
+
+def test_cross_asset_relationship_generates_testable_hypothesis():
+    company = IntelligenceEntity("company-1", "company", "Example Co")
+    property_ = IntelligenceEntity(
+        "property-1", "industrial_asset", "Example Industrial Park", "Pacific Northwest"
+    )
+    link = CrossAssetLink(company, "drives_demand_for", property_, ["e-1"])
+
+    hypotheses = cross_asset_hypotheses([link], ["e-1"])
+
+    assert len(hypotheses) == 1
+    assert hypotheses[0].domain is InvestmentDomain.ASSET
+    assert hypotheses[0].evidence_ids == ["e-1"]
+    assert hypotheses[0].statement == (
+        "Example Co may drives demand for Example Industrial Park in Pacific Northwest."
+    )
+    assert hypotheses[0].invalidation_conditions
