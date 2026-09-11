@@ -14,17 +14,24 @@ def _now() -> str:
 
 def build_record(question: str, agents: List[Dict[str, Any]], conflicts: Dict[str, Any],
                  simulation: Dict[str, Any], skeptic: Dict[str, Any],
-                 synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int) -> Dict[str, Any]:
+                 synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int,
+                 decision: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    assumptions = []
+    for agent in agents:
+        assumptions.extend(agent.get("assumptions", []))
     return {
         "record_type": "decision_observation",
         "recorded_at": _now(),
         "question": question,
+        "evidence": {"ids": sorted({item for agent in agents for item in agent.get("evidence", [])})},
+        "assumptions": list(dict.fromkeys(assumptions)),
         "agents": agents,
         "conflicts": conflicts,
         "simulation": simulation,
         "skeptic": skeptic,
         "synthesis": synthesis,
         "governance": governance,
+        "decision": decision,
         "outcome": {"status": "pending", "value": None, "observed_at": None},
         "lesson": None,
         "audit": {"simulation_seed": seed, "reconstructable": True},
