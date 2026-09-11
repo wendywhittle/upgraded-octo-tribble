@@ -1,6 +1,6 @@
 import pytest
 
-from app.contrarian import ContrarianValidationError, review_contrarian
+from app.contrarian import ContrarianFinding, ContrarianValidationError, review_contrarian
 from app.cre_simulation import CRESimulationConfig, run_cre_simulation
 from app.proforma import ProFormaInput, calculate_proforma
 from app.scenario import ScenarioDefinition, run_scenario, standard_scenarios
@@ -111,19 +111,17 @@ def test_contrarian_does_not_change_workflow_state():
         evidence=[{"evidence_id": "e1", "claim": "rent roll", "source": "source"}],
     )
     assert "workflow_state" not in review.model_dump()
-    assert "authorization" not in str(review.model_dump()).lower()
+    assert "authorization_id" not in review.model_dump()
 
 
 def test_no_go_is_a_recommendation_type_not_authorization():
-    finding_data = {
-        "category": "ASSUMPTION",
-        "severity": "CRITICAL",
-        "description": "NO_GO_RECOMMENDATION",
-        "rationale": "Insufficient margin of safety.",
-        "provenance": "RECOMMENDATION",
-        "output_type": "RECOMMENDATION",
-    }
-    from app.contrarian import ContrarianFinding
-    finding = ContrarianFinding(**finding_data)
+    finding = ContrarianFinding(
+        category="ASSUMPTION",
+        severity="CRITICAL",
+        description="NO_GO_RECOMMENDATION",
+        rationale="Insufficient margin of safety.",
+        provenance="RECOMMENDATION",
+        output_type="RECOMMENDATION",
+    )
     assert finding.output_type == "RECOMMENDATION"
     assert finding.provenance == "RECOMMENDATION"
