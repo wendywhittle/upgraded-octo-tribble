@@ -12,6 +12,8 @@ from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.underwriting_calculations import CalculationResult
+
 
 UnderwritingStatus = Literal[
     "observed",
@@ -139,6 +141,7 @@ class CREUnderwritingProForma(BaseModel):
     financing: UnderwritingFinancingReference = Field(default_factory=UnderwritingFinancingReference)
     cash_flows: List[CashFlowProjection] = Field(default_factory=list)
     returns: Optional[ReturnOutputs] = None
+    calculation_outputs: List[CalculationResult] = Field(default_factory=list)
     assumptions: List[str] = Field(default_factory=list)
     source_refs: List[str] = Field(default_factory=list)
     uncertainty: List[str] = Field(default_factory=list)
@@ -168,6 +171,7 @@ def build_cre_underwriting(
     financing: UnderwritingFinancingReference | None = None,
     cash_flows: List[CashFlowProjection] | None = None,
     returns: ReturnOutputs | None = None,
+    calculation_outputs: List[CalculationResult] | None = None,
     assumptions: List[str] | None = None,
     source_refs: List[str] | None = None,
     uncertainty: List[str] | None = None,
@@ -187,6 +191,7 @@ def build_cre_underwriting(
         financing=financing or UnderwritingFinancingReference(),
         cash_flows=list(cash_flows or []),
         returns=returns,
+        calculation_outputs=list(calculation_outputs or []),
         assumptions=list(dict.fromkeys(assumptions or [])),
         source_refs=list(dict.fromkeys(source_refs or [])),
         uncertainty=list(dict.fromkeys(uncertainty or [])),
