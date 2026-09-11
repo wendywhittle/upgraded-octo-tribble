@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Any, Dict, Iterable, List
 
 from app.calibration import calibrate_predictions
-from app.epistemic_adapter import learning_to_epistemic_records
+from app.epistemic_adapter import learning_to_epistemic_records, serialize_record
 
 
 def _group_metrics(records: List[Dict[str, Any]], key_name: str) -> Dict[str, Any]:
@@ -87,8 +87,5 @@ def build_learning_report(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
         "brokerage_connectivity": False,
         "portfolio_mutation": False,
     }
-    result["epistemic_memory"] = [
-        record.model_dump() if hasattr(record, "model_dump") else record.dict()
-        for record in learning_to_epistemic_records(result)
-    ]
+    result["epistemic_memory"] = [serialize_record(record) for record in learning_to_epistemic_records(result)]
     return result
