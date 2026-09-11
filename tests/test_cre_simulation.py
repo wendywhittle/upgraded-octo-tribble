@@ -131,7 +131,7 @@ def test_missing_inputs_are_not_silently_zeroed():
         run_cre_simulation(
             simulation_id="sim-missing",
             scenario=make_scenario(),
-            metric="net_operating_income",
+            metric="cash_on_cash",
             inputs=(),
             iterations=10,
             seed=1,
@@ -223,9 +223,9 @@ def test_simulation_has_no_authority_or_recommendation_logic():
 def test_triangular_distribution_uses_explicit_deterministic_mode():
     item = SimulationDistributionInput(
         input_name="operating_expenses",
-        deterministic_value=300,
-        lower_bound=200,
-        upper_bound=400,
+        deterministic_value=300_000,
+        lower_bound=200_000,
+        upper_bound=400_000,
         distribution_type="triangular",
         input_ref="assumption:opex-triangular",
     )
