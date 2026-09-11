@@ -100,8 +100,6 @@ def build_cre_property_due_diligence(
 ) -> CREPropertyDueDiligence:
     records = list(findings or [])
     refs = list(conflict_refs or [])
-    for finding in records:
-        refs.extend(finding.conflict_refs)
     return CREPropertyDueDiligence(
         due_diligence_id=due_diligence_id,
         opportunity_id=opportunity_id,
@@ -131,7 +129,6 @@ def validate_due_diligence_scope(
     if cre_evidence is not None:
         evidence_ids = {item.evidence_id for item in cre_evidence}
         refs = {ref for finding in diligence.findings for ref in finding.evidence_refs}
-        refs.update(diligence.conflict_refs)
         unknown = refs - evidence_ids
         if unknown:
             raise ValueError(f"due diligence references unknown CRE evidence: {sorted(unknown)}")
