@@ -5,9 +5,9 @@ creating execution authority. Both domains consume the same evidence and reasoni
 infrastructure downstream.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 
 class InvestmentDomain(str, Enum):
@@ -71,12 +71,37 @@ class ResearchHypothesis:
 
 @dataclass(frozen=True)
 class CrossAssetLink:
-    """A typed relationship that can connect capital and real-asset research."""
+    """A typed relationship connecting capital and real-asset research."""
 
     from_entity: IntelligenceEntity
     relationship: str
     to_entity: IntelligenceEntity
     evidence_ids: List[str] = field(default_factory=list)
+
+
+def classify_cross_asset_links(
+    links: Iterable[CrossAssetLink], evidence_ids: Iterable[str]
+) -> List[Dict[str, Any]]:
+    """Serialize links while explicitly separating backed relationships from hypotheses.
+
+    A link is ``evidence_backed`` only when every referenced evidence ID exists in the
+    evidence registry for the current research request. Unbacked links remain useful
+    context, but are never silently promoted to observations or evidence.
+    """
+    available = {str(item) for item in evidence_ids}
+    classified: List[Dict[str, Any]] = []
+    for link in links:
+        missing = sorted(set(link.evidence_ids) - available)
+        item = asdict(link)
+        item["evidence_backed"] = bool(link.evidence_ids) and not missing
+        item["missing_evidence_ids"] = missing
+        item["epistemic_stage"] = (
+            EvidenceStage.EVIDENCE.value
+            if item["evidence_backed"]
+            else EvidenceStage.HYPOTHESIS.value
+        )
+        classified.append(item)
+    return classified
 
 
 def domain_manifest() -> Dict[str, Any]:
