@@ -49,13 +49,24 @@ def test_capital_research_accepts_normalized_documents():
     assert body["governance"]["autonomous_execution"] is False
 
 
-def test_capital_research_preserves_cross_asset_links_as_context():
+def test_capital_research_classifies_cross_asset_context():
     response = client.post(
         "/capital/research",
         json={
             "question": "Could observed company activity affect industrial real assets?",
             "domains": ["alternative_data", "public_markets"],
             "entities": ["COMPANY", "INDUSTRIAL_ASSET"],
+            "documents": [
+                {
+                    "source": "test-provider",
+                    "title": "Observed activity",
+                    "content": "A disclosed contract was observed.",
+                    "retrieved_at": "2026-09-11T00:00:00+00:00",
+                    "source_id": "evidence-1",
+                    "provenance_type": "external",
+                    "point_in_time": True,
+                }
+            ],
             "cross_asset_links": [
                 {
                     "from_entity": {
@@ -80,8 +91,9 @@ def test_capital_research_preserves_cross_asset_links_as_context():
     assert response.status_code == 200
     link = response.json()["capital_engine"]["cross_asset_links"][0]
     assert link["relationship"] == "drives_demand_for"
-    assert link["evidence_ids"] == ["evidence-1"]
-    assert response.json()["capital_engine"]["research_only"] is True
+    assert link["evidence_backed"] is True
+    assert link["epistemic_stage"] == "evidence"
+    assert link["missing_evidence_ids"] == []
 
 
 def test_capital_research_does_not_require_a_provider():
