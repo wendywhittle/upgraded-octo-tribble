@@ -160,6 +160,7 @@ def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult
         "expense_growth": inputs.expense_growth,
         "capital_expenditures": inputs.capital_expenditures,
         "selling_cost_rate": inputs.selling_cost_rate,
+        "closing_costs": inputs.closing_costs,
     }
     for name, value in required_values.items():
         if value is None or (isinstance(value, (int, float)) and value <= 0 and name in {"purchase_price", "noi", "hold_period_years", "exit_cap_rate"}):
@@ -170,6 +171,8 @@ def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult
         missing.append("capital_expenditures")
     if inputs.selling_cost_rate is not None and not 0 <= inputs.selling_cost_rate < 1:
         missing.append("selling_cost_rate")
+    if inputs.closing_costs is not None and inputs.closing_costs < 0:
+        missing.append("closing_costs")
     derived: set[str] = set()
     if inputs.effective_income is None and inputs.gross_rent is not None and (inputs.occupancy is not None or inputs.vacancy is not None): derived.add("effective_income")
     if inputs.loan_amount is None and inputs.loan_to_value is not None and inputs.purchase_price is not None: derived.add("loan_amount")
@@ -181,7 +184,7 @@ def underwrite_financial_model(inputs: CREFinancialInputs) -> CREFinancialResult
     cap = noi / price
     loan = inputs.loan_amount if inputs.loan_amount is not None else price * float(inputs.loan_to_value)
     if loan < 0: return CREFinancialResult("INSUFFICIENT EVIDENCE", status, ("loan_amount",), going_in_cap_rate=cap, evidence_ids=tuple(inputs.evidence_ids))
-    equity = price + float(inputs.closing_costs or 0.0) - loan
+    equity = price + float(inputs.closing_costs) - loan
     annual_ds = None
     if loan > 0:
         if inputs.interest_rate is None: return CREFinancialResult("INSUFFICIENT EVIDENCE", status, ("interest_rate",), going_in_cap_rate=cap, equity_requirement=equity, evidence_ids=tuple(inputs.evidence_ids))
