@@ -36,6 +36,7 @@ def test_full_pipeline_preserves_no_data_without_evidence():
     assert result["kaleidoscope"]["perspective_count"] == 8
     assert result["kaleidoscope"]["expected_perspective_count"] == 9
     assert result["kaleidoscope"]["meta_intelligence"]["reasoning_health"] == "INSUFFICIENT"
+    assert result["epistemic_memory"][0]["record_type"] == "interpretation"
 
 
 def test_full_pipeline_feeds_only_validated_evidence_to_active_reasoning_agents():
@@ -49,6 +50,7 @@ def test_full_pipeline_feeds_only_validated_evidence_to_active_reasoning_agents(
     assert all(agent["execution_capability"] is False for agent in result["agents"])
     assert all(agent["brokerage_connectivity"] is False for agent in result["agents"])
     assert all(agent["portfolio_mutation"] is False for agent in result["agents"])
+    assert all(isinstance(agent["epistemic_memory"], list) for agent in result["agents"])
     assert result["simulation"]["independent_of_agents"] is True
     assert result["governance"]["human_decision_required"] is True
     assert result["governance"]["autonomous_execution"] is False

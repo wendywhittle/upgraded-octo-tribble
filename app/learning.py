@@ -7,9 +7,10 @@ changes agent authority, weights, execution capability, or historical records.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List
 
 from app.calibration import calibrate_predictions
+from app.epistemic_adapter import learning_to_epistemic_records, serialize_record
 
 
 def _group_metrics(records: List[Dict[str, Any]], key_name: str) -> Dict[str, Any]:
@@ -64,8 +65,9 @@ def build_learning_report(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
         ({"agent_id": agent_id, **metrics} for agent_id, metrics in agent_metrics.items()),
         key=lambda item: (item["brier_score"], -item["sample_count"]),
     )
+    lessons = _lessons(resolutions)
     horizon_metrics = _group_metrics(resolutions, "horizon") if resolutions and all("brier_error" in r for r in resolutions) else {}
-    return {
+    result = {
         "record_type": "learning_report",
         "status": calibration.get("status"),
         "resolved_prediction_count": len(resolutions),
@@ -73,7 +75,7 @@ def build_learning_report(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
         "agent_metrics": agent_metrics,
         "agent_metrics_ranked": ranked,
         "horizon_metrics": horizon_metrics,
-        "lessons": _lessons(resolutions),
+        "lessons": lessons,
         "authority_changed": False,
         "weights_changed": False,
         "historical_records_mutated": False,
@@ -85,3 +87,5 @@ def build_learning_report(records: Iterable[Dict[str, Any]], bins: int = 5) -> D
         "brokerage_connectivity": False,
         "portfolio_mutation": False,
     }
+    result["epistemic_memory"] = [serialize_record(record) for record in learning_to_epistemic_records(result)]
+    return result

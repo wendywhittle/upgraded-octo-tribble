@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from app.epistemic_adapter import resolution_to_epistemic_records, serialize_record
+
 
 def _parse_timestamp(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip():
@@ -67,4 +69,5 @@ def resolve_prediction(
         "brokerage_connectivity": False,
         "portfolio_mutation": False,
     }
+    result["epistemic_memory"] = [serialize_record(record) for record in resolution_to_epistemic_records(result)]
     return result
