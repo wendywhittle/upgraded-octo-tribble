@@ -80,6 +80,10 @@ class AgentRunner:
         validated_data = validated.model_dump() if hasattr(validated, "model_dump") else validated.dict()
         output = dict(result)
         output.update(validated_data)
+        # Preserve the provider/runner evidence payload exactly as supplied after
+        # schema validation. Validation may normalize it by dropping extension
+        # fields, but the runner contract requires evidence to remain unchanged.
+        output["evidence"] = evidence_list
         output["capability_profile"] = dict(capabilities)
         output["agent_runner"] = self.__class__.__name__
         output["provider"] = self.provider.name
