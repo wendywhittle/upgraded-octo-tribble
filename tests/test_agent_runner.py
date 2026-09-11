@@ -48,7 +48,7 @@ def test_runner_passes_research_context_without_changing_evidence():
                 "assumptions": [],
             }
 
-    evidence = [{"evidence_id": "E1", "claim": "Observed fact", "decision_usable": True}]
+    evidence = [{"evidence_id": "E1", "source": "unit-test-source", "claim": "Observed fact", "decision_usable": True}]
     research_context = {
         "research_hypotheses": [
             {"hypothesis_id": "H1", "statement": "The fact may affect an asset.", "epistemic_stage": "hypothesis"}
