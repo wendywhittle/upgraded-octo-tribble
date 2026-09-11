@@ -104,6 +104,7 @@ def test_governance_has_distinct_role_specific_prompt():
     assert "portfolio mutation" in governance
     assert "capital movement" in governance
     assert "evidence validation and provenance" in governance
+    assert "conditions requiring human review" in governance
     assert "Do not override perspectives or make an investment decision." in governance
 
 
