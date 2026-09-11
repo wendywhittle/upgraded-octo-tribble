@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.capital_stack import CapitalStack, LenderEvidence
 from app.cre_evidence import CREEvidence
 from app.opportunity import CREOpportunityDeal
+from app.screening import CREOpportunityScreening
 from app.underwriting import CREUnderwritingProForma
 
 
@@ -60,6 +61,7 @@ class StructuredInvestmentCase(BaseModel):
     opportunity_deal: Optional[CREOpportunityDeal] = None
     evidence: Dict[str, Any] = Field(default_factory=dict)
     cre_evidence: List[CREEvidence] = Field(default_factory=list)
+    screening: Optional[CREOpportunityScreening] = None
     evidence_refs: List[InvestmentCaseRef] = Field(default_factory=list)
     independent_reasoning: List[Dict[str, Any]] = Field(default_factory=list)
     claims_and_interpretations: List[Dict[str, Any]] = Field(default_factory=list)
@@ -98,6 +100,7 @@ def build_structured_investment_case(
     meta_intelligence: Dict[str, Any] | None = None,
     opportunity_deal: CREOpportunityDeal | None = None,
     cre_evidence: List[CREEvidence] | None = None,
+    screening: CREOpportunityScreening | None = None,
     underwriting: CREUnderwritingProForma | None = None,
     capital_stack: CapitalStack | None = None,
     lender_evidence: List[LenderEvidence] | None = None,
@@ -140,6 +143,8 @@ def build_structured_investment_case(
         gaps.append("No explicit agent assumptions were available.")
     if opportunity_deal is None:
         gaps.append("Canonical CRE opportunity / deal representation is not yet supplied.")
+    if screening is None:
+        gaps.append("CRE opportunity screening is not yet supplied.")
     if underwriting is None:
         gaps.append("CRE underwriting / property-level pro forma is not yet supplied.")
     if capital_stack is None:
@@ -163,6 +168,7 @@ def build_structured_investment_case(
         opportunity_deal=opportunity_deal,
         evidence=evidence,
         cre_evidence=cre_evidence_records,
+        screening=screening,
         evidence_refs=evidence_refs,
         independent_reasoning=agents,
         claims_and_interpretations=[
