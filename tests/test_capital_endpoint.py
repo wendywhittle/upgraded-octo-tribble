@@ -45,7 +45,8 @@ def test_capital_research_accepts_normalized_documents():
     assert body["capital_engine"]["document_count"] == 1
     assert body["capital_engine"]["research_only"] is True
     assert body["evidence"]["count"] == 1
-    assert body["evidence"]["validation"][0]["evidence_id"] == body["evidence"]["validation"][0]["evidence_id"]
+    assert len(body["evidence"]["validation"]) == 1
+    assert body["evidence"]["validation"][0]["decision_usable"] is True
     assert body["audit"]["research_only"] is True
     assert body["governance"]["autonomous_execution"] is False
 
@@ -109,7 +110,8 @@ def test_capital_research_classifies_cross_asset_context():
     assert body["evidence"]["count"] == 1
     assert [item["evidence_id"] for item in body["agents"][0]["evidence"]] == ["evidence-1"]
     assert body["audit"]["research_context_supplied"] is True
-    assert body["audit"]["execution_capability"] if "execution_capability" in body["audit"] else True
+    assert body["audit"]["research_only"] is True
+    assert body["audit"]["human_decision_required"] is True
 
 
 def test_capital_research_does_not_require_a_provider():
