@@ -1,5 +1,13 @@
 import pytest
 
+from app.underwriting import (
+    AcquisitionTerms,
+    OperatingAssumptions,
+    PropertyIdentity,
+    UnderwritingProvenance,
+    ValuationAssumptions,
+    build_cre_underwriting,
+)
 from app.underwriting_calculations import (
     annual_debt_service,
     cap_rate,
@@ -98,7 +106,24 @@ def test_calculation_result_is_immutable_and_serializable():
 
 
 def test_calculations_do_not_contain_recommendation_or_authorization_fields():
-    result = noi = net_operating_income(900, 300)
+    result = net_operating_income(900, 300)
     dumped = result.model_dump()
     assert "recommendation" not in dumped
     assert dumped["authorization"] == "none"
+
+
+def test_calculation_outputs_integrate_with_pro_forma_without_changing_governance():
+    provenance = UnderwritingProvenance(status="assumed")
+    calculation = cap_rate(650_000, 10_000_000, input_refs=("underwriting:inputs",))
+    pro_forma = build_cre_underwriting(
+        underwriting_id="uw-1",
+        property=PropertyIdentity(property_id="property-1"),
+        acquisition=AcquisitionTerms(purchase_price=10_000_000, provenance=provenance),
+        operations=OperatingAssumptions(gross_revenue=1_000_000, operating_expenses=350_000, provenance=provenance),
+        valuation=ValuationAssumptions(exit_cap_rate=0.065, provenance=provenance),
+        calculation_outputs=[calculation],
+    )
+    assert pro_forma.calculation_outputs[0] == calculation
+    assert pro_forma.investment_authority == "none"
+    assert pro_forma.execution_capability is False
+    assert pro_forma.portfolio_mutation is False
