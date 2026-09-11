@@ -84,15 +84,20 @@
     if (button) recordHumanDecision(button.dataset.disposition);
   });
 
-  // app.js owns the analysis workflow. Intercept only its completed analysis response
-  // so the governance layer evaluates the server result without duplicating the pipeline.
+  // app.js owns the analysis workflow. The analysis endpoint now returns the
+  // server-authoritative Decision Gate state. Use it directly to avoid a second
+  // evaluation and duplicate audit event. The endpoint fallback remains for
+  // backward compatibility with older analysis responses.
   window.__aletheiaOriginalFetch = window.fetch.bind(window);
   window.fetch = async (...args) => {
     const response = await window.__aletheiaOriginalFetch(...args);
     const url = typeof args[0] === "string" ? args[0] : args[0]?.url;
     if (url && url.endsWith("/analysis/run") && response.ok) {
       const clone = response.clone();
-      clone.json().then(analysis => evaluate(analysis)).catch(() => {});
+      clone.json().then(analysis => {
+        if (analysis?.decision_gate) render(analysis.decision_gate);
+        else evaluate(analysis);
+      }).catch(() => {});
     }
     return response;
   };
