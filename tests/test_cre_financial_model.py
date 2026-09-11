@@ -10,7 +10,7 @@ from app.simulator import cre_sensitivity, run_cre_monte_carlo
 
 
 def model_inputs(**overrides):
-    values = dict(purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, interest_rate=.06, amortization_years=25, hold_period_years=5, exit_cap_rate=.07, selling_cost_rate=.02, capital_expenditures=25_000, evidence_ids=("ev-price", "ev-noi"))
+    values = dict(purchase_price=10_000_000, noi=700_000, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, interest_rate=.06, amortization_years=25, hold_period_years=5, exit_cap_rate=.07, selling_cost_rate=.02, capital_expenditures=25_000, closing_costs=0.0, evidence_ids=("ev-price", "ev-noi"))
     values.update(overrides)
     return CREFinancialInputs(**values)
 
@@ -36,6 +36,12 @@ def test_missing_exit_assumption_is_unknown_not_fabricated():
     result = underwrite_financial_model(model_inputs(exit_cap_rate=None))
     assert result.status == "INSUFFICIENT EVIDENCE" and "exit_cap_rate" in result.missing_inputs
     assert result.input_status["exit_cap_rate"] is InputStatus.UNKNOWN
+
+
+def test_missing_closing_costs_is_unknown_not_fabricated():
+    result = underwrite_financial_model(model_inputs(closing_costs=None))
+    assert result.status == "INSUFFICIENT EVIDENCE" and "closing_costs" in result.missing_inputs
+    assert result.input_status["closing_costs"] is InputStatus.UNKNOWN
 
 
 def test_observed_and_assumed_inputs_remain_distinguishable():
@@ -66,25 +72,25 @@ def test_explicit_criteria_can_produce_no_deal_without_authority():
 
 
 def test_cre_simulation_uses_economic_outputs_not_price_paths():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, capital_expenditures=25_000, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0, amortization_years=25)
     base = next(item for item in result["scenarios"] if item["scenario"] == "BASE")
     assert base["mean_exit_value"] != 100.0 and base["mean_dscr"] is not None and base["mean_equity_multiple"] is not None and base["mean_irr"] is not None
 
 
 def test_scenarios_have_different_economic_assumptions():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=11, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0)
     scenarios = {s["scenario"]: s for s in result["scenarios"]}
     assert scenarios["BASE"]["scenario_assumptions"] != scenarios["BEAR"]["scenario_assumptions"]
     assert scenarios["ADVERSARIAL"]["scenario_assumptions"]["exit_cap_rate"] > scenarios["BASE"]["scenario_assumptions"]["exit_cap_rate"]
 
 
 def test_financing_unknown_prevents_simulation_from_inventing_rate():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=10, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, exit_cap_rate=.07)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=10, occupancy=.95, rent_growth=.03, expense_growth=.02, loan_to_value=.65, exit_cap_rate=.07, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0)
     assert result["status"] == "INSUFFICIENT EVIDENCE" and "interest_rate" in result["missing_inputs"]
 
 
 def test_sensitivity_changes_the_requested_variable():
-    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=None, loan_to_value=0.0, exit_cap_rate=.07)
+    result = cre_sensitivity(10_000_000, 700_000, hold_period=5, paths=100, seed=3, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=None, loan_to_value=0.0, exit_cap_rate=.07, capital_expenditures=25_000)
     outcomes = [row["base_scenario"]["mean_equity_outcome"] for row in result["variables"]["exit_cap_rate"]]
     assert outcomes[0] > outcomes[-1]
 
@@ -108,7 +114,7 @@ def test_conflict_preserves_economic_interpretations_without_averaging():
 
 def test_adversarial_review_references_actual_financial_outputs():
     model = underwrite_financial_model(model_inputs())
-    sim = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25)
+    sim = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=100, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, interest_rate=.06, loan_to_value=.65, exit_cap_rate=.07, amortization_years=25, capital_expenditures=25_000, selling_cost_rate=.02, closing_costs=0.0)
     review = review_cre_simulation(sim, ("rent_growth=.03",), ("ev-price",), model)
     assert any("break-even occupancy" in item for item in review.challenges)
     assert any("Worst modeled scenario" in item for item in review.challenges)
