@@ -19,6 +19,7 @@ from app.prediction_resolution import resolve_prediction
 from app.prediction_resolution_endpoint import PredictionResolutionRequest, build_prediction_resolution_router
 from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
+from app.workflow_endpoint import build_workflow_router
 
 app = FastAPI(title="AletheiaTelos", version="1.11.0", description="Research and decision intelligence system; not an autonomous trading system.")
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -33,6 +34,7 @@ app.include_router(build_calibration_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
+app.include_router(build_workflow_router())
 
 # Explicit application-boundary fallbacks keep the public routes observable even if
 # router composition is altered by a future integration refactor.
