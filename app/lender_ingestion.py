@@ -34,10 +34,10 @@ def ingest_lender_profile(payload: dict[str, Any]) -> LenderProfile:
 
 def ingest_financing_terms(payload: dict[str, Any]) -> FinancingTerms:
     """Validate one externally supplied financing-term record."""
-    validate_lender_evidence([payload])
     try:
+        validate_lender_evidence([payload])
         return FinancingTerms.model_validate(deepcopy(payload))
-    except ValidationError as exc:
+    except (ValidationError, LenderIntelligenceValidationError) as exc:
         raise LenderEvidenceIngestionError(str(exc)) from exc
 
 
@@ -45,8 +45,8 @@ def ingest_financing_terms_collection(
     payloads: list[dict[str, Any]],
 ) -> list[FinancingTerms]:
     """Ingest a collection while preserving explicit conflicts."""
-    validate_lender_evidence(payloads)
     try:
+        validate_lender_evidence(payloads)
         terms = [FinancingTerms.model_validate(deepcopy(payload)) for payload in payloads]
         validate_financing_terms_collection(terms)
         return terms
