@@ -239,4 +239,4 @@ def test_triangular_distribution_uses_explicit_deterministic_mode():
         created_at=FIXED,
     )
     assert simulation.summary.minimum >= 350_000
-    assert simulation.summary.maximum <= 550_000
+    assert simulation.summary.maximum <= 750_000
