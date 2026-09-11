@@ -29,7 +29,7 @@ def test_perspectives_have_distinct_analytical_lenses():
     theses = {a.perspective_id: a.thesis for a in assessments}
     assert len(set(theses.values())) == len(CRE_PERSPECTIVES)
     assert "permanent capital loss" in " ".join(assessments[7].risks).lower()
-    assert "fragile" in assessments[6].thesis.lower()
+    assert "central assumptions fail" in assessments[6].thesis.lower()
 
 
 def test_missing_inputs_are_preserved_and_not_fabricated():
@@ -52,14 +52,14 @@ def test_cre_conflict_projection_preserves_disagreement_dimensions():
 
 
 def test_simulation_is_independent_and_has_all_required_scenarios():
-    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
+    result = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
     assert result["independent_of_agents"] is True
     assert {s["scenario"] for s in result["scenarios"]} == {"BASE", "BULL", "BEAR", "ADVERSARIAL", "TAIL RISK"}
     assert all("probability_loss" in s for s in result["scenarios"])
 
 
 def test_adversarial_review_uses_simulation_results():
-    simulation = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
+    simulation = run_cre_monte_carlo(10_000_000, 700_000, hold_period=5, paths=200, seed=7, occupancy=.95, rent_growth=.03, expense_growth=.02, exit_cap_rate=0.07, loan_to_value=0.65, interest_rate=0.06, amortization_years=25)
     review = review_cre_simulation(simulation, ("rent growth", "exit cap"), ("lease-1",))
     assert review.status == "reviewed"
     assert review.evidence_ids == ("lease-1",)
