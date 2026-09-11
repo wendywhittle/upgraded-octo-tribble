@@ -37,6 +37,7 @@ def _derive_criteria(analysis: Dict[str, Any]) -> Dict[str, bool]:
     governance = analysis.get("governance") or {}
     synthesis = analysis.get("synthesis") or {}
     conflicts = cre.get("conflicts") or []
+    validation = evidence.get("validation") or []
 
     scenario_names = {
         str(item.get("scenario", "")).upper().replace(" ", "_")
@@ -44,6 +45,10 @@ def _derive_criteria(analysis: Dict[str, Any]) -> Dict[str, bool]:
         if isinstance(item, dict)
     }
     has_downside = bool({"BEAR", "ADVERSARIAL", "TAIL_RISK"} & scenario_names)
+    validation_clean = all(
+        isinstance(item, dict) and item.get("decision_usable") is True
+        for item in validation
+    ) if validation else False
 
     financial_missing = financial.get("missing_inputs") or []
     uncertainty = context.get("uncertainty") or []
@@ -59,7 +64,7 @@ def _derive_criteria(analysis: Dict[str, Any]) -> Dict[str, bool]:
         "EVIDENCE_INTEGRITY": bool(
             evidence.get("count", 0) > 0
             and evidence.get("usable_count", 0) > 0
-            and not evidence.get("validation", {}).get("errors")
+            and validation_clean
         ),
         "UNDERWRITING_COMPLETE": financial.get("status") == "CALCULATED" and not financial_missing,
         "MULTI_PERSPECTIVE_CHALLENGE_COMPLETE": len(agents) >= 6 and bool(analysis.get("skeptic")),
