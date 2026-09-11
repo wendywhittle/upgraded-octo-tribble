@@ -1,6 +1,6 @@
 import pytest
 
-from app.proforma import ProFormaInput
+from app.proforma import ProFormaInput, calculate_proforma
 from app.scenario import (
     ScenarioDefinition,
     ScenarioSet,
@@ -34,17 +34,20 @@ def base_input() -> ProFormaInput:
 def test_base_scenario_reproduces_base_proforma():
     base = base_input()
     result = run_scenario(base, ScenarioDefinition(name="BASE", description="Base"))
-    assert result.proforma == __import__("app.proforma", fromlist=["calculate_proforma"]).calculate_proforma(base)
+    assert result.proforma == calculate_proforma(base)
 
 
 def test_downside_changes_only_explicit_overrides():
     base = base_input()
+    base_result = calculate_proforma(base)
     scenario = ScenarioDefinition(
-        name="DOWNSIDE", description="Downside", overrides={"rent_growth": 0.01, "initial_occupancy": 0.88, "exit_cap_rate": 0.0675}
+        name="DOWNSIDE",
+        description="Downside",
+        overrides={"rent_growth": 0.01, "initial_occupancy": 0.88, "exit_cap_rate": 0.0675},
     )
     result = run_scenario(base, scenario)
-    assert result.proforma.annual[0].effective_gross_income < __import__("app.proforma", fromlist=["calculate_proforma"]).calculate_proforma(base).annual[0].effective_gross_income
-    assert result.proforma.exit_valuation != __import__("app.proforma", fromlist=["calculate_proforma"]).calculate_proforma(base).exit_valuation
+    assert result.proforma.annual[0].effective_gross_income < base_result.annual[0].effective_gross_income
+    assert result.proforma.exit_valuation != base_result.exit_valuation
     assert base.rent_growth == 0.04
     assert base.initial_occupancy == 0.95
     assert base.exit_cap_rate == 0.06
@@ -104,5 +107,5 @@ def test_scenario_identity_and_provenance_are_retained():
 def test_agent_style_financial_output_cannot_become_scenario_result():
     scenario = ScenarioDefinition(name="AGENT-PROPOSED", description="Agent proposal", overrides={"rent_growth": 0.04})
     result = run_scenario(base_input(), scenario)
-    assert result.proforma.unlevered_irr != 0.18
     assert result.proforma.output_types["unlevered_irr"] == "CALCULATION"
+    assert result.proforma.unlevered_irr != 0.18
