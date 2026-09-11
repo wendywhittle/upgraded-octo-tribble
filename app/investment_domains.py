@@ -104,6 +104,38 @@ def classify_cross_asset_links(
     return classified
 
 
+def cross_asset_hypotheses(
+    links: Iterable[CrossAssetLink], evidence_ids: Iterable[str]
+) -> List[ResearchHypothesis]:
+    """Turn cross-asset context into explicit, testable hypotheses.
+
+    This function never asserts that a relationship is true. Each generated
+    hypothesis points back to the relationship's supplied evidence IDs, if any,
+    so downstream agents can test the link rather than inherit it as fact.
+    """
+    available = {str(item) for item in evidence_ids}
+    hypotheses: List[ResearchHypothesis] = []
+    for index, link in enumerate(links, start=1):
+        valid_evidence_ids = [item for item in link.evidence_ids if item in available]
+        geography = f" in {link.to_entity.geography}" if link.to_entity.geography else ""
+        statement = (
+            f"{link.from_entity.name} may {link.relationship.replace('_', ' ')} "
+            f"{link.to_entity.name}{geography}."
+        )
+        hypotheses.append(
+            ResearchHypothesis(
+                hypothesis_id=f"cross-asset-{index}",
+                statement=statement,
+                domain=InvestmentDomain.ASSET,
+                research_domains=[AssetResearchDomain.CRE.value],
+                evidence_ids=valid_evidence_ids,
+                assumptions=["The stated cross-asset relationship is testable and may be false."],
+                invalidation_conditions=["Available evidence fails to support the stated relationship."],
+            )
+        )
+    return hypotheses
+
+
 def domain_manifest() -> Dict[str, Any]:
     """Return the stable public manifest of the two investment engines."""
     return {
