@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
-from app.proforma import ProFormaInput, ProFormaResult, calculate_proforma
+from app.proforma import ProFormaInput, ProFormaResult
 from app.scenario import ScenarioDefinition, ScenarioResult, run_scenario
 from app.simulator import run_monte_carlo
 
@@ -60,14 +60,6 @@ _SCENARIO_TO_REGIME = {
 }
 
 
-def _validate_scenario_input(base_input: ProFormaInput, scenario: ScenarioDefinition) -> None:
-    """Force scenario overrides through the existing Scenario Engine validation."""
-    try:
-        run_scenario(base_input, scenario)
-    except ValueError as exc:
-        raise SimulationValidationError(str(exc)) from exc
-
-
 def run_cre_simulation(
     base_input: ProFormaInput,
     scenario: ScenarioDefinition,
@@ -84,18 +76,20 @@ def run_cre_simulation(
     of the simulator contract, not duplicated here.
     """
     config = config or CRESimulationConfig()
-    _validate_scenario_input(base_input, scenario)
+    try:
+        scenario_result: ScenarioResult = run_scenario(
+            base_input, scenario, base_input_version=base_input_version
+        )
+    except ValueError as exc:
+        raise SimulationValidationError(str(exc)) from exc
 
-    scenario_result: ScenarioResult = run_scenario(
-        base_input, scenario, base_input_version=base_input_version
-    )
     regime = config.regime or _SCENARIO_TO_REGIME.get(scenario.name.upper())
     if regime is None:
         raise SimulationValidationError(
             "Custom scenarios require an explicit simulation regime"
         )
 
-    horizon_steps = config.horizon_steps or scenario_result.proforma.annual.__len__()
+    horizon_steps = config.horizon_steps or len(scenario_result.proforma.annual)
     assumptions = [
         f"CRE scenario: {scenario.name}",
         f"Simulation regime: {regime}",
