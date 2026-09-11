@@ -1,1 +1,0 @@
-Economic-engine truthfulness audit in progress. This marker is temporary and will be removed once validation is complete.
