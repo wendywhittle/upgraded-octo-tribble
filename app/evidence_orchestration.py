@@ -1,8 +1,9 @@
 """Evidence-fed research orchestration boundary.
 
 Validated evidence is distributed to the active reasoning perspectives and executed
-through AgentRunner. Meta-Intelligence is active in the Computational Kaleidoscope
-but is evaluated separately at process level, after reasoning and risk review.
+through AgentRunner. Research hypotheses remain a distinct context channel: they
+inform testing and falsification but are never promoted to evidence. Meta-Intelligence
+is evaluated separately at process level, after reasoning and risk review.
 No execution, brokerage, credential, or portfolio-mutation capability is introduced.
 """
 
@@ -30,8 +31,9 @@ def run_evidence_fed_agents(
     max_age_seconds: float = 24 * 60 * 60,
     provider: ModelProvider | None = None,
     learning_context: Dict[str, Any] | None = None,
+    research_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Run active evidence-fed reasoning perspectives, excluding process-level Meta-Intelligence."""
+    """Run active evidence-fed reasoning perspectives with distinct research context."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
@@ -55,6 +57,7 @@ def run_evidence_fed_agents(
             question,
             evidence_by_agent.get(agent_id, []),
             learning_context=learning_context,
+            research_context=research_context,
         )
         for agent_id in reasoning_ids
     ]
@@ -72,6 +75,7 @@ def run_evidence_fed_agents(
         "validation": validation,
         "provider": runner.provider.name,
         "learning_context_supplied": bool(learning_context),
+        "research_context_supplied": bool(research_context),
         "perspectives_share_conclusions": False,
         "research_only": True,
         "execution_capability": False,
