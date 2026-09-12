@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -16,6 +18,7 @@ def test_capital_manifest_is_research_only():
 
 
 def test_capital_research_accepts_normalized_documents():
+    now = datetime.now(timezone.utc)
     response = client.post(
         "/capital/research",
         json={
@@ -27,8 +30,8 @@ def test_capital_research_accepts_normalized_documents():
                     "source": "test-provider",
                     "title": "Observed activity",
                     "content": "A disclosed contract was observed.",
-                    "retrieved_at": "2026-09-11T00:00:00+00:00",
-                    "observed_at": "2026-09-10T00:00:00+00:00",
+                    "retrieved_at": (now - timedelta(hours=1)).isoformat(),
+                    "observed_at": (now - timedelta(hours=2)).isoformat(),
                     "source_id": "test-1",
                     "provenance_type": "external",
                     "point_in_time": True,
@@ -52,6 +55,7 @@ def test_capital_research_accepts_normalized_documents():
 
 
 def test_capital_research_classifies_cross_asset_context():
+    now = datetime.now(timezone.utc)
     response = client.post(
         "/capital/research",
         json={
@@ -63,7 +67,7 @@ def test_capital_research_classifies_cross_asset_context():
                     "source": "test-provider",
                     "title": "Observed activity",
                     "content": "A disclosed contract was observed.",
-                    "retrieved_at": "2026-09-11T00:00:00+00:00",
+                    "retrieved_at": (now - timedelta(hours=1)).isoformat(),
                     "source_id": "evidence-1",
                     "provenance_type": "external",
                     "point_in_time": True,
