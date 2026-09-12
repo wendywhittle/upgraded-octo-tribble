@@ -80,6 +80,13 @@ def capital_engine_manifest() -> Dict[str, object]:
             "portfolio_mutation": False,
             "investment_authority": False,
         },
+        "intelligence_layers": [
+            "research",
+            "market_regimes",
+            "risk_diagnostics",
+            "portfolio_exposure_diagnostics",
+            "capital_allocation_intelligence",
+        ],
         "downstream": [
             "evidence_validation",
             "computational_kaleidoscope",
