@@ -9,6 +9,7 @@ from app.analysis_endpoint import build_analysis_router
 from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
 from app.calibration_endpoint import build_calibration_router
 from app.capital_endpoint import build_capital_router
+from app.cre_endpoint import build_cre_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
 from app.experiment_001_runner import run_experiment_001_from_csv
@@ -21,7 +22,7 @@ from app.prediction_resolution_endpoint import PredictionResolutionRequest, buil
 from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 
-app = FastAPI(title="AletheiaTelos", version="1.11.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.12.0", description="Research and decision intelligence system; not an autonomous trading system.")
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
@@ -32,6 +33,7 @@ def timestamp() -> str:
 app.include_router(build_analysis_router())
 app.include_router(build_calibration_router())
 app.include_router(build_capital_router())
+app.include_router(build_cre_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
@@ -116,7 +118,7 @@ def simulate(request: SimulationRequest):
         paths=request.paths,
         seed=request.seed,
     )
-    result["version"] = "1.11.0"
+    result["version"] = "1.12.0"
     result["timestamp"] = timestamp()
     result["breaker"] = {"status": "pending", "decision": "pending", "human_decision_required": True}
     result["meta_intelligence"] = {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."}
