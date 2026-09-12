@@ -26,9 +26,13 @@ def build_decision_gate(
     if evidence.get("usable_count", 0) <= 0:
         blocking_reasons.append("No usable evidence")
         hard_stops.append("NO_USABLE_EVIDENCE")
-    if evidence.get("validation", {}).get("status") == "failed":
+
+    validation = evidence.get("validation", [])
+    validation_reports = validation if isinstance(validation, list) else [validation]
+    if any(isinstance(report, dict) and report.get("decision_usable") is False for report in validation_reports):
         blocking_reasons.append("Evidence validation failed")
         hard_stops.append("EVIDENCE_VALIDATION_FAILED")
+
     if simulation.get("valid") is False:
         blocking_reasons.append("Independent risk simulation invalid")
         hard_stops.append("INVALID_RISK_SIMULATION")
