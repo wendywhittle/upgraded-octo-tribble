@@ -17,6 +17,7 @@ class AnalysisRequest(BaseModel):
     seed: int = Field(default=42, ge=0)
     asset: str = Field(default="", max_length=500)
     market: str = Field(default="", max_length=500)
+    cre_underwriting: Dict[str, Any] = Field(default_factory=dict)
 
 
 def build_analysis_router() -> APIRouter:
@@ -29,6 +30,8 @@ def build_analysis_router() -> APIRouter:
                 "asset": request.asset.strip(),
                 "market": request.market.strip(),
             }
+            if request.cre_underwriting:
+                research_context["cre_underwriting"] = request.cre_underwriting
             research_context = {key: value for key, value in research_context.items() if value}
             return run_analysis(
                 question=request.question,
