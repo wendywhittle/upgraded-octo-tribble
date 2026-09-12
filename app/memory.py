@@ -14,7 +14,9 @@ def _now() -> str:
 
 def build_record(question: str, agents: List[Dict[str, Any]], conflicts: Dict[str, Any],
                  simulation: Dict[str, Any], skeptic: Dict[str, Any],
-                 synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int) -> Dict[str, Any]:
+                 synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int,
+                 decision_gate: Dict[str, Any] | None = None,
+                 meta_intelligence: Dict[str, Any] | None = None) -> Dict[str, Any]:
     return {
         "record_type": "decision_observation",
         "recorded_at": _now(),
@@ -24,6 +26,11 @@ def build_record(question: str, agents: List[Dict[str, Any]], conflicts: Dict[st
         "simulation": simulation,
         "skeptic": skeptic,
         "synthesis": synthesis,
+        "system_synthesis": synthesis,
+        "meta_intelligence": meta_intelligence or {},
+        "decision_gate": decision_gate or {},
+        "human_decision": None,
+        "human_authorization": None,
         "governance": governance,
         "outcome": {"status": "pending", "value": None, "observed_at": None},
         "lesson": None,
