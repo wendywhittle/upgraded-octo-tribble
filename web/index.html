@@ -36,8 +36,41 @@
       <div class="command-meta"><span>EVIDENCE <b id="evidence-state">NOT SUPPLIED</b></span><span>DECISION <b id="decision-state">NO DATA</b></span></div>
     </section>
 
+    <section class="panel underwriting-panel">
+      <div class="panel-head"><span>02 / CRE UNDERWRITING</span><span id="underwriting-state">INPUTS REQUIRED</span></div>
+      <form id="underwriting-form">
+        <div class="field-grid compact">
+          <div><label for="purchase-price">PURCHASE PRICE</label><input id="purchase-price" type="number" min="0" step="0.01" placeholder="NOT SUPPLIED" /></div>
+          <div><label for="egi">ANNUAL EGI</label><input id="egi" type="number" step="0.01" placeholder="NOT SUPPLIED" /></div>
+          <div><label for="opex">ANNUAL OPERATING EXPENSES</label><input id="opex" type="number" step="0.01" placeholder="NOT SUPPLIED" /></div>
+        </div>
+        <div class="field-grid compact">
+          <div><label for="ltv">LTV</label><input id="ltv" type="number" min="0" max="0.99" step="0.001" placeholder="e.g. 0.65" /></div>
+          <div><label for="interest-rate">INTEREST RATE</label><input id="interest-rate" type="number" min="0" max="0.99" step="0.001" placeholder="e.g. 0.06" /></div>
+          <div><label for="amortization">AMORTIZATION YEARS</label><input id="amortization" type="number" min="1" max="50" placeholder="e.g. 25" /></div>
+        </div>
+        <div class="field-grid compact">
+          <div><label for="hold-years">HOLD YEARS</label><input id="hold-years" type="number" min="1" max="50" placeholder="e.g. 5" /></div>
+          <div><label for="exit-cap">EXIT CAP RATE</label><input id="exit-cap" type="number" min="0.001" max="0.99" step="0.001" placeholder="e.g. 0.07" /></div>
+          <div><label for="closing-costs">CLOSING COSTS</label><input id="closing-costs" type="number" min="0" step="0.01" value="0" /></div>
+        </div>
+        <button type="submit" id="underwrite-button">RUN CRE UNDERWRITING</button>
+      </form>
+      <div id="underwriting-metrics" class="meta-grid underwriting-metrics">
+        <div class="meta-metric"><span>NOI</span><strong id="uw-noi">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>CAP RATE</span><strong id="uw-cap-rate">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>LOAN AMOUNT</span><strong id="uw-loan">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>INITIAL EQUITY</span><strong id="uw-equity">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>DSCR</span><strong id="uw-dscr">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>CASH-ON-CASH</span><strong id="uw-coc">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>IRR</span><strong id="uw-irr">NOT AVAILABLE</strong></div>
+        <div class="meta-metric"><span>EQUITY MULTIPLE</span><strong id="uw-em">NOT AVAILABLE</strong></div>
+      </div>
+      <div id="underwriting-unknowns" class="muted">Missing inputs remain explicitly unknown. No underwriting values are inferred.</div>
+    </section>
+
     <section class="panel kaleidoscope-panel">
-      <div class="panel-head"><span>02 / COMPUTATIONAL KALEIDOSCOPE</span><span>INDEPENDENT PERSPECTIVES</span></div>
+      <div class="panel-head"><span>03 / COMPUTATIONAL KALEIDOSCOPE</span><span>INDEPENDENT PERSPECTIVES</span></div>
       <div id="perspectives" class="perspectives"></div>
       <div class="kaleidoscope-core"><span>SHARED QUESTION</span><strong id="core-question">AWAITING INPUT</strong></div>
     </section>
@@ -61,25 +94,25 @@
     </section>
 
     <section class="panel conflict-panel">
-      <div class="panel-head"><span>03 / CONFLICT INTELLIGENCE</span><span id="conflict-count">0 MATERIAL</span></div>
+      <div class="panel-head"><span>04 / CONFLICT INTELLIGENCE</span><span id="conflict-count">0 MATERIAL</span></div>
       <div id="conflicts" class="empty-state">NO CONFLICT DATA YET</div>
     </section>
 
     <section class="panel risk-panel">
-      <div class="panel-head"><span>04 / INDEPENDENT RISK ENGINE</span><span>SIMULATION ≠ AGENT CONCLUSION</span></div>
+      <div class="panel-head"><span>05 / INDEPENDENT RISK ENGINE</span><span>SIMULATION ≠ AGENT CONCLUSION</span></div>
       <div id="risk-grid" class="risk-grid"></div>
       <div id="risk-note" class="muted">Run an analysis to populate independent scenario results.</div>
     </section>
 
     <section class="panel ic-panel">
-      <div class="panel-head"><span>05 / INVESTMENT COMMITTEE</span><span>HUMAN AUTHORITY</span></div>
+      <div class="panel-head"><span>06 / INVESTMENT COMMITTEE</span><span>HUMAN AUTHORITY</span></div>
       <div class="ic-state" id="ic-state">NO DATA</div>
       <div class="ic-warning">HUMAN INVESTMENT AUTHORITY REQUIRED</div>
       <div class="muted">Research and decision intelligence only. No autonomous execution, brokerage connectivity, or portfolio mutation.</div>
     </section>
 
     <section class="panel memory-panel">
-      <div class="panel-head"><span>06 / INSTITUTIONAL MEMORY</span><span>APPEND-ONLY</span></div>
+      <div class="panel-head"><span>07 / INSTITUTIONAL MEMORY</span><span>APPEND-ONLY</span></div>
       <div class="memory-grid">
         <div><span>WHAT WE BELIEVED</span><strong id="memory-belief">NOT AVAILABLE</strong></div>
         <div><span>WHY</span><strong id="memory-why">NOT AVAILABLE</strong></div>
