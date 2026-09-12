@@ -18,12 +18,13 @@ from app.learning import build_learning_report
 from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
 from app.memory import append_record, read_records
+from app.opportunity_endpoint import build_opportunity_router
 from app.prediction_resolution import resolve_prediction
 from app.prediction_resolution_endpoint import PredictionResolutionRequest, build_prediction_resolution_router
 from app.research_endpoint import build_research_router
 from app.schemas import SimulationRequest
 
-app = FastAPI(title="AletheiaTelos", version="1.12.0", description="Research and decision intelligence system; not an autonomous trading system.")
+app = FastAPI(title="AletheiaTelos", version="1.13.0", description="Research and decision intelligence system; not an autonomous trading system.")
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
@@ -36,6 +37,7 @@ app.include_router(build_calibration_router())
 app.include_router(build_capital_router())
 app.include_router(build_capital_allocation_router())
 app.include_router(build_cre_router())
+app.include_router(build_opportunity_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
@@ -120,7 +122,7 @@ def simulate(request: SimulationRequest):
         paths=request.paths,
         seed=request.seed,
     )
-    result["version"] = "1.12.0"
+    result["version"] = "1.13.0"
     result["timestamp"] = timestamp()
     result["breaker"] = {"status": "pending", "decision": "pending", "human_decision_required": True}
     result["meta_intelligence"] = {"status": "active", "observation": "Independent perspectives and simulation distributions remain separately inspectable."}
