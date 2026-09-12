@@ -9,6 +9,7 @@ from app.analysis_endpoint import build_analysis_router
 from app.analysis_pipeline import detect_conflicts, run_analysis, synthesize
 from app.calibration_endpoint import build_calibration_router
 from app.capital_endpoint import build_capital_router
+from app.capital_allocation_endpoint import build_capital_allocation_router
 from app.cre_endpoint import build_cre_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
@@ -33,6 +34,7 @@ def timestamp() -> str:
 app.include_router(build_analysis_router())
 app.include_router(build_calibration_router())
 app.include_router(build_capital_router())
+app.include_router(build_capital_allocation_router())
 app.include_router(build_cre_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
