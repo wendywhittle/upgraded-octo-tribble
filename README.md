@@ -33,6 +33,10 @@ At the highest level:
 ```text
 CAPITAL ENGINE + ASSET ENGINE
             ↓
+OPPORTUNITY ACQUISITION
+            ↓
+EVIDENCE
+            ↓
 COMPUTATIONAL KALEIDOSCOPE
             ↓
 CONFLICT / COEXISTENCE
@@ -40,6 +44,10 @@ CONFLICT / COEXISTENCE
 INDEPENDENT RISK SIMULATION
             ↓
 CONTRARIAN REVIEW
+            ↓
+INVESTMENT CASE
+            ↓
+DECISION GATE
             ↓
 HUMAN INVESTMENT IC
             ↓
@@ -100,6 +108,83 @@ AletheiaTelos is intended to improve the quality of decisions throughout that cy
 
 ---
 
+## Opportunity Acquisition Layer
+
+The **Opportunity Acquisition Layer** is the conceptual institutional front door for discovering potential opportunities across capital and real assets.
+
+Its purpose is to automate discovery without confusing discovery with evidence, analysis, authorization, or execution.
+
+The intended acquisition flow is:
+
+```text
+SOURCE
+  ↓
+ACQUISITION ADAPTER
+  ↓
+RAW OBSERVATION
+  ↓
+NORMALIZATION
+  ↓
+DEDUPLICATION
+  ↓
+PROVENANCE
+  ↓
+OPPORTUNITY OBJECT
+  ↓
+EVIDENCE VALIDATION
+  ↓
+OPPORTUNITY QUEUE
+  ↓
+ALETHEIA INTELLIGENCE PIPELINE
+```
+
+**OPPORTUNITY ≠ EVIDENCE**
+
+A listing, filing, market observation, lender indication, capital source, or other external observation is not automatically validated evidence and is not automatically an investment conclusion.
+
+### Asset Opportunity Acquisition
+
+The future acquisition architecture can support permitted and authorized discovery across domains such as:
+
+* CRE
+* Industrial
+* NNN
+* Infrastructure
+* Development
+* Private assets
+* Other permitted asset classes
+
+### Capital Opportunity Acquisition
+
+The future acquisition architecture can also support permitted and authorized discovery across capital intelligence domains such as:
+
+* Public-market intelligence
+* Quantitative research
+* Alternative data
+* Macro
+* Factors
+* Risk information
+* Lender and debt sources
+* Private capital sources
+* Institutional capital
+* Other permitted capital intelligence
+
+External sources are treated as public, licensed, permitted, or otherwise authorized inputs. The architecture does not assume unrestricted scraping or access.
+
+Named external platforms may become source adapters where access is legally and contractually permitted, but the current system should not be interpreted as claiming active scraping of any particular platform.
+
+The governing principle is:
+
+**AUTOMATION DISCOVERS.**  
+**EVIDENCE VALIDATES.**  
+**INTELLIGENCE ANALYZES.**  
+**THE SYSTEM CHALLENGES ITSELF.**  
+**HUMANS AUTHORIZE.**
+
+The Opportunity Acquisition Layer is therefore a front door into the institutional intelligence architecture, not an autonomous deal-making system.
+
+---
+
 ## Two Investment Engines
 
 ### CAPITAL ENGINE
@@ -114,6 +199,8 @@ AletheiaTelos is intended to improve the quality of decisions throughout that cy
 * Portfolio construction
 * Capital allocation research
 
+The Capital Engine is research and decision intelligence. It does not execute trades, transfer capital, mutate portfolios, or possess investment authority.
+
 ### ASSET ENGINE
 
 * CRE
@@ -126,9 +213,11 @@ AletheiaTelos is intended to improve the quality of decisions throughout that cy
 * Capital structure
 * Value creation
 
+The Asset Engine is research and decision intelligence for real and private assets. It does not possess autonomous acquisition authority.
+
 The two engines share one institutional intelligence substrate:
 
-**Evidence → Computational Reasoning → Conflict / Coexistence → Independent Simulation → Contrarian Review → Human Authority → Decision Record → Outcome → Epistemic Memory**
+**Opportunity Acquisition → Evidence → Computational Reasoning → Conflict / Coexistence → Independent Simulation → Contrarian Review → Human Authority → Decision Record → Outcome → Epistemic Memory**
 
 Capital markets and real assets are different domains connected by a common architecture.
 
@@ -153,6 +242,8 @@ A shared investment question is examined through multiple independent reasoning 
 * **Governance / CHARTER** — boundaries, authority, accountability, and system constraints
 
 These perspectives are intentionally independent.
+
+They are not merely cosmetic agents or a UI representation of reasoning. Their purpose is to expose disagreement, competing interpretations, conflicting assumptions, horizon divergence, risk, uncertainty, missing evidence, and dissent.
 
 **Agreement is not the objective. Better judgment is.**
 
@@ -261,6 +352,8 @@ The objective is not forced consensus.
 
 The objective is to understand **why perspectives agree, why they disagree, and whether they can coexist under different conditions**.
 
+Independent perspectives may remain unresolved when evidence does not justify resolution.
+
 ---
 
 ## Independent Risk Simulation
@@ -272,7 +365,8 @@ The intended risk engine should generate thousands of plausible paths across com
 * Base
 * Bull
 * Bear
-* Adversarial / Tail
+* Adversarial
+* Tail Risk
 
 It should report distributions, downside probabilities, drawdowns, uncertainty, and sensitivity rather than treating a single predicted outcome as truth.
 
@@ -304,6 +398,103 @@ Its purpose is to actively search for reasons the investment thesis could fail:
 * reasons the apparent opportunity should be rejected
 
 The system must be capable of reaching **NO** after substantial analytical work.
+
+---
+
+## Investment Case
+
+AletheiaTelos assembles an institutional investment case from validated evidence, explicit assumptions, calculations, scenarios, simulations, independent perspectives, conflicts, dissent, and unresolved uncertainty.
+
+An investment case is an analytical package. It is not authorization to transact.
+
+The distinction between evidence, assumption, calculation, scenario, simulation, interpretation, decision readiness, and human authorization is preserved throughout the process.
+
+---
+
+## Decision Gate and Human Authority
+
+The **Decision Gate** is a first-class institutional boundary between analytical readiness and human authority.
+
+The gate explicitly distinguishes:
+
+```text
+CLOSED
+
+CLOSED_BLOCKED
+
+OPEN_READY_FOR_HUMAN_AUTHORITY
+```
+
+**OPEN_READY_FOR_HUMAN_AUTHORITY does not mean approved.**
+
+**READY ≠ AUTHORIZED ≠ EXECUTED**
+
+The Decision Gate determines whether the analytical package is sufficiently complete to be presented to a human authority. It does not grant investment authority, approve a transaction, or execute anything.
+
+Legitimate analytical outcomes include:
+
+* **NO-GO**
+* **NO DEAL**
+* **INSUFFICIENT EVIDENCE**
+* **HOLD**
+* **INVESTIGATE**
+* **CONDITIONAL GO**
+
+Hard stops can prevent readiness. Lack of usable evidence, failed evidence validation, invalid independent simulation or review, prohibited governance conditions, and other material blockers must remain capable of closing the gate.
+
+The gate is therefore a readiness boundary, not an approval mechanism.
+
+### Human Authority
+
+AletheiaTelos supports institutional decision-making. It does not replace the Investment Committee, principal, authorized investment professional, legal counsel, lender, broker, escrow, title company, or other human-authorized execution functions.
+
+The governing principle is:
+
+**automation between gates, human authority at gates.**
+
+---
+
+## Contract / Close Lifecycle
+
+The longer-term institutional lifecycle extends beyond analytical readiness:
+
+```text
+DECISION GATE
+      ↓
+HUMAN AUTHORITY
+      ↓
+CONTRACT / EXECUTION PREPARATION
+      ↓
+HUMAN-AUTHORIZED LEGAL / FINANCIAL EXECUTION
+      ↓
+CLOSE
+      ↓
+OWN / OPERATE
+      ↓
+OUTCOME
+      ↓
+OBSERVATION
+      ↓
+EPISTEMIC MEMORY
+```
+
+Future versions of AletheiaTelos could prepare institutional execution packages containing items such as:
+
+* approved deal terms
+* diligence status
+* outstanding conditions
+* financing conditions
+* closing checklist
+* unresolved risks
+* responsible parties
+* deadlines
+* decision record
+
+These are preparation and coordination capabilities, not autonomous authority.
+
+AletheiaTelos must not autonomously sign contracts, move money, close transactions, execute trades, or otherwise exercise legal or financial authority.
+
+Human-authorized systems and professionals remain responsible for execution.
 
 ---
 
@@ -367,9 +558,27 @@ The Observer captures what actually happened.
 
 Outcome Attribution compares reality with the original thesis, evidence, assumptions, and expectations.
 
-Epistemic Memory preserves what was learned with provenance and distinguishes facts, evidence, assumptions, hypotheses, decisions, dissent, predictions, outcomes, and lessons.
+Epistemic Memory preserves institutional history including prior observations, outcomes, forecast/resolution relationships, attribution, and lessons with provenance.
+
+Memory is not authority, permission, automatic policy, or autonomous decision-making.
 
 The original decision remains intact. The system does not rewrite history simply because the outcome disagreed with the thesis.
+
+The conceptual learning loop is:
+
+```text
+FORECAST
+   ↓
+RESOLUTION
+   ↓
+OBSERVER
+   ↓
+ATTRIBUTION
+   ↓
+EPISTEMIC MEMORY
+   ↓
+BETTER NEXT DECISION
+```
 
 The objective is not merely to accumulate information.
 
@@ -423,13 +632,24 @@ CRE / infrastructure / industrial activity
 → capital allocation hypotheses
 ```
 
-These relationships must remain evidence-backed and testable.
+These relationships must remain evidence-backed and testable. The system should not infer unsupported causality merely because two observations appear related.
 
 ---
 
-## Human Authority
+## Human Authority and Governance
 
 AletheiaTelos is an investment intelligence system, not an autonomous investment agent.
+
+The governing runtime posture is:
+
+```text
+research_only = true
+human_decision_required = true
+autonomous_execution = false
+brokerage_connectivity = false
+portfolio_mutation = false
+investment_authority = false
+```
 
 The architecture does not assume autonomous brokerage connectivity, live trading, autonomous portfolio mutation, or independent investment execution.
 
@@ -468,9 +688,9 @@ AletheiaTelos remains decision-centric, human-authorized, evidence-bound, and in
 
 ---
 
-## Governance
+## Governance Framework
 
-The system operates under the explicit governing framework represented by `CHARTER.md`.
+The system operates under the explicit governing framework represented by `CHARTER.md` and the project's proprietary directives.
 
 The Charter takes precedence over agents, prompts, workflows, tools, models, and optimization objectives.
 
