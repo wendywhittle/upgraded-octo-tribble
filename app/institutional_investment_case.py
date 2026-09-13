@@ -204,7 +204,7 @@ def build_institutional_investment_case(
         perspectives=perspectives,
         conflicts=conflicts,
         contrarian_review=contrarian_review,
-        decision_readiness=decision_readiness if decision_readiness is not None else gate,
+        decision_readiness=decision_readiness,
         decision_options=[
             "INVESTIGATE",
             "NO_GO",
