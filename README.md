@@ -33,9 +33,13 @@ At the highest level:
 ```text
 CAPITAL ENGINE + ASSET ENGINE
             ↓
-OPPORTUNITY ACQUISITION
+AUTONOMOUS OPPORTUNITY DISCOVERY
             ↓
-EVIDENCE
+QUALIFICATION
+            ↓
+EVIDENCE ACQUISITION / VALIDATION
+            ↓
+UNDERWRITING
             ↓
 COMPUTATIONAL KALEIDOSCOPE
             ↓
@@ -47,17 +51,29 @@ CONTRARIAN REVIEW
             ↓
 INVESTMENT CASE
             ↓
+TRANSACTION / CAPITAL STRUCTURE PREPARATION
+            ↓
+DOCUMENT PREPARATION
+            ↓
+SIGNATURE PACKAGE
+            ↓
 DECISION GATE
             ↓
-HUMAN INVESTMENT IC
+READY FOR HUMAN SIGNATURE
             ↓
-DECISION RECORD
+HUMAN REVIEW / SIGNATURE / AUTHORIZATION
             ↓
-CAPITAL / ASSET
+AUTHORIZED EXECUTION
             ↓
-OUTCOME
+OWN / OPERATE / FINANCE / IMPROVE
+            ↓
+DISPOSITION
+            ↓
+REALIZED OUTCOME
             ↓
 OBSERVATION
+            ↓
+ATTRIBUTION
             ↓
 EPISTEMIC MEMORY
             ↓
@@ -453,6 +469,77 @@ The distinction between evidence, assumption, calculation, scenario, simulation,
 
 ---
 
+## End-State Operating Model
+
+The institutional lifecycle is not complete when an investment case becomes decision-ready. AletheiaTelos is intended to progressively automate the work between institutional gates so that, by the time a qualified opportunity reaches a human, the analytical, diligence, underwriting, transaction-preparation, and document-preparation work is complete to the extent legally and technically possible.
+
+The operating model distinguishes six states:
+
+```text
+1. DISCOVERY
+   Find, normalize, qualify, deduplicate, and route opportunities.
+
+2. DECISION READINESS
+   Validate evidence, underwrite, reason, simulate, challenge, and assemble the investment case.
+
+3. TRANSACTION READINESS
+   Prepare capital structure, transaction terms, diligence conditions,
+   financing conditions, workflows, checklists, and required documentation.
+
+4. SIGNATURE READINESS
+   Assemble the review and signature package and surface every known
+   condition, exception, unresolved risk, dependency, and required action.
+
+5. HUMAN AUTHORIZATION
+   Human investment authority reviews, decides, signs, and authorizes
+   consequential action.
+
+6. EXECUTION
+   Human-authorized systems and professionals perform the transaction,
+   capital movement, closing, trade, or other consequential execution.
+```
+
+### Ready for Human Signature
+
+**READY FOR HUMAN SIGNATURE** means the system has completed the authorized analytical and pre-signature preparation work to the extent legally and technically possible and has assembled the materials required for informed human review.
+
+It does **not** mean:
+
+* approved
+* authorized
+* signed
+* executed
+* closed
+* funded
+
+The package should make visible, rather than hide:
+
+* validated evidence and provenance
+* underwriting and financial analysis
+* assumptions and scenarios
+* competing perspectives and dissent
+* independent risk simulation
+* contrarian challenges
+* investment thesis and disconfirming evidence
+* capital structure and transaction terms
+* diligence status
+* financing conditions
+* contractual conditions
+* unresolved risks
+* exceptions and dependencies
+* required human decisions
+* required signatures and approvals
+* deadlines and responsible parties
+* audit history and Decision Record references
+
+The system may autonomously prepare drafts, checklists, analyses, workflows, transaction packages, and other pre-signature materials where permitted. It may not autonomously exercise legal, financial, investment, or execution authority.
+
+The governing principle is:
+
+**AUTOMATION BETWEEN GATES. HUMAN AUTHORITY AT GATES.**
+
+---
+
 ## Decision Gate and Human Authority
 
 The **Decision Gate** is a first-class institutional boundary between analytical readiness and human authority.
@@ -496,47 +583,62 @@ The governing principle is:
 
 ---
 
+## Transaction / Signature Preparation
+
+Once an opportunity is analytically and transactionally ready, AletheiaTelos may prepare the institutional package required for human review and authorization.
+
+Preparation can include, where permitted and supported by the relevant tools and counterparties:
+
+* approved or proposed deal terms
+* capital structure and financing summary
+* diligence matrix and outstanding conditions
+* closing and transaction checklist
+* financing conditions and lender requirements
+* contractual and legal-document checklist
+* required signatures and approvals
+* responsible parties and deadlines
+* unresolved risks and exceptions
+* transaction timeline
+* Decision Record and supporting evidence references
+* signature-package assembly
+
+This boundary is intentionally preparation-oriented. AletheiaTelos does not autonomously sign contracts, move money, close transactions, execute trades, or otherwise exercise legal or financial authority.
+
+Human-authorized systems and professionals remain responsible for consequential execution.
+
+---
+
 ## Contract / Close Lifecycle
 
-The longer-term institutional lifecycle extends beyond analytical readiness:
+The institutional lifecycle extends beyond analytical readiness and continues through ownership, operation, financing, disposition, and realized outcome:
 
 ```text
-DECISION GATE
+INVESTMENT CASE
       ↓
-HUMAN AUTHORITY
+TRANSACTION READINESS
       ↓
-CONTRACT / EXECUTION PREPARATION
+SIGNATURE READINESS
       ↓
-HUMAN-AUTHORIZED LEGAL / FINANCIAL EXECUTION
+HUMAN REVIEW / SIGNATURE / AUTHORIZATION
       ↓
-CLOSE
+AUTHORIZED EXECUTION
       ↓
-OWN / OPERATE
+CLOSE / ACQUIRE / FUND
       ↓
-OUTCOME
+OWN / OPERATE / FINANCE / IMPROVE
+      ↓
+DISPOSITION
+      ↓
+REALIZED OUTCOME
       ↓
 OBSERVATION
+      ↓
+ATTRIBUTION
       ↓
 EPISTEMIC MEMORY
 ```
 
-Future versions of AletheiaTelos could prepare institutional execution packages containing items such as:
-
-* approved deal terms
-* diligence status
-* outstanding conditions
-* financing conditions
-* closing checklist
-* unresolved risks
-* responsible parties
-* deadlines
-* decision record
-
-These are preparation and coordination capabilities, not autonomous authority.
-
-AletheiaTelos must not autonomously sign contracts, move money, close transactions, execute trades, or otherwise exercise legal or financial authority.
-
-Human-authorized systems and professionals remain responsible for execution.
+Disposition is a formal terminal boundary of the asset or capital holding phase. It is not merely an exit-strategy UI field. The disposition event closes the holding lifecycle for the relevant asset or capital position and creates the realized-outcome boundary required for attribution and institutional learning.
 
 ---
 
