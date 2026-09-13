@@ -350,3 +350,225 @@ The following invariants should remain stable unless explicitly changed through 
 12. The system learns from outcomes without rewriting historical decisions.
 
 These invariants define the working architecture of AletheiaTelos.
+
+## 14. Institutional Lifecycle and Boundary States
+
+The long-term institutional lifecycle is broader than the current analytical implementation. The conceptual lifecycle is:
+
+```text
+CAPITAL ENGINE + ASSET ENGINE
+            ↓
+OPPORTUNITY
+            ↓
+EVIDENCE
+            ↓
+UNDERWRITING / ANALYSIS
+            ↓
+COMPUTATIONAL KALEIDOSCOPE
+            ↓
+CONFLICT / COEXISTENCE
+            ↓
+INDEPENDENT RISK SIMULATION
+            ↓
+CONTRARIAN REVIEW
+            ↓
+DECISION GATE
+            ↓
+HUMAN INVESTMENT AUTHORITY
+            ↓
+DECISION RECORD
+            ↓
+CAPITAL / ASSET
+            ↓
+ACQUIRE
+            ↓
+IMPROVE / OPERATE / FINANCE
+            ↓
+HOLD / MANAGE
+            ↓
+REASSESS
+            ↓
+DISPOSITION
+            ↓
+OUTCOME
+            ↓
+OBSERVATION / ATTRIBUTION
+            ↓
+EPISTEMIC MEMORY
+            ↓
+BETTER NEXT DECISION
+```
+
+This is an architectural lifecycle, not a statement that every stage is currently implemented.
+
+Not every case reaches every downstream state. A case may terminate as NO-GO, NO DEAL, or INSUFFICIENT EVIDENCE. A case may become ready without receiving human authorization. A human-authorized decision may not result in execution. A holding may remain open for an extended period. An outcome may remain pending or unknown.
+
+### Disposition Boundary
+
+**Disposition** is a formal terminal boundary of the asset/capital holding phase. It is not merely an exit-strategy field, an underwriting assumption, a sale button, or an execution capability.
+
+The conceptual holding lifecycle is:
+
+```text
+ACQUIRE
+   ↓
+IMPROVE
+   ↓
+OPERATE
+   ↓
+FINANCE
+   ↓
+HOLD / MANAGE
+   ↓
+REASSESS
+   ↓
+DISPOSITION
+   ↓
+OUTCOME
+```
+
+Disposition remains a future institutional lifecycle boundary unless explicitly implemented and separately governed.
+
+Nothing in this architecture authorizes autonomous sale execution, brokerage, settlement, capital transfer, or portfolio mutation.
+
+## 15. Current vs Future Architecture
+
+Documentation must distinguish implemented analytical capabilities from future institutional lifecycle capabilities.
+
+### Current / Implemented
+
+The current system includes, to the extent supported by the implementation and tests:
+
+- evidence handling and validation boundaries
+- Capital and Asset domain foundations
+- Institutional Investment Case assembly
+- competing analytical perspectives
+- Conflict / Coexistence intelligence
+- independent risk simulation
+- skeptic / contrarian analysis
+- Decision Readiness
+- Decision Gate
+- explicit human-authority boundary
+- immutable Decision Record domain boundary
+- append-only analytical run history
+- typed Epistemic Memory contract / foundations
+
+Current implementation remains research and decision intelligence. The presence of a domain object or analytical boundary does not imply downstream transaction execution.
+
+### Future / Architecturally Defined
+
+The long-term architecture may include additional institutional lifecycle capabilities such as:
+
+- capital deployment
+- asset acquisition
+- operation
+- improvement
+- financing
+- hold / management
+- reassessment
+- disposition
+- outcome observation
+- outcome attribution
+- expanded epistemic learning infrastructure
+- broader Capital Engine universe, data, and research infrastructure
+- broader Asset Engine operating and lifecycle infrastructure
+
+These are architectural destinations or boundaries, not claims of current implementation.
+
+No future component may be introduced in documentation as though it already possesses execution authority.
+
+## 16. Engine Boundary
+
+The **Capital Engine** and **Asset Engine** are domain-specific intelligence engines feeding one institutional architecture.
+
+### Capital Engine
+
+The Capital Engine may address:
+
+- public markets
+- quantitative research
+- factors
+- macro
+- alternative data
+- market regimes
+- risk
+- portfolio and capital-allocation research
+- instrument identity and universe construction
+
+A universe, classification, market-data, or research source is not investment authority.
+
+### Asset Engine
+
+The Asset Engine may address:
+
+- commercial real estate
+- industrial
+- NNN
+- infrastructure
+- development
+- private assets
+- operations
+- financing
+- capital structure
+- value creation
+- acquisition and disposition economics
+
+The two engines converge on the same evidence, reasoning, risk, governance, decision, and learning architecture. They are not separate AI systems.
+
+The Capital Engine must not become an order-management system, execution engine, autonomous trader, brokerage interface, portfolio mutation layer, or capital-transfer mechanism.
+
+The Asset Engine must not acquire, sell, finance, or otherwise transact autonomously.
+
+## 17. Governance and Authority Separation
+
+The following distinctions are architectural invariants:
+
+```text
+ANALYTICAL RUN HISTORY
+        ≠
+INVESTMENT CASE
+        ≠
+DECISION READINESS
+        ≠
+DECISION GATE
+        ≠
+DECISION RECORD
+        ≠
+OUTCOME
+        ≠
+ATTRIBUTION
+        ≠
+EPISTEMIC MEMORY
+```
+
+And:
+
+```text
+RECOMMENDATION
+      ≠
+READY FOR HUMAN AUTHORITY
+      ≠
+HUMAN DECISION
+      ≠
+AUTHORIZATION
+      ≠
+EXECUTION
+```
+
+The Decision Record is created from explicit human decision input. Analytical readiness or gate state must never be used to infer authorization.
+
+Epistemic Memory records institutional history and learning. It does not grant permission or authority.
+
+## 18. Implementation Discipline
+
+Future infrastructure should be introduced only after its architectural boundary is explicit.
+
+In particular, the Capital Engine should first establish clear contracts for identity, classification, evidence, provenance, freshness, research routing, quantitative analysis, risk, and decision intelligence before any infrastructure is treated as a core dependency.
+
+External technologies remain replaceable implementation components. No provider, database, agent framework, market-data source, or orchestration system becomes the identity or authority of AletheiaTelos.
+
+The governing principle remains:
+
+**AUTOMATION BETWEEN GATES. HUMAN AUTHORITY AT GATES.**
+
+The architecture should continue to prefer evidence over assertion, explicit uncertainty over false precision, dissent over manufactured consensus, and disciplined inaction over unjustified activity.
