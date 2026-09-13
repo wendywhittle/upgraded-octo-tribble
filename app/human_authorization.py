@@ -274,7 +274,6 @@ class HumanAuthorizationRecord:
             reviewed_exception_refs=self.reviewed_exception_refs,
             reviewed_condition_refs=self.reviewed_condition_refs,
             required_conditions_precedent=self.required_conditions_precedent,
-            reviewed_condition_refs=self.reviewed_condition_refs,
             critical_deadlines=self.critical_deadlines,
             audit_refs=self.audit_refs,
             events=self.events + (event,),
