@@ -79,6 +79,7 @@ def normalize_observation(observation: RawObservation) -> Dict[str, Any]:
         "asking_price": payload.get("asking_price"),
         "property_attributes": payload.get("property_attributes", {}),
         "seller_or_broker": payload.get("seller_or_broker", {}),
+        "claim": payload.get("claim"),
         "raw_source_reference": payload.get("raw_source_reference", ""),
         "content_fingerprint": content_fingerprint,
         "provenance": {
