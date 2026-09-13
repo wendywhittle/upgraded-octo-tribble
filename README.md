@@ -67,7 +67,11 @@ AUTHORIZED EXECUTION
             ↓
 OWN / OPERATE / FINANCE / IMPROVE
             ↓
-DISPOSITION
+DISPOSITION INTELLIGENCE
+            ↓
+BUYER UNIVERSE
+            ↓
+DISPOSITION ANALYSIS
             ↓
 REALIZED OUTCOME
             ↓
@@ -627,7 +631,17 @@ CLOSE / ACQUIRE / FUND
       ↓
 OWN / OPERATE / FINANCE / IMPROVE
       ↓
-DISPOSITION
+DISPOSITION INTELLIGENCE
+      ↓
+BUYER UNIVERSE
+      ↓
+DISPOSITION ANALYSIS
+      ↓
+DECISION GATE
+      ↓
+HUMAN AUTHORITY
+      ↓
+AUTHORIZED DISPOSITION PROCESS
       ↓
 REALIZED OUTCOME
       ↓
@@ -638,7 +652,49 @@ ATTRIBUTION
 EPISTEMIC MEMORY
 ```
 
+### Disposition Intelligence
+
 Disposition is a formal terminal boundary of the asset or capital holding phase. It is not merely an exit-strategy UI field. The disposition event closes the holding lifecycle for the relevant asset or capital position and creates the realized-outcome boundary required for attribution and institutional learning.
+
+Within that boundary, **Disposition Intelligence** organizes the analytical work surrounding a potential disposition. It can evaluate timing, value, market conditions, competing exit scenarios, constraints, and the potential buyer universe before any human-authorized disposition process begins.
+
+### Buyer Universe / Buyers List
+
+The **Buyer Universe / Buyers List** is an institutional intelligence boundary for identifying and analyzing plausible counterparties for a future disposition.
+
+The conceptual buyer intelligence may include:
+
+* buyer identity / counterparty identity
+* buyer type / category
+* strategic or investment rationale
+* potential acquisition fit
+* relevant asset / market thesis
+* evidence supporting buyer fit
+* indicative capital / financing profile where known
+* potential pricing or terms hypotheses
+* buyer-specific constraints or conditions
+* confidence
+* provenance
+* freshness
+* competing buyer hypotheses / scenarios
+* unresolved information gaps
+
+Buyer intelligence remains evidence-bound. A buyer's presence in the universe does not establish commitment, capacity, intent, price, an offer, or a completed transaction.
+
+The system may research, organize, compare, qualify, and analyze potential buyers and buyer hypotheses. It may surface how the buyer universe affects disposition scenarios and expected outcomes.
+
+It must preserve the following distinctions:
+
+**Buyer Intelligence ≠ Buyer Solicitation**  
+**Buyer Universe ≠ Broker / Brokerage Function**  
+**Buyer Fit ≠ Buyer Commitment**  
+**Indicative Terms ≠ Offer**  
+**Disposition Analysis ≠ Disposition Authorization**  
+**Human Authorization ≠ Execution**
+
+The Buyer Universe is therefore decision intelligence surrounding a potential disposition, not an execution workflow. AletheiaTelos does not autonomously contact or solicit buyers, negotiate, bind, accept offers, execute sales, close transactions, fund transactions, or transfer ownership.
+
+Any consequential disposition process remains subject to the same institutional gates, human authority, legal requirements, and authorized external professionals that govern the acquisition side of the lifecycle.
 
 ---
 
