@@ -93,16 +93,16 @@ def test_signature_ready_does_not_promote_lifecycle():
     p = complete_package().assess(at=AT)
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     assert p.status is SignatureReadinessStatus.READY_FOR_HUMAN_SIGNATURE
-    assert lifecycle.state is LifecycleState.DISCOVERED
+    assert lifecycle.current_state is LifecycleState.DISCOVERED
     assert p.has_human_authorization is False
 
 
 def test_existing_lifecycle_authority_protections_remain_intact():
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     with pytest.raises(PermissionError):
-        lifecycle.transition(LifecycleState.HUMAN_AUTHORIZED)
+        lifecycle.transition(LifecycleState.HUMAN_AUTHORIZED, "test")
     with pytest.raises(PermissionError):
-        lifecycle.transition(LifecycleState.EXECUTED)
+        lifecycle.transition(LifecycleState.EXECUTED, "test")
 
 
 def test_transaction_readiness_contract_remains_separate():
@@ -169,4 +169,4 @@ def test_ready_is_not_a_lifecycle_state_transition():
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     ready = complete_package().assess(at=AT)
     assert ready.status.value == "READY_FOR_HUMAN_SIGNATURE"
-    assert lifecycle.state is LifecycleState.DISCOVERED
+    assert lifecycle.current_state is LifecycleState.DISCOVERED
