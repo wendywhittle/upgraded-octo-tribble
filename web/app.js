@@ -3,10 +3,21 @@ const PERSPECTIVES = [
   ["researcher","RESEARCHER","Evidence-bound fundamental research"],["quant","QUANT","Quantitative and statistical interpretation"],["investor","INVESTOR","Investment thesis"],["scientist","SCIENTIST","Scientific and Epistemic Validity"],["systems","SYSTEMS","Systems risk"],["contrarian","CONTRARIAN","Strongest credible opposing case"],["skeptic","SKEPTIC","Evidence and assumption challenge"],["observer","OBSERVER","Outcome observation"],["governance","GOVERNANCE","CHARTER and Authority Boundary"]
 ];
 let latestUnderwriting = {};
+let analysisRequestSequence = 0;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 function listText(value, fallback="NOT AVAILABLE"){if(Array.isArray(value))return value.length?value.join(" • "):fallback;if(value==null||value==="")return fallback;return String(value);}
 function riskText(value, fallback="NOT AVAILABLE"){if(Array.isArray(value))return value.length?`${value.length} concern${value.length===1?"":"s"}`:"NONE IDENTIFIED";return value==null||value===""?fallback:String(value);}
+function errorText(data, fallback="Analysis failed"){
+  const detail=data?.detail;
+  if(typeof detail==="string"&&detail.trim())return detail;
+  if(Array.isArray(detail))return detail.map(item=>{const loc=Array.isArray(item?.loc)?item.loc.join("."):"request";return `${loc}: ${item?.msg||"validation error"}`;}).join(" • ")||fallback;
+  if(detail&&typeof detail==="object"){
+    if(typeof detail.message==="string")return detail.message;
+    try{return JSON.stringify(detail);}catch{return fallback;}
+  }
+  return fallback;
+}
 function renderPerspectives(outputs=[]){const byId=Object.fromEntries(outputs.map(x=>[x.agent_id||x.agent?.agent_id,x]));$("perspectives").innerHTML=PERSPECTIVES.map(([id,name,detail])=>{const active=ACTIVE.has(id),out=byId[id];const status=active?(out?"RETURNED":"ACTIVE"):"NOT YET ACTIVE";const signal=out?.direction||out?.recommendation||"";return `<article class="agent ${active?"active":"inactive"}"><div class="agent-name"><span>${name}</span><span class="agent-status">${status}</span></div><div class="agent-detail">${esc(signal||detail)}</div></article>`;}).join("");}
 function renderMeta(meta={}){const has=meta&&typeof meta==="object"&&Object.keys(meta).length>0;$("meta-status").textContent=has?(meta.status||"EVALUATED").toUpperCase():"AWAITING ANALYSIS";$("meta-health").textContent=has?esc(meta.reasoning_health||"UNKNOWN"):"NOT AVAILABLE";$("meta-review").textContent=has&&meta.human_review_required!==false?"HUMAN REVIEW REQUIRED":"REVIEW STATUS NOT RETURNED";$("meta-consensus").textContent=has?riskText(meta.false_consensus_risk):"NOT AVAILABLE";$("meta-correlation").textContent=has?riskText(meta.correlated_reasoning_risk):"NOT AVAILABLE";$("meta-evidence").textContent=has?riskText(meta.evidence_quality_concern):"NOT AVAILABLE";$("meta-assumptions").textContent=has?riskText(meta.assumption_concentration):"NOT AVAILABLE";$("meta-conflicts").textContent=has?(Array.isArray(meta.unresolved_conflicts)?meta.unresolved_conflicts.length:riskText(meta.unresolved_conflicts,"0")):"0";$("meta-uncertainty").textContent=has?riskText(meta.uncertainty_concern):"NOT AVAILABLE";$("meta-regime").textContent=has?riskText(meta.regime_or_invalidation_concern):"NOT AVAILABLE";$("meta-blind-spots").textContent=has?(Array.isArray(meta.process_blind_spots)?meta.process_blind_spots.length:riskText(meta.process_blind_spots,"0")):"0";$("meta-next-step").textContent=has?(meta.recommended_next_step||"NOT AVAILABLE"):"AWAITING ANALYSIS";$("meta-observations").innerHTML=has?esc(listText(meta.observations,"No process observations returned.")).replace(/ • /g,"<br>"):"No Meta-Intelligence evaluation yet.";}
 function setDecision(value){const raw=String(value||"");const normalized=raw==="HOLD"||raw==="CONDITIONAL GO"?"INVESTIGATE":raw;const allowed=new Set(["NO DATA","INVESTIGATE","NO-GO","READY FOR IC REVIEW"]);const v=allowed.has(normalized)?normalized:"NO DATA";$("decision-state").textContent=v;$("ic-state").textContent=v;}
@@ -17,10 +28,50 @@ function fmtMoney(v){return v==null?"NOT AVAILABLE":new Intl.NumberFormat("en-US
 function fmtPct(v){return v==null?"NOT AVAILABLE":`${(v*100).toFixed(2)}%`;}
 function fmtRatio(v){return v==null?"NOT AVAILABLE":Number(v).toFixed(2);}
 function renderUnderwriting(data={}){latestUnderwriting=data||{};const m=data.metrics||{};$("underwriting-state").textContent=(data.status||"NOT AVAILABLE").replaceAll("_"," ");$("uw-noi").textContent=fmtMoney(m.noi);$("uw-cap-rate").textContent=fmtPct(m.cap_rate);$("uw-loan").textContent=fmtMoney(m.loan_amount);$("uw-equity").textContent=fmtMoney(m.initial_equity);$("uw-dscr").textContent=fmtRatio(m.dscr);$("uw-coc").textContent=fmtPct(m.cash_on_cash);$("uw-irr").textContent=fmtPct(m.irr);$("uw-em").textContent=m.equity_multiple==null?"NOT AVAILABLE":`${Number(m.equity_multiple).toFixed(2)}x`;const unknowns=data.unknown_metrics||[];$("underwriting-unknowns").textContent=unknowns.length?`UNKNOWN: ${unknowns.join(" • ")}`:"All modeled core metrics returned from supplied inputs.";}
-async function runUnderwriting(e){e.preventDefault();const b=$("underwrite-button");b.disabled=true;b.classList.add("button-busy");b.textContent="CALCULATING CRE UNDERWRITING…";const num=id=>{const v=$(id).value.trim();return v===""?null:Number(v);};try{const r=await fetch("/cre/underwrite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({purchase_price:num("purchase-price"),annual_effective_gross_income:num("egi"),annual_operating_expenses:num("opex"),ltv:num("ltv"),interest_rate:num("interest-rate"),amortization_years:num("amortization"),hold_years:num("hold-years"),exit_cap_rate:num("exit-cap"),closing_costs:Number($("closing-costs").value||0)})});const data=await r.json();if(!r.ok)throw Error(data.detail||"CRE underwriting failed");renderUnderwriting(data);}catch(err){$("underwriting-state").textContent="ERROR";$("underwriting-unknowns").textContent=esc(err.message);}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN CRE UNDERWRITING";}}
+async function runUnderwriting(e){e.preventDefault();const b=$("underwrite-button");b.disabled=true;b.classList.add("button-busy");b.textContent="CALCULATING CRE UNDERWRITING…";const num=id=>{const v=$(id).value.trim();return v===""?null:Number(v);};try{const r=await fetch("/cre/underwrite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({purchase_price:num("purchase-price"),annual_effective_gross_income:num("egi"),annual_operating_expenses:num("opex"),ltv:num("ltv"),interest_rate:num("interest-rate"),amortization_years:num("amortization"),hold_years:num("hold-years"),exit_cap_rate:num("exit-cap"),closing_costs:Number($("closing-costs").value||0)})});const data=await r.json();if(!r.ok)throw Error(errorText(data,"CRE underwriting failed"));renderUnderwriting(data);}catch(err){$("underwriting-state").textContent="ERROR";$("underwriting-unknowns").textContent=esc(err.message);}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN CRE UNDERWRITING";}}
 async function loadCapitalManifest(){try{const r=await fetch("/capital/manifest");if(!r.ok)throw Error();const data=await r.json();const domains=Array.isArray(data.research_domains)?data.research_domains:[];$("capital-state").textContent="ONLINE";$("capital-engine-status").textContent="ACTIVE";$("capital-regimes").textContent=domains.includes("market_regimes")?"ACTIVE":"NOT EXPOSED";$("capital-quant").textContent=domains.includes("quantitative")?"ACTIVE":"NOT EXPOSED";$("capital-risk").textContent=domains.includes("risk")?"ACTIVE":"NOT EXPOSED";$("capital-portfolio").textContent=domains.includes("portfolio")?"ACTIVE":"NOT EXPOSED";$("capital-alt-data").textContent=domains.includes("alternative_data")?"AVAILABLE":"OPTIONAL";$("capital-domains").textContent=domains.length?`RESEARCH DOMAINS: ${domains.join(" • ")}`:"NO CAPITAL RESEARCH DOMAINS RETURNED";}catch(err){$("capital-state").textContent="UNAVAILABLE";$("capital-engine-status").textContent="NOT AVAILABLE";$("capital-domains").textContent="Capital Engine manifest unavailable.";}}
 async function health(){try{const r=await fetch("/health");if(!r.ok)throw Error();const data=await r.json();$("api-dot").className="status-dot online";$("api-status").textContent=data.live_market_data?"API ONLINE • MARKET DATA LIVE":"API ONLINE";}catch{$("api-dot").className="status-dot offline";$("api-status").textContent="API UNAVAILABLE";}}
 async function loadMemory(){try{const r=await fetch("/memory");if(!r.ok)throw Error();const data=await r.json();renderMemory(data.records||[]);}catch{$("memory-outcome").textContent="UNAVAILABLE";}}
 async function loadLearning(){try{const r=await fetch("/observer/learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bins:10})});if(!r.ok)throw Error();const data=await r.json();if(Array.isArray(data.lessons)&&data.lessons.length){$("memory-lesson").textContent=data.lessons.join(" • ");}}catch{$("memory-lesson").textContent="LEARNING DATA UNAVAILABLE";}}
-async function runAnalysis(e){e.preventDefault();const b=$("run-button");b.disabled=true;b.classList.add("button-busy");b.textContent="RUNNING RESEARCH ANALYSIS…";$("research-state").textContent="RUNNING";setDecision("NO DATA");renderMeta({});$("core-question").textContent=$("question").value;const asset=$("asset").value.trim(),market=$("market").value.trim();try{const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:$("question").value,evidence:[],asset,market,cre_underwriting:latestUnderwriting,initial_value:Number($("initial-value").value),horizon_steps:Number($("horizon").value),paths:Number($("paths").value),seed:42})});const data=await r.json();if(!r.ok)throw Error(data.detail||"Analysis failed");renderPerspectives(data.agents||[]);renderMeta(data.meta_intelligence||{});renderConflicts(data.conflicts||[],data.horizon_divergences||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict);$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();}catch(err){$("research-state").textContent="ERROR";$("conflicts").textContent=esc(err.message);$("conflict-count").textContent="ERROR";renderMeta({status:"unavailable"});}finally{b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}}
+function clearAnalysisOutputs(){
+  renderPerspectives([]);
+  renderMeta({});
+  renderConflicts([],[]);
+  renderRisk({scenarios:[]});
+  $("evidence-state").textContent="0 VALIDATED / 0 USABLE";
+  setDecision("NO DATA");
+  $("core-question").textContent=$("question").value;
+}
+async function runAnalysis(e){
+  e.preventDefault();
+  const requestId=++analysisRequestSequence;
+  const b=$("run-button");
+  b.disabled=true;
+  b.classList.add("button-busy");
+  b.textContent="RUNNING RESEARCH ANALYSIS…";
+  $("research-state").textContent="RUNNING";
+  clearAnalysisOutputs();
+  const question=$("question").value.trim();
+  const asset=$("asset").value.trim(),market=$("market").value.trim();
+  const initialValue=Number($("initial-value").value);
+  const horizonSteps=Number($("horizon").value);
+  const paths=Number($("paths").value);
+  if(!question){$("research-state").textContent="ERROR";$("conflicts").textContent="Investment question is required.";b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";return;}
+  if(!Number.isFinite(initialValue)||initialValue<=0||!Number.isInteger(horizonSteps)||horizonSteps<1||!Number.isInteger(paths)||paths<100){$("research-state").textContent="ERROR";$("conflicts").textContent="Simulation inputs are invalid. Initial value must be > 0, horizon steps >= 1, and simulation paths >= 100.";b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";return;}
+  try{
+    const r=await fetch("/analysis/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,evidence:[],asset,market,cre_underwriting:latestUnderwriting,initial_value:initialValue,horizon_steps:horizonSteps,paths,seed:42})});
+    const data=await r.json();
+    if(requestId!==analysisRequestSequence)return;
+    if(!r.ok)throw Error(errorText(data,"Analysis failed"));
+    renderPerspectives(data.agents||[]);renderMeta(data.meta_intelligence||{});renderConflicts(data.conflicts||[],data.horizon_divergences||[]);renderRisk(data.simulation||{});setDecision(data.synthesis?.verdict);$("evidence-state").textContent=`${data.evidence?.count??0} VALIDATED / ${data.evidence?.usable_count??0} USABLE`;$("research-state").textContent="COMPLETE";await loadMemory();await loadLearning();
+  }catch(err){
+    if(requestId!==analysisRequestSequence)return;
+    $("research-state").textContent="ERROR";
+    $("conflicts").textContent=esc(err.message||"Analysis failed");
+    $("conflict-count").textContent="ERROR";
+    renderMeta({status:"unavailable"});
+  }finally{
+    if(requestId===analysisRequestSequence){b.disabled=false;b.classList.remove("button-busy");b.textContent="RUN RESEARCH ANALYSIS";}
+  }
+}
 $("analysis-form").addEventListener("submit",runAnalysis);$("underwriting-form").addEventListener("submit",runUnderwriting);$("load-memory").addEventListener("click",()=>{loadMemory();loadLearning();});renderPerspectives();renderMeta();renderRisk();renderUnderwriting();health();loadCapitalManifest();loadMemory();loadLearning();
