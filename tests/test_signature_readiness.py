@@ -26,22 +26,23 @@ def package(**kwargs):
 
 
 def complete_package(**kwargs):
-    return package(
-        transaction_terms_refs=("terms-1",),
-        capital_structure_refs=("capital-1",),
-        diligence_status=(item(),),
-        financing_conditions=(item("financing", "condition"),),
-        contractual_requirements=(item("contractual", "document"),),
-        required_approvals=(item("approval", "IC approval"),),
-        required_signatures=(item("signature", "human signature"),),
-        responsible_parties=(item("party", "responsible party"),),
-        critical_dates=(item("date", "critical date"),),
-        dependencies=(item("dependency", "dependency"),),
-        required_human_decisions=(item("decision", "human decision"),),
-        provenance_refs=("evidence-1",),
-        audit_refs=("audit-1",),
-        **kwargs,
-    )
+    values = {
+        "transaction_terms_refs": ("terms-1",),
+        "capital_structure_refs": ("capital-1",),
+        "diligence_status": (item(),),
+        "financing_conditions": (item("financing", "condition"),),
+        "contractual_requirements": (item("contractual", "document"),),
+        "required_approvals": (item("approval", "IC approval"),),
+        "required_signatures": (item("signature", "human signature"),),
+        "responsible_parties": (item("party", "responsible party"),),
+        "critical_dates": (item("date", "critical date"),),
+        "dependencies": (item("dependency", "dependency"),),
+        "required_human_decisions": (item("decision", "human decision"),),
+        "provenance_refs": ("evidence-1",),
+        "audit_refs": ("audit-1",),
+    }
+    values.update(kwargs)
+    return package(**values)
 
 
 def test_creation_grants_no_authority():
