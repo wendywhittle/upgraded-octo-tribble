@@ -12,7 +12,7 @@ from app.conflict_intelligence import detect_conflict_intelligence
 from app.decision_gate import build_decision_gate
 from app.decision_readiness import build_decision_readiness
 from app.evidence_orchestration import run_evidence_fed_agents
-from app.institutional_investment_case import build_institutional_investment_case
+from app.institutional_investment_case import InvestmentCaseStatus, build_institutional_investment_case
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
 from app.memory import append_record, build_record, read_records
@@ -63,10 +63,12 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     meta_intelligence = meta_intelligence_evaluate(agents=agents, evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, learning_context=learning_context)
     synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False, "investment_authority": False}
+    evidence_state = {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}
+
     institutional_case = build_institutional_investment_case(
         question,
         evidence=evidence_items,
-        evidence_summary={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]},
+        evidence_summary=evidence_state,
         assumptions=[a for agent in agents for a in agent.get("assumptions", [])],
         scenarios=simulation.get("scenarios"),
         risk=simulation,
@@ -79,7 +81,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         case_id=case_id,
         case_version=case_version,
     )
-    evidence_state = {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}
+
     decision_readiness = build_decision_readiness(
         institutional_case,
         evidence=evidence_state,
@@ -90,7 +92,8 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     )
     institutional_case.decision_readiness = decision_readiness
     if decision_readiness["status"] == "READY_FOR_HUMAN_AUTHORITY":
-        institutional_case.status = institutional_case.status.READY_FOR_HUMAN_AUTHORITY
+        institutional_case.status = InvestmentCaseStatus.READY_FOR_HUMAN_AUTHORITY
+
     decision_gate = build_decision_gate(
         evidence_state,
         conflict_data,
