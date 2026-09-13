@@ -221,6 +221,48 @@ The two engines share one institutional intelligence substrate:
 
 Capital markets and real assets are different domains connected by a common architecture.
 
+### Capital Universe and Instrument Discovery
+
+The Capital Engine may use external universe and classification sources to identify and normalize financial instruments before evidence acquisition.
+
+One potential research/reference source is **FinanceDatabase**, an open-source financial product universe providing broad instrument coverage and classification across equities, ETFs, funds, indices, currencies, cryptocurrencies, and money markets.
+
+Where permitted and appropriate, such a source may support:
+
+* instrument discovery
+* universe construction
+* exchange / market classification
+* sector / industry classification
+* identifier normalization
+* research routing
+* deduplication across listings
+
+A universe or classification source is not an evidence authority.
+
+Presence within a universe does not imply investment eligibility, investment merit, valuation, liquidity, suitability, or recommendation.
+
+External universe sources remain subject to provenance, freshness, licensing, identifier validation, source authority, and corroboration requirements.
+
+FinanceDatabase is therefore considered a **potential external Capital Engine universe / classification source**, not a required system dependency and not a source of investment authority.
+
+The Capital Engine must preserve the distinction:
+
+```text
+UNIVERSE
+   ↓
+OPPORTUNITY
+   ↓
+EVIDENCE
+   ↓
+ANALYSIS
+   ↓
+DECISION READINESS
+   ↓
+HUMAN AUTHORITY
+```
+
+**Discovery does not become evidence merely because an external source identifies an instrument.**
+
 ---
 
 ## Computational Kaleidoscope
