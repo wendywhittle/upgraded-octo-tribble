@@ -81,3 +81,27 @@ def test_full_pipeline_surfaces_meta_intelligence_before_synthesis():
     assert "recommended_next_step" in meta
     assert "meta_intelligence" in result["synthesis"]
     assert result["synthesis"]["meta_intelligence"] == meta
+
+
+def test_analysis_pipeline_does_not_create_decision_record_without_human_input():
+    with patch("app.analysis_pipeline.append_record"), patch("app.decision_record.build_decision_record") as build_decision_record:
+        result = run_analysis("Assess the opportunity", evidence(), now=NOW, paths=100)
+
+    build_decision_record.assert_not_called()
+    assert result["decision_gate"]["human_decision"] is None
+    assert result["decision_gate"]["human_authorization"] is None
+    assert result["decision_gate"]["investment_authority"] is False
+    assert result["institutional_investment_case"]["decision_record_ref"] is None
+
+
+def test_ready_gate_is_not_human_authorization():
+    with patch("app.analysis_pipeline.append_record"):
+        result = run_analysis("Assess the opportunity", evidence(), now=NOW, paths=100)
+
+    assert result["decision_readiness"]["status"] == "READY_FOR_HUMAN_AUTHORITY"
+    assert result["decision_readiness"]["authorized"] is False
+    assert result["decision_readiness"]["human_authorization"] is None
+    assert result["decision_gate"]["state"] == "OPEN_READY_FOR_HUMAN_AUTHORITY"
+    assert result["decision_gate"]["human_authorization"] is None
+    assert result["decision_gate"]["approval"] is None
+    assert result["decision_gate"]["investment_authority"] is False
