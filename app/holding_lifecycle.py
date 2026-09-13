@@ -210,8 +210,6 @@ class HoldingRecord:
             provenance_references=provenance,
             state=HoldingState.HOLDING_ESTABLISHED,
             operating_status="ESTABLISHED",
-            financing_status=self.financing_status,
-            improvement_status=self.improvement_status,
             history=self.history
             + (HoldingTransition(self.state, HoldingState.HOLDING_ESTABLISHED, timestamp, reason),),
         )
@@ -265,10 +263,13 @@ class HoldingRecord:
             "decision_record_id": self.decision_record_id,
             "transaction_id": self.transaction_id,
             "human_authorization_id": self.human_authorization_id,
+            "execution_reference": self.execution_reference,
             "asset_instrument_reference": self.asset_instrument_reference,
             "ownership_interest_reference": self.ownership_interest_reference,
+            "acquisition_effective_date": self.acquisition_effective_date,
             "acquisition_basis_reference": self.acquisition_basis_reference,
             "capital_structure_references": self.capital_structure_references,
+            "provenance_references": self.provenance_references,
             "audit_references": self.audit_references,
             "financing_status": self.financing_status,
             "improvement_status": self.improvement_status,
