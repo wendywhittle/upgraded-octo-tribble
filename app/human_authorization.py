@@ -240,7 +240,6 @@ class HumanAuthorizationRecord:
         *,
         at: Optional[datetime],
     ) -> "HumanAuthorizationRecord":
-        timestamp = at or datetime.now(timezone.utc)
         return HumanAuthorizationRecord(
             authorization_id=self.authorization_id,
             opportunity_id=self.opportunity_id,
@@ -273,9 +272,9 @@ class HumanAuthorizationRecord:
             reviewed_evidence_refs=self.reviewed_evidence_refs,
             reviewed_risk_refs=self.reviewed_risk_refs,
             reviewed_exception_refs=self.reviewed_exception_refs,
+            reviewed_condition_refs=self.reviewed_condition_refs,
             required_conditions_precedent=self.required_conditions_precedent,
             reviewed_condition_refs=self.reviewed_condition_refs,
-            reviewed_exception_refs=self.reviewed_exception_refs,
             critical_deadlines=self.critical_deadlines,
             audit_refs=self.audit_refs,
             events=self.events + (event,),
