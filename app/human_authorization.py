@@ -47,12 +47,13 @@ class AuthorizationEvent:
             if not value.strip():
                 raise ValueError(f"{name} must be non-empty")
         if self.status not in {
+            HumanAuthorizationStatus.HUMAN_REVIEWED,
             HumanAuthorizationStatus.AUTHORIZED,
             HumanAuthorizationStatus.CONDITIONAL_AUTHORIZATION,
             HumanAuthorizationStatus.REJECTED,
             HumanAuthorizationStatus.WITHDRAWN,
         }:
-            raise ValueError("AuthorizationEvent requires an explicit human decision state")
+            raise ValueError("AuthorizationEvent requires a valid human event state")
         if self.status is HumanAuthorizationStatus.CONDITIONAL_AUTHORIZATION and not self.conditions:
             raise ValueError("conditional authorization requires named conditions")
 
@@ -272,8 +273,9 @@ class HumanAuthorizationRecord:
             reviewed_evidence_refs=self.reviewed_evidence_refs,
             reviewed_risk_refs=self.reviewed_risk_refs,
             reviewed_exception_refs=self.reviewed_exception_refs,
-            reviewed_condition_refs=self.reviewed_condition_refs,
             required_conditions_precedent=self.required_conditions_precedent,
+            reviewed_condition_refs=self.reviewed_condition_refs,
+            reviewed_exception_refs=self.reviewed_exception_refs,
             critical_deadlines=self.critical_deadlines,
             audit_refs=self.audit_refs,
             events=self.events + (event,),
