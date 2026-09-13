@@ -18,8 +18,40 @@ def build_decision_gate(
     synthesis: Dict[str, Any],
     governance: Dict[str, Any],
     contrarian_status: str = "not_available",
+    decision_readiness: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Assess readiness only; never infer or grant human authority."""
+    """Consume Decision Readiness at the governance boundary; never grant authority."""
+    if decision_readiness is not None:
+        status = decision_readiness.get("status")
+        state = (
+            DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY
+            if status == "READY_FOR_HUMAN_AUTHORITY"
+            else DecisionGateState.CLOSED_BLOCKED
+            if decision_readiness.get("hard_stops")
+            else DecisionGateState.CLOSED
+        )
+        return {
+            "state": state.value,
+            "ready_for_human_authority": state == DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY,
+            "human_decision_required": True,
+            "human_decision": None,
+            "human_authorization": None,
+            "approval": None,
+            "evidence_status": evidence,
+            "unresolved_conflicts": conflicts.get("conflicts", []) + conflicts.get("horizon_divergences", []),
+            "independent_risk": simulation,
+            "contrarian_review_status": contrarian_status,
+            "hard_stops": decision_readiness.get("hard_stops", []),
+            "blocking_reasons": decision_readiness.get("blocking_reasons", []),
+            "decision_readiness": decision_readiness,
+            "system_synthesis_verdict": synthesis.get("verdict"),
+            "research_only": True,
+            "autonomous_execution": False,
+            "brokerage_connectivity": False,
+            "portfolio_mutation": False,
+            "investment_authority": False,
+        }
+
     blocking_reasons = []
     hard_stops = []
 
