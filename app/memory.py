@@ -1,4 +1,10 @@
-"""Append-only epistemic memory for reconstructable decisions."""
+"""Append-only analytical run history for reconstructable system activity.
+
+This module stores historical analytical-run observations. Its generic
+``decision_observation`` record is not a formal human Decision Record and
+must never be interpreted as evidence of human authorization. The formal
+Decision Record boundary lives in ``app.decision_record``.
+"""
 
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +23,7 @@ def build_record(question: str, agents: List[Dict[str, Any]], conflicts: Dict[st
                  synthesis: Dict[str, Any], governance: Dict[str, Any], seed: int,
                  decision_gate: Dict[str, Any] | None = None,
                  meta_intelligence: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """Build analytical-run history; never create or imply a human decision."""
     return {
         "record_type": "decision_observation",
         "recorded_at": _now(),
