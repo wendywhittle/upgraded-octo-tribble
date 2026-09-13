@@ -26,22 +26,23 @@ def package(**kwargs):
 
 
 def complete_package(**kwargs):
-    return package(
-        transaction_terms_refs=("terms-1",),
-        capital_structure_refs=("capital-1",),
-        diligence_status=(item(),),
-        financing_conditions=(item("financing", "condition"),),
-        contractual_requirements=(item("contractual", "document"),),
-        required_approvals=(item("approval", "IC approval"),),
-        required_signatures=(item("signature", "human signature"),),
-        responsible_parties=(item("party", "responsible party"),),
-        critical_dates=(item("date", "critical date"),),
-        dependencies=(item("dependency", "dependency"),),
-        required_human_decisions=(item("decision", "human decision"),),
-        provenance_refs=("evidence-1",),
-        audit_refs=("audit-1",),
-        **kwargs,
-    )
+    defaults = {
+        "transaction_terms_refs": ("terms-1",),
+        "capital_structure_refs": ("capital-1",),
+        "diligence_status": (item(),),
+        "financing_conditions": (item("financing", "condition"),),
+        "contractual_requirements": (item("contractual", "document"),),
+        "required_approvals": (item("approval", "IC approval"),),
+        "required_signatures": (item("signature", "human signature"),),
+        "responsible_parties": (item("party", "responsible party"),),
+        "critical_dates": (item("date", "critical date"),),
+        "dependencies": (item("dependency", "dependency"),),
+        "required_human_decisions": (item("decision", "human decision"),),
+        "provenance_refs": ("evidence-1",),
+        "audit_refs": ("audit-1",),
+    }
+    defaults.update(kwargs)
+    return package(**defaults)
 
 
 def test_creation_grants_no_authority():
@@ -93,16 +94,16 @@ def test_signature_ready_does_not_promote_lifecycle():
     p = complete_package().assess(at=AT)
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     assert p.status is SignatureReadinessStatus.READY_FOR_HUMAN_SIGNATURE
-    assert lifecycle.state is LifecycleState.DISCOVERED
+    assert lifecycle.current_state is LifecycleState.DISCOVERED
     assert p.has_human_authorization is False
 
 
 def test_existing_lifecycle_authority_protections_remain_intact():
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     with pytest.raises(PermissionError):
-        lifecycle.transition(LifecycleState.HUMAN_AUTHORIZED)
+        lifecycle.transition(LifecycleState.HUMAN_AUTHORIZED, "test must not grant authority")
     with pytest.raises(PermissionError):
-        lifecycle.transition(LifecycleState.EXECUTED)
+        lifecycle.transition(LifecycleState.EXECUTED, "test must not execute")
 
 
 def test_transaction_readiness_contract_remains_separate():
@@ -169,4 +170,4 @@ def test_ready_is_not_a_lifecycle_state_transition():
     lifecycle = InstitutionalLifecycle.create("OPP-1")
     ready = complete_package().assess(at=AT)
     assert ready.status.value == "READY_FOR_HUMAN_SIGNATURE"
-    assert lifecycle.state is LifecycleState.DISCOVERED
+    assert lifecycle.current_state is LifecycleState.DISCOVERED
