@@ -10,6 +10,7 @@ from typing import Any, Dict, Iterable
 
 from app.conflict_intelligence import detect_conflict_intelligence
 from app.decision_gate import build_decision_gate
+from app.decision_readiness import build_decision_readiness
 from app.evidence_orchestration import run_evidence_fed_agents
 from app.institutional_investment_case import build_institutional_investment_case
 from app.kaleidoscope_view import build_kaleidoscope_view
@@ -62,7 +63,6 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     meta_intelligence = meta_intelligence_evaluate(agents=agents, evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, learning_context=learning_context)
     synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
     governance = {"human_decision_required": True, "autonomous_execution": False, "brokerage_connectivity": False, "portfolio_mutation": False, "investment_authority": False}
-    decision_gate = build_decision_gate({"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, conflict_data, simulation, skeptic, synthesis, governance, contrarian_status="present" if any(a.get("agent_id") == "contrarian" for a in agents) else "not_available")
     institutional_case = build_institutional_investment_case(
         question,
         evidence=evidence_items,
@@ -73,12 +73,33 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         perspectives=agents,
         conflicts=conflict_data,
         contrarian_review=skeptic,
-        decision_gate=decision_gate,
         synthesis=synthesis,
         governance=governance,
         domain="shared",
         case_id=case_id,
         case_version=case_version,
+    )
+    evidence_state = {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}
+    decision_readiness = build_decision_readiness(
+        institutional_case,
+        evidence=evidence_state,
+        simulation=simulation,
+        skeptic=skeptic,
+        synthesis=synthesis,
+        governance=governance,
+    )
+    institutional_case.decision_readiness = decision_readiness
+    if decision_readiness["status"] == "READY_FOR_HUMAN_AUTHORITY":
+        institutional_case.status = institutional_case.status.READY_FOR_HUMAN_AUTHORITY
+    decision_gate = build_decision_gate(
+        evidence_state,
+        conflict_data,
+        simulation,
+        skeptic,
+        synthesis,
+        governance,
+        contrarian_status="present" if any(a.get("agent_id") == "contrarian" for a in agents) else "not_available",
+        decision_readiness=decision_readiness,
     )
     observer = observe(question, agents, conflict_data, simulation, skeptic, synthesis)
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed, decision_gate=decision_gate, meta_intelligence=meta_intelligence)
@@ -86,5 +107,5 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     record["institutional_learning_context"] = {"resolved_prediction_count": learning_context.get("resolved_prediction_count", 0), "lessons": learning_context.get("lessons", []), "agent_metrics_ranked": learning_context.get("agent_metrics_ranked", []), "horizon_metrics": learning_context.get("horizon_metrics", {}), "informational_only": True}
     record["research_context"] = research_context or {}
     append_record(record)
-    kaleidoscope = build_kaleidoscope_view(agents=agents, evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, meta_intelligence=meta_intelligence, synthesis=synthesis, observer=observer, governance=governance)
-    return {"system": "AletheiaTelos", "question": question, "institutional_investment_case": institutional_case.to_dict(), "institutional_learning": learning_context, "research_context": research_context or {}, "evidence": {"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, "agents": agents, "active_perspectives": agent_stage["active_perspectives"], "reasoning_perspectives": agent_stage["reasoning_perspectives"], "registered_agent_count": agent_stage["registered_agent_count"], "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "meta_intelligence": meta_intelligence, "synthesis": synthesis, "decision_gate": decision_gate, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->research_context->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->investment_case->decision_gate->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "decision_gate_state": decision_gate["state"], "ready_for_human_authority": decision_gate["ready_for_human_authority"], "investment_case_id": institutional_case.case_id, "investment_case_version": institutional_case.case_version, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"], "research_context_supplied": agent_stage["research_context_supplied"], "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"], "meta_intelligence_directional_vote": False, "meta_intelligence_execution_capability": False}}
+    kaleidoscope = build_kaleidoscope_view(agents=agents, evidence=evidence_state, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, meta_intelligence=meta_intelligence, synthesis=synthesis, observer=observer, governance=governance)
+    return {"system": "AletheiaTelos", "question": question, "institutional_investment_case": institutional_case.to_dict(), "institutional_learning": learning_context, "research_context": research_context or {}, "evidence": evidence_state, "agents": agents, "active_perspectives": agent_stage["active_perspectives"], "reasoning_perspectives": agent_stage["reasoning_perspectives"], "registered_agent_count": agent_stage["registered_agent_count"], "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "meta_intelligence": meta_intelligence, "synthesis": synthesis, "decision_readiness": decision_readiness, "decision_gate": decision_gate, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->research_context->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->investment_case->decision_readiness->decision_gate->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "decision_gate_state": decision_gate["state"], "ready_for_human_authority": decision_gate["ready_for_human_authority"], "investment_case_id": institutional_case.case_id, "investment_case_version": institutional_case.case_version, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"], "research_context_supplied": agent_stage["research_context_supplied"], "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"], "meta_intelligence_directional_vote": False, "meta_intelligence_execution_capability": False}}
