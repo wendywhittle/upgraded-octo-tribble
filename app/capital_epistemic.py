@@ -35,7 +35,12 @@ class UsageState:
 
     @property
     def durable_evidence_allowed(self) -> bool:
-        return self.storable and self.transformable and self.retainable
+        return (
+            self.retrievable
+            and self.storable
+            and self.transformable
+            and self.retainable
+        )
 
 
 @dataclass(frozen=True)
@@ -63,6 +68,7 @@ class RawObservation:
     retrieved_at: str
     revision_id: Optional[str] = None
     revised_from_revision_id: Optional[str] = None
+    revision_at: Optional[str] = None
     usage: UsageState = field(default_factory=UsageState)
     raw_fingerprint: str = ""
 
@@ -236,6 +242,7 @@ def build_evidence(
         "retrieved_at": observation.raw.retrieved_at,
         "revision_id": observation.raw.revision_id,
         "revised_from_revision_id": observation.raw.revised_from_revision_id,
+        "revision_at": observation.raw.revision_at,
         "transformation": observation.lineage(),
         "usage": observation.raw.usage,
     }
