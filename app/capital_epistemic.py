@@ -173,22 +173,39 @@ def validate_observation(observation: NormalizedObservation) -> ValidationResult
     return ValidationResult(EpistemicStatus.VALID)
 
 
+def _is_conflict(
+    observation: NormalizedObservation,
+    competing: NormalizedObservation,
+) -> bool:
+    left = observation.raw
+    right = competing.raw
+    return (
+        left.subject.subject_id == right.subject.subject_id
+        and left.effective_period == right.effective_period
+        and left.value != right.value
+    )
+
+
 def admit_evidence(
     observation: NormalizedObservation,
     validation: ValidationResult,
     decision_time: str,
     *,
     conflicted: bool = False,
+    conflicting_observations: Tuple[NormalizedObservation, ...] = (),
     stale: bool = False,
     provenance_available: bool = True,
 ) -> EvidenceAdmission:
     raw = observation.raw
     state = knowledge_state(raw, decision_time)
     reasons = list(validation.reasons)
+    actual_conflict = conflicted or any(
+        _is_conflict(observation, competing) for competing in conflicting_observations
+    )
 
     if not raw.subject.subject_id:
         return EvidenceAdmission(EpistemicStatus.AMBIGUOUS, ("subject identity is required",), state)
-    if conflicted:
+    if actual_conflict:
         return EvidenceAdmission(EpistemicStatus.CONFLICTED, ("unresolved source conflict",), state)
     if stale:
         return EvidenceAdmission(EpistemicStatus.STALE, ("observation is outside permitted freshness",), state)
