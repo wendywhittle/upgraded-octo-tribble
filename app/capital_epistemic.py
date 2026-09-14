@@ -62,6 +62,7 @@ class RawObservation:
     available_at: Optional[str]
     retrieved_at: str
     revision_id: Optional[str] = None
+    revised_from_revision_id: Optional[str] = None
     usage: UsageState = field(default_factory=UsageState)
     raw_fingerprint: str = ""
 
@@ -99,7 +100,11 @@ class KnowledgeState:
 
     @property
     def knowable(self) -> bool:
-        return self.published_by_decision and self.available_by_decision
+        return (
+            self.published_by_decision
+            and self.available_by_decision
+            and self.retrieved_by_decision
+        )
 
 
 @dataclass(frozen=True)
@@ -109,7 +114,7 @@ class EvidenceAdmission:
     knowledge_state: KnowledgeState
 
     @property
-    admitted(self) -> bool:
+    def admitted(self) -> bool:
         return self.status == EpistemicStatus.VALID
 
 
@@ -213,6 +218,7 @@ def build_evidence(
         "available_at": observation.raw.available_at,
         "retrieved_at": observation.raw.retrieved_at,
         "revision_id": observation.raw.revision_id,
+        "revised_from_revision_id": observation.raw.revised_from_revision_id,
         "transformation": observation.lineage(),
         "usage": observation.raw.usage,
     }
