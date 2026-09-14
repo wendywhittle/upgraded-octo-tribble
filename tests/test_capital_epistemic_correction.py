@@ -110,20 +110,33 @@ def test_late_retrieval_is_not_historical_knowledge():
     assert admission.status is EpistemicStatus.INSUFFICIENT_EVIDENCE
 
 
-def test_revision_relationship_preserves_original_and_revised_history():
-    original = raw(revision_id="revision-1", value=100, raw_fingerprint="raw-original")
+def test_revision_relationship_preserves_original_revised_values_and_revision_time():
+    original = raw(
+        revision_id="revision-1",
+        value=100,
+        raw_fingerprint="raw-original",
+    )
     revised = raw(
         revision_id="revision-2",
         revised_from_revision_id="revision-1",
+        revision_at="2026-09-12T12:00:00+00:00",
         value=120,
         raw_fingerprint="raw-revised",
     )
     assert original.value == 100
     assert revised.value == 120
     assert revised.revised_from_revision_id == original.revision_id
+    assert revised.revision_at == "2026-09-12T12:00:00+00:00"
     assert original.raw_fingerprint != revised.raw_fingerprint
     assert original.retrieved_at == "2026-09-10T14:00:00+00:00"
     assert revised.retrieved_at == "2026-09-10T14:00:00+00:00"
+
+    revised_evidence = build_evidence(
+        normalized(revised),
+        validate_observation(normalized(revised)),
+        admit_evidence(normalized(revised), validate_observation(normalized(revised)), decision()),
+    )
+    assert revised_evidence.provenance["revision_at"] == "2026-09-12T12:00:00+00:00"
 
 
 def test_revision_does_not_rewrite_earlier_knowledge_state():
@@ -131,6 +144,7 @@ def test_revision_does_not_rewrite_earlier_knowledge_state():
     revised = raw(
         revision_id="revision-2",
         revised_from_revision_id="revision-1",
+        revision_at="2026-09-12T12:00:00+00:00",
         value=120,
         published_at="2026-09-12T13:00:00+00:00",
         available_at="2026-09-12T13:00:00+00:00",
@@ -141,6 +155,9 @@ def test_revision_does_not_rewrite_earlier_knowledge_state():
     assert original_state.knowable is True
     assert revised_state.knowable is False
     assert original.value == 100
+    assert revised.value == 120
+    assert revised.revised_from_revision_id == original.revision_id
+    assert revised.revision_at == "2026-09-12T12:00:00+00:00"
 
 
 def test_actual_competing_observations_block_admission():
@@ -237,6 +254,21 @@ def test_raw_and_normalized_values_and_lineage_survive():
     assert observation.lineage()["raw_fingerprint"] == "raw-001"
     assert observation.lineage()["transformation"] == "divide by 1000"
     assert observation.lineage()["transformation_kind"] == "mechanical"
+
+
+def test_retrievability_is_required_for_durable_evidence():
+    usage = UsageState(
+        retrievable=False,
+        storable=True,
+        transformable=True,
+        displayable=True,
+        retainable=True,
+        redistributable=False,
+    )
+    observation = normalized(raw(usage=usage))
+    admission = admit_evidence(observation, validate_observation(observation), decision())
+    assert admission.admitted is False
+    assert admission.status is EpistemicStatus.REJECTED
 
 
 def test_restricted_storage_blocks_durable_evidence():
