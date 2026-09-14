@@ -53,9 +53,10 @@ def raw(**overrides):
 
 
 def normalized(raw_observation=None, **overrides):
+    source = raw_observation or raw()
     item = NormalizedObservation(
-        raw=raw_observation or raw(),
-        value=1000,
+        raw=source,
+        value=source.value,
         unit="USD",
         currency="USD",
         transformation="identity normalization",
@@ -172,8 +173,8 @@ def test_same_value_from_two_sources_is_not_silently_a_conflict():
 
 
 def test_provider_replacement_produces_same_institutional_contract():
-    provider_a = normalized(raw(source_id="synthetic-provider-a", provider_id="record-a"))
-    provider_b = normalized(raw(source_id="synthetic-provider-b", provider_id="record-b"))
+    provider_a = normalized(raw(source_id="synthetic-provider-a", subject=subject(provider_id="record-a")))
+    provider_b = normalized(raw(source_id="synthetic-provider-b", subject=subject(provider_id="record-b")))
     assert provider_a.raw.subject.subject_id == provider_b.raw.subject.subject_id
     assert provider_a.raw.subject.provider_id != provider_b.raw.subject.provider_id
     assert validate_observation(provider_a).status is EpistemicStatus.VALID
