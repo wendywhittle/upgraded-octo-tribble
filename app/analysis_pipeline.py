@@ -79,7 +79,7 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     }
 
 
-def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1) -> Dict[str, Any]:
+def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1, thesis: Dict[str, Any] | None = None) -> Dict[str, Any]:
     """Run the complete research loop and assemble canonical institutional objects."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
@@ -87,7 +87,11 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     opportunity = build_opportunity(description=question, provenance={"origin": "analysis_request", "research_context_supplied": bool(research_context)})
     agent_stage = run_evidence_fed_agents(question, evidence_items, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context, research_context=research_context)
     agents = agent_stage["agents"]
-    validated_ids = [item.get("evidence_id") for item in evidence_items if isinstance(item, dict) and item.get("evidence_id")]
+    validated_ids = [
+        item.get("evidence_id")
+        for item, report in zip(evidence_items, agent_stage["validation"])
+        if isinstance(item, dict) and item.get("evidence_id") and isinstance(report, dict) and report.get("decision_usable") is True and item.get("decision_usable", True) is not False
+    ]
     opportunity_status = OpportunityStatus.ANALYSIS_READY if agent_stage["usable_evidence_count"] > 0 else OpportunityStatus.EVIDENCE_PENDING
     opportunity = replace(opportunity, evidence_ids=validated_ids, status=opportunity_status)
     conflict_data = detect_conflicts(agents)
@@ -115,6 +119,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         opportunity_id=opportunity.opportunity_id,
         evidence=evidence_items,
         evidence_summary=evidence_state,
+        thesis=thesis,
         assumptions=[a for agent in agents for a in agent.get("assumptions", [])],
         scenarios=simulation.get("scenarios"),
         risk=simulation,
@@ -130,7 +135,7 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     )
     decision_readiness = build_decision_readiness(institutional_case, evidence=evidence_state, simulation=simulation, skeptic=skeptic, synthesis=synthesis, governance=governance)
     institutional_case.decision_readiness = decision_readiness
-    if decision_readiness["status"] == "READY_FOR_HUMAN_AUTHORITY":
+    if decision_readiness["ready_for_human_authority"]:
         institutional_case.status = InvestmentCaseStatus.READY_FOR_HUMAN_AUTHORITY
     decision_gate = build_decision_gate(
         evidence_state, conflict_data, simulation, skeptic, synthesis, governance,
