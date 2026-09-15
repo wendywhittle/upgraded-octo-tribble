@@ -1,8 +1,9 @@
 """Canonical Institutional Investment Case domain boundary.
 
-The Investment Case assembles existing analytical outputs into a stable, versioned
-institutional container. It does not replace evidence, underwriting, simulation,
-perspectives, conflict analysis, the Decision Gate, or human authority.
+The Investment Case is the institutional analytical container. It references
+an Opportunity and separates evidence, assumptions, calculations, scenarios,
+simulations, perspective provenance, conflicts, contrarian review, and
+readiness. It does not authorize or execute anything.
 """
 
 from dataclasses import dataclass, field
@@ -36,6 +37,7 @@ class InstitutionalInvestmentCase:
     status: InvestmentCaseStatus
     investment_question: str
     domain: str = "shared"
+    opportunity_id: Optional[str] = None
     opportunity: Any = None
     identity: Any = None
     evidence: List[Any] = field(default_factory=list)
@@ -47,10 +49,14 @@ class InstitutionalInvestmentCase:
     scenarios: Any = None
     risk: Any = None
     perspectives: Any = None
+    perspective_provenance: List[Dict[str, Any]] = field(default_factory=list)
     conflicts: Any = None
     contrarian_review: Any = None
     decision_readiness: Any = None
     decision_options: List[str] = field(default_factory=list)
+    key_risks: List[Any] = field(default_factory=list)
+    case_derived_unresolved_questions: List[str] = field(default_factory=list)
+    system_generated_governance_questions: List[str] = field(default_factory=list)
     governance: Dict[str, Any] = field(default_factory=dict)
     decision_record_ref: Optional[str] = None
     monitoring_ref: Optional[str] = None
@@ -71,19 +77,24 @@ class InstitutionalInvestmentCase:
             raise ValueError("domain must be one of: shared, capital, asset")
 
     @property
+    def investment_case_id(self) -> str:
+        return self.case_id
+
+    @property
     def ready_for_human_authority(self) -> bool:
         return self.status == InvestmentCaseStatus.READY_FOR_HUMAN_AUTHORITY
 
     def to_dict(self) -> Dict[str, Any]:
-        """Return a serialization-safe projection without adding authority fields."""
         return {
             "case_id": self.case_id,
+            "investment_case_id": self.case_id,
             "case_version": self.case_version,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "status": self.status.value,
             "investment_question": self.investment_question,
             "domain": self.domain,
+            "opportunity_id": self.opportunity_id,
             "opportunity": self.opportunity,
             "identity": self.identity,
             "evidence": self.evidence,
@@ -95,10 +106,14 @@ class InstitutionalInvestmentCase:
             "scenarios": self.scenarios,
             "risk": self.risk,
             "perspectives": self.perspectives,
+            "perspective_provenance": self.perspective_provenance,
             "conflicts": self.conflicts,
             "contrarian_review": self.contrarian_review,
             "decision_readiness": self.decision_readiness,
             "decision_options": self.decision_options,
+            "key_risks": self.key_risks,
+            "case_derived_unresolved_questions": self.case_derived_unresolved_questions,
+            "system_generated_governance_questions": self.system_generated_governance_questions,
             "governance": self.governance,
             "decision_record_ref": self.decision_record_ref,
             "monitoring_ref": self.monitoring_ref,
@@ -124,7 +139,6 @@ def _status_from_outputs(evidence: Dict[str, Any], gate: Dict[str, Any], synthes
         return InvestmentCaseStatus.INSUFFICIENT_EVIDENCE
     if gate.get("ready_for_human_authority"):
         return InvestmentCaseStatus.READY_FOR_HUMAN_AUTHORITY
-
     verdict = str(synthesis.get("verdict", "INVESTIGATE")).upper()
     mapping = {
         "NO_GO": InvestmentCaseStatus.NO_GO,
@@ -144,6 +158,7 @@ def build_institutional_investment_case(
     question: str,
     *,
     opportunity: Any = None,
+    opportunity_id: Optional[str] = None,
     identity: Any = None,
     evidence: Optional[List[Any]] = None,
     evidence_summary: Optional[Dict[str, Any]] = None,
@@ -155,6 +170,7 @@ def build_institutional_investment_case(
     scenarios: Any = None,
     risk: Any = None,
     perspectives: Any = None,
+    perspective_provenance: Optional[List[Dict[str, Any]]] = None,
     conflicts: Any = None,
     contrarian_review: Any = None,
     decision_readiness: Any = None,
@@ -173,8 +189,6 @@ def build_institutional_investment_case(
     synthesis_output = synthesis or {}
     governance_output = dict(governance or {})
     now = _now_iso()
-
-    # Preserve the existing authority boundary even if a caller supplies unsafe values.
     governance_output.update({
         "human_decision_required": True,
         "autonomous_execution": False,
@@ -182,7 +196,6 @@ def build_institutional_investment_case(
         "portfolio_mutation": False,
         "investment_authority": False,
     })
-
     return InstitutionalInvestmentCase(
         case_id=case_id or f"CASE-{uuid4().hex}",
         case_version=case_version,
@@ -191,6 +204,7 @@ def build_institutional_investment_case(
         status=_status_from_outputs(evidence_status, gate, synthesis_output),
         investment_question=question,
         domain=domain,
+        opportunity_id=opportunity_id or (opportunity.get("opportunity_id") if isinstance(opportunity, dict) else getattr(opportunity, "opportunity_id", None)),
         opportunity=opportunity,
         identity=identity,
         evidence=evidence or [],
@@ -202,17 +216,13 @@ def build_institutional_investment_case(
         scenarios=scenarios,
         risk=risk,
         perspectives=perspectives,
+        perspective_provenance=perspective_provenance or [],
         conflicts=conflicts,
         contrarian_review=contrarian_review,
         decision_readiness=decision_readiness,
-        decision_options=[
-            "INVESTIGATE",
-            "NO_GO",
-            "NO_DEAL",
-            "INSUFFICIENT_EVIDENCE",
-            "HOLD",
-            "CONDITIONAL_GO",
-            "READY_FOR_HUMAN_AUTHORITY",
-        ],
+        decision_options=["INVESTIGATE", "NO_GO", "NO_DEAL", "INSUFFICIENT_EVIDENCE", "HOLD", "CONDITIONAL_GO", "READY_FOR_HUMAN_AUTHORITY"],
+        key_risks=list(synthesis_output.get("case_derived_key_risks", [])),
+        case_derived_unresolved_questions=list(synthesis_output.get("case_derived_unresolved_questions", [])),
+        system_generated_governance_questions=list(synthesis_output.get("system_generated_governance_questions", [])),
         governance=governance_output,
     )
