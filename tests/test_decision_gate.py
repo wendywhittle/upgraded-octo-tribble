@@ -70,15 +70,16 @@ def test_ready_is_not_approval_and_execution_remains_prohibited():
 
 def test_pipeline_exposes_gate_without_populating_human_decision():
     evidence = [{
-        "evidence_id": "E-1",
-        "source": "unit-test-source",
-        "claim": "The observed condition is material.",
-        "observed_at": "2026-09-08T11:00:00+00:00",
-        "retrieved_at": "2026-09-08T11:05:00+00:00",
+        "evidence_id": "E-1", "source": "unit-test-source", "claim": "The observed condition is material.",
+        "observed_at": "2026-09-08T11:00:00+00:00", "retrieved_at": "2026-09-08T11:05:00+00:00",
         "provenance": {"type": "primary", "point_in_time": True},
     }]
     with patch("app.analysis_pipeline.append_record") as append:
-        result = run_analysis("Assess the opportunity", evidence, now=NOW, paths=20)
+        result = run_analysis(
+            "Assess the opportunity", evidence,
+            thesis={"statement": "Explicit test thesis."}, assumptions=["Explicit test assumption."], calculations={"value": 101.0},
+            now=NOW, paths=20,
+        )
     assert result["decision_gate"]["state"] == DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY.value
     assert result["decision_gate"]["human_decision"] is None
     assert result["decision_gate"]["human_authorization"] is None

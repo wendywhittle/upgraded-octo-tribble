@@ -6,8 +6,10 @@ The engine produces distributions across base, bull, bear, and adversarial paths
 
 import math
 import random
+from datetime import datetime, timezone
 from statistics import mean, median
 from typing import Any, Dict, List
+from uuid import uuid4
 
 
 SCENARIOS = {
@@ -48,6 +50,16 @@ def run_monte_carlo(
     seed: int = 42,
     assumptions: List[str] | None = None,
 ) -> Dict[str, Any]:
+    """Run a reproducible, independent simulation with explicit input validation."""
+    if not math.isfinite(initial_value) or initial_value <= 0:
+        raise ValueError("initial_value must be finite and > 0")
+    if horizon_steps < 1:
+        raise ValueError("horizon_steps must be >= 1")
+    if paths <= 0:
+        raise ValueError("paths must be > 0")
+    if seed < 0:
+        raise ValueError("seed must be >= 0")
+
     rng = random.Random(seed)
     summaries: List[Dict[str, Any]] = []
 
@@ -77,8 +89,12 @@ def run_monte_carlo(
         })
 
     return {
+        "simulation_id": f"SIM-{uuid4().hex}",
         "engine": "AletheiaTelos Independent Monte Carlo Risk Engine v1",
+        "methodology": "Monte Carlo geometric path simulation",
         "independent_of_agents": True,
+        "independence_metadata": {"agent_conclusions_are_inputs_only": True},
+        "valid": True,
         "paths": paths,
         "horizon_steps": horizon_steps,
         "seed": seed,
@@ -88,4 +104,6 @@ def run_monte_carlo(
             "Scenario parameters are explicit and reproducible.",
             "Distributions are reviewed by the skeptic layer before synthesis.",
         ],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": 1,
     }

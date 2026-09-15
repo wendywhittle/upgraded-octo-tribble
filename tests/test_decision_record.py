@@ -11,6 +11,7 @@ NOW = datetime(2026, 9, 13, 20, 0, tzinfo=timezone.utc)
 def record(**overrides):
     values = {
         "decision_record_id": "decision:case-001:v1:001",
+        "opportunity_id": "opportunity-001",
         "case_id": "case-001",
         "case_version": 1,
         "decided_at": NOW,
@@ -58,7 +59,7 @@ def test_conditional_go_preserves_conditions():
 
 def test_ready_gate_does_not_infer_authorization():
     result = record(
-        decision_readiness_state="READY_FOR_HUMAN_AUTHORITY",
+        decision_readiness_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
         decision_gate_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
         authorized=False,
     )
@@ -68,7 +69,7 @@ def test_ready_gate_does_not_infer_authorization():
 
 def test_recommendation_or_gate_state_is_not_a_decision_record_input():
     result = record(
-        decision_readiness_state="READY_FOR_HUMAN_AUTHORITY",
+        decision_readiness_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
         decision_gate_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
     )
     assert result.decision == HumanDecision.NO_GO
@@ -80,13 +81,13 @@ def test_exact_case_and_governance_context_is_preserved():
         case_id="case-xyz",
         case_version=7,
         investment_case_ref="case-xyz:v7",
-        decision_readiness_state="READY_FOR_HUMAN_AUTHORITY",
+        decision_readiness_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
         decision_gate_state="OPEN_READY_FOR_HUMAN_AUTHORITY",
     )
     assert result.case_id == "case-xyz"
     assert result.case_version == 7
     assert result.investment_case_ref == "case-xyz:v7"
-    assert result.decision_readiness_state == "READY_FOR_HUMAN_AUTHORITY"
+    assert result.decision_readiness_state == "OPEN_READY_FOR_HUMAN_AUTHORITY"
     assert result.decision_gate_state == "OPEN_READY_FOR_HUMAN_AUTHORITY"
 
 
@@ -112,3 +113,12 @@ def test_decision_record_has_no_execution_capability():
     assert not hasattr(result, "transaction")
     assert not hasattr(result, "position")
     assert not hasattr(result, "portfolio_mutation")
+
+
+def test_decision_record_carries_case_snapshot_references():
+    result = record(evidence_refs=["E1"], analytical_artifact_refs=["SIM-1"], decision_gate_snapshot={"state": "OPEN_READY_FOR_HUMAN_AUTHORITY"})
+    assert result.opportunity_id == "opportunity-001"
+    assert result.evidence_refs == ["E1"]
+    assert result.analytical_artifact_refs == ["SIM-1"]
+    assert result.decision_gate_snapshot["state"] == "OPEN_READY_FOR_HUMAN_AUTHORITY"
+    assert result.decision_record_version == 1

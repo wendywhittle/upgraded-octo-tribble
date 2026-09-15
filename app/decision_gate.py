@@ -20,16 +20,15 @@ def build_decision_gate(
     contrarian_status: str = "not_available",
     decision_readiness: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Consume Decision Readiness at the governance boundary; never grant authority."""
+    """Consume the single Decision Readiness result; never grant authority."""
     if decision_readiness is not None:
-        status = decision_readiness.get("status")
-        state = (
-            DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY
-            if status == "READY_FOR_HUMAN_AUTHORITY"
-            else DecisionGateState.CLOSED_BLOCKED
-            if decision_readiness.get("hard_stops")
-            else DecisionGateState.CLOSED
-        )
+        readiness_state = decision_readiness.get("readiness_state") or decision_readiness.get("status")
+        if readiness_state == DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY.value:
+            state = DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY
+        elif readiness_state == DecisionGateState.CLOSED_BLOCKED.value or decision_readiness.get("hard_stops"):
+            state = DecisionGateState.CLOSED_BLOCKED
+        else:
+            state = DecisionGateState.CLOSED
         return {
             "state": state.value,
             "ready_for_human_authority": state == DecisionGateState.OPEN_READY_FOR_HUMAN_AUTHORITY,
