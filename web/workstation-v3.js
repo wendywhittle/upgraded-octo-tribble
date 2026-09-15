@@ -121,6 +121,15 @@
     new MutationObserver(enhanceStages).observe(pipeline, {childList:true});
   }
 
+  function loadV4() {
+    if (document.querySelector('script[data-workstation-v4]')) return;
+    const script = document.createElement('script');
+    script.src = '/web/workstation-v4.js?v=20260915-1';
+    script.defer = true;
+    script.dataset.workstationV4 = 'true';
+    document.head.appendChild(script);
+  }
+
   function init() {
     injectControls();
     wireNav();
@@ -129,6 +138,7 @@
     wirePanels();
     enhanceStages();
     observeDynamicPipeline();
+    loadV4();
     announce('AletheiaTelos institutional workstation ready');
   }
 
