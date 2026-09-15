@@ -55,8 +55,8 @@ def run_monte_carlo(
         raise ValueError("initial_value must be finite and > 0")
     if horizon_steps < 1:
         raise ValueError("horizon_steps must be >= 1")
-    if paths < 100:
-        raise ValueError("paths must be >= 100")
+    if paths <= 0:
+        raise ValueError("paths must be > 0")
     if seed < 0:
         raise ValueError("seed must be >= 0")
 
