@@ -14,7 +14,7 @@ from app.conflict_intelligence import detect_conflict_intelligence
 from app.decision_gate import build_decision_gate
 from app.decision_readiness import build_decision_readiness
 from app.evidence_orchestration import run_evidence_fed_agents
-from app.institutional_core import build_opportunity
+from app.institutional_core import OpportunityStatus, build_opportunity
 from app.institutional_investment_case import InvestmentCaseStatus, build_institutional_investment_case
 from app.kaleidoscope_view import build_kaleidoscope_view
 from app.learning import build_learning_report
@@ -89,7 +89,8 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     agent_stage = run_evidence_fed_agents(question, evidence_items, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context, research_context=research_context)
     agents = agent_stage["agents"]
     validated_ids = [item.get("evidence_id") for item in evidence_items if isinstance(item, dict) and item.get("evidence_id")]
-    opportunity = replace(opportunity, evidence_ids=validated_ids, status="ANALYSIS_READY" if agent_stage["usable_evidence_count"] > 0 else "EVIDENCE_PENDING")
+    opportunity_status = OpportunityStatus.ANALYSIS_READY if agent_stage["usable_evidence_count"] > 0 else OpportunityStatus.EVIDENCE_PENDING
+    opportunity = replace(opportunity, evidence_ids=validated_ids, status=opportunity_status)
     conflict_data = detect_conflicts(agents)
     simulation = run_monte_carlo(initial_value, horizon_steps, paths, seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
     skeptic = skeptic_review(agents, simulation)
@@ -109,7 +110,6 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         for agent in agents
         if isinstance(agent, dict)
     ]
-
     institutional_case = build_institutional_investment_case(
         question,
         opportunity=opportunity.to_dict(),
@@ -129,19 +129,12 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         case_id=case_id,
         case_version=case_version,
     )
-
     decision_readiness = build_decision_readiness(institutional_case, evidence=evidence_state, simulation=simulation, skeptic=skeptic, synthesis=synthesis, governance=governance)
     institutional_case.decision_readiness = decision_readiness
     if decision_readiness["status"] == "READY_FOR_HUMAN_AUTHORITY":
         institutional_case.status = InvestmentCaseStatus.READY_FOR_HUMAN_AUTHORITY
-
     decision_gate = build_decision_gate(
-        evidence_state,
-        conflict_data,
-        simulation,
-        skeptic,
-        synthesis,
-        governance,
+        evidence_state, conflict_data, simulation, skeptic, synthesis, governance,
         contrarian_status="present" if any(a.get("agent_id") == "contrarian" for a in agents) else "not_available",
         decision_readiness=decision_readiness,
     )
