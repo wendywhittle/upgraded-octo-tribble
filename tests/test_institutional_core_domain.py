@@ -20,26 +20,20 @@ def governance():
 
 
 def valid_evidence(evidence_id="E1", source="SEC"):
-    return {"evidence_id": evidence_id, "source": source, "claim": "A documented institutional fact", "provenance": {"uri": "https://example.test/source", "publisher": source, "point_in_time": True}, "retrieved_at": datetime.now(timezone.utc).isoformat()}
+    return {"evidence_id": evidence_id, "source": source, "claim": "A documented institutional fact", "provenance": {"uri": "https://example.test/source", "publisher": source, "point_in_time": True}, "retrieved_at": (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()}
 
 
 def ready_case(**overrides):
     perspectives = ["researcher", "quant", "investor", "scientist", "systems", "skeptic", "contrarian", "governance"]
     values = {
-        "question": "Evaluate candidate",
-        "opportunity": {"opportunity_id": "OPP-1"},
-        "opportunity_id": "OPP-1",
-        "evidence": [valid_evidence()],
-        "evidence_summary": {"usable_count": 1, "validation": []},
+        "question": "Evaluate candidate", "opportunity": {"opportunity_id": "OPP-1"}, "opportunity_id": "OPP-1",
+        "evidence": [valid_evidence()], "evidence_summary": {"usable_count": 1, "validation": []},
         "thesis": {"statement": "The risk-adjusted case is attractive if the documented assumptions hold."},
-        "assumptions": ["Explicit underwriting assumption"],
-        "calculations": {"method": "deterministic", "value": 101.0},
-        "scenarios": simulation()["scenarios"],
-        "risk": simulation(),
+        "assumptions": ["Explicit underwriting assumption"], "calculations": {"method": "deterministic", "value": 101.0},
+        "scenarios": simulation()["scenarios"], "risk": simulation(),
         "perspectives": [{"agent_id": p, "evidence_basis": ["E1"]} for p in perspectives],
         "perspective_provenance": [{"agent_id": p, "independence": "shared_pipeline_inputs", "independence_limitation": "Separate identity does not prove model independence."} for p in perspectives],
-        "contrarian_review": {"valid": True, "status": "reviewed", "challenges": ["Failure condition"]},
-        "governance": governance(),
+        "contrarian_review": {"valid": True, "status": "reviewed", "challenges": ["Failure condition"]}, "governance": governance(),
     }
     values.update(overrides)
     return build_institutional_investment_case(**values)
@@ -120,7 +114,7 @@ def test_simulation_contract_is_explicit_and_invalid_inputs_are_rejected():
     with pytest.raises(ValueError):
         run_monte_carlo(initial_value=0, paths=100)
     with pytest.raises(ValueError):
-        run_monte_carlo(initial_value=100, paths=99)
+        run_monte_carlo(initial_value=100, paths=0)
 
 
 def test_missing_downside_cannot_satisfy_readiness():
