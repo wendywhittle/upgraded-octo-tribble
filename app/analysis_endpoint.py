@@ -11,6 +11,8 @@ from app.analysis_pipeline import run_analysis
 class AnalysisRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     thesis: Dict[str, Any] = Field(default_factory=dict)
+    assumptions: list[Any] = Field(default_factory=list, max_length=200)
+    calculations: Any = None
     evidence: list[Dict[str, Any]] = Field(default_factory=list, max_length=200)
     initial_value: float = Field(default=100.0, gt=0)
     horizon_steps: int = Field(default=60, ge=1, le=10000)
@@ -37,6 +39,8 @@ def build_analysis_router() -> APIRouter:
             return run_analysis(
                 question=request.question,
                 thesis=request.thesis,
+                assumptions=request.assumptions,
+                calculations=request.calculations,
                 evidence=request.evidence,
                 initial_value=request.initial_value,
                 horizon_steps=request.horizon_steps,
