@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dashboard-institutional-workstation-v5
+      - dashboard-institutional-workstation-v5-1
 
 permissions:
   contents: write
