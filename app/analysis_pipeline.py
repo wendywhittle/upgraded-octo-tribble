@@ -79,11 +79,12 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     }
 
 
-def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1, thesis: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1, thesis: Dict[str, Any] | None = None, assumptions: Iterable[Any] | None = None, calculations: Any = None) -> Dict[str, Any]:
     """Run the complete research loop and assemble canonical institutional objects."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
     evidence_items = list(evidence)
+    explicit_assumptions = list(assumptions or [])
     opportunity = build_opportunity(description=question, provenance={"origin": "analysis_request", "research_context_supplied": bool(research_context)})
     agent_stage = run_evidence_fed_agents(question, evidence_items, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context, research_context=research_context)
     agents = agent_stage["agents"]
@@ -120,7 +121,8 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         evidence=evidence_items,
         evidence_summary=evidence_state,
         thesis=thesis,
-        assumptions=[a for agent in agents for a in agent.get("assumptions", [])],
+        assumptions=explicit_assumptions,
+        calculations=calculations,
         scenarios=simulation.get("scenarios"),
         risk=simulation,
         perspectives=agents,
