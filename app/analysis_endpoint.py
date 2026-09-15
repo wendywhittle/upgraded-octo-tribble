@@ -10,6 +10,7 @@ from app.analysis_pipeline import run_analysis
 
 class AnalysisRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
+    thesis: Dict[str, Any] = Field(default_factory=dict)
     evidence: list[Dict[str, Any]] = Field(default_factory=list, max_length=200)
     initial_value: float = Field(default=100.0, gt=0)
     horizon_steps: int = Field(default=60, ge=1, le=10000)
@@ -35,6 +36,7 @@ def build_analysis_router() -> APIRouter:
             research_context = {key: value for key, value in research_context.items() if value}
             return run_analysis(
                 question=request.question,
+                thesis=request.thesis,
                 evidence=request.evidence,
                 initial_value=request.initial_value,
                 horizon_steps=request.horizon_steps,
