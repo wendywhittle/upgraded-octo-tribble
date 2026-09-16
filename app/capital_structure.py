@@ -90,6 +90,18 @@ def _validated_financing_evidence(evidence: Mapping[str, Any]) -> bool:
     )
 
 
+def _validate_ratio(value: Any, field_name: str) -> float | None:
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field_name} must be numeric when supplied") from exc
+    if not 0 <= numeric <= 100:
+        raise ValueError(f"{field_name} must be between 0 and 100")
+    return numeric
+
+
 def _observed(value: Any, evidence_ids: Iterable[str]) -> AnalyticalValue:
     return AnalyticalValue(
         value=value,
@@ -141,47 +153,49 @@ def build_capital_structure_scenario(
     claim = financing_evidence.get("claim") or {}
     assumptions = dict(assumptions or {})
 
-    ltv = claim.get("loan_to_value")
-    ltc = claim.get("loan_to_cost")
+    ltv = _validate_ratio(claim.get("loan_to_value"), "loan_to_value")
+    ltc = _validate_ratio(claim.get("loan_to_cost"), "loan_to_cost")
     loan_amount = None
-    loan_amount_classification = ValueClassification.UNKNOWN
     loan_amount_sources: Tuple[str, ...] = ()
     unknowns = []
 
     if property_value is not None:
+        if float(property_value) < 0:
+            raise ValueError("property_value must not be negative")
         property_value_value = _assumed(property_value, "property_value supplied for analytical scenario")
     else:
         property_value_value, missing = _unknown("property_value")
         unknowns.append(missing)
 
     if total_project_cost is not None:
+        if float(total_project_cost) < 0:
+            raise ValueError("total_project_cost must not be negative")
         project_cost_value = _assumed(total_project_cost, "total_project_cost supplied for analytical scenario")
     else:
         project_cost_value, missing = _unknown("total_project_cost")
         unknowns.append(missing)
 
     if ltv is not None and property_value is not None:
-        loan_amount = property_value * float(ltv) / 100.0
-        loan_amount_classification = ValueClassification.DERIVED
+        loan_amount = float(property_value) * ltv / 100.0
         loan_amount_sources = (evidence_id,)
     else:
         unknowns.append("loan_amount")
 
     loan_amount_value = (
         _derived(loan_amount, loan_amount_sources)
-        if loan_amount_classification == ValueClassification.DERIVED
+        if loan_amount is not None
         else _unknown("loan_amount")[0]
     )
 
     if loan_amount is not None and total_project_cost is not None:
-        required_equity = total_project_cost - loan_amount
+        required_equity = float(total_project_cost) - loan_amount
         required_equity_value = _derived(required_equity, (evidence_id,))
     else:
         required_equity_value, missing = _unknown("required_equity")
         unknowns.append(missing)
 
     if loan_amount is not None and total_project_cost:
-        derived_ltc = loan_amount / total_project_cost * 100.0
+        derived_ltc = loan_amount / float(total_project_cost) * 100.0
         loan_to_cost_value = _derived(derived_ltc, (evidence_id,))
     elif ltc is not None:
         loan_to_cost_value = _observed(ltc, (evidence_id,))
