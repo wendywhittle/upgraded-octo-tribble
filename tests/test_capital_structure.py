@@ -131,3 +131,25 @@ def test_explicit_assumptions_are_not_presented_as_evidence():
     assert scenario.maturity.classification == ValueClassification.ASSUMED
     assert scenario.maturity.source_evidence_ids == ()
     assert scenario.maturity.assumption == "explicit analytical maturity assumption"
+
+
+def test_invalid_ltv_is_rejected_before_calculation():
+    with pytest.raises(ValueError, match="loan_to_value must be between 0 and 100"):
+        build_capital_structure_scenario("A", "Invalid LTV", evidence(
+            claim={"financing_type": "senior_debt", "loan_to_value": 101}
+        ), property_value=10_000_000)
+
+
+def test_invalid_ltc_is_rejected_before_calculation():
+    with pytest.raises(ValueError, match="loan_to_cost must be between 0 and 100"):
+        build_capital_structure_scenario("A", "Invalid LTC", evidence(
+            claim={"financing_type": "senior_debt", "loan_to_cost": -1}
+        ))
+
+
+def test_analysis_cannot_authorize_or_execute():
+    scenario = build_capital_structure_scenario("A", "Research", evidence())
+    result = compare_capital_structures((scenario,))
+    assert result["investment_authority"] is False
+    assert result["financing_authority"] is False
+    assert result["execution_capability"] is False
