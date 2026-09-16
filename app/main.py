@@ -14,6 +14,7 @@ from app.cre_endpoint import build_cre_router
 from app.config import live_market_enabled, market_symbol_map, research_feed_urls
 from app.experiment_001_endpoint import Experiment001Request, build_experiment_001_router
 from app.experiment_001_runner import run_experiment_001_from_csv
+from app.external_capital_endpoint import build_external_capital_router
 from app.learning import build_learning_report
 from app.learning_endpoint import LearningRequest, build_learning_router
 from app.live_market_endpoint import build_live_market_router
@@ -41,6 +42,7 @@ app.include_router(build_opportunity_router())
 app.include_router(build_prediction_resolution_router())
 app.include_router(build_learning_router())
 app.include_router(build_experiment_001_router())
+app.include_router(build_external_capital_router())
 
 # Explicit application-boundary fallbacks keep the public routes observable even if
 # router composition is altered by a future integration refactor.
