@@ -1,3 +1,4 @@
+from dataclasses import FrozenInstanceError
 from datetime import datetime, timezone
 
 import pytest
@@ -20,6 +21,7 @@ def validated_observation(**overrides):
         "asset_classes": ["industrial"],
         "geography": ["Portland Metro"],
         "loan_to_value": 70.0,
+        "loan_to_cost": 75.0,
         "interest_rate": "floating",
         "term": "24 months",
         "amortization": "interest-only",
@@ -47,6 +49,7 @@ def test_validated_financing_observation_becomes_existing_evidence_shape():
     assert evidence["provenance"]["provider_id"] == "provider-alpha"
     assert evidence["provenance"]["observation_id"] == "fin-1"
     assert evidence["claim"]["loan_to_value"] == 70.0
+    assert evidence["claim"]["loan_to_cost"] == 75.0
     assert evidence["claim"]["assumptions"] == ["stabilization within 18 months"]
     assert evidence["claim"]["limitations"] == ["indicative only"]
     assert evidence["evidence_validation"]["decision_usable"] is True
@@ -79,6 +82,21 @@ def test_validated_but_stale_financing_evidence_remains_blocked():
             max_age_seconds=60,
             retrieved_at="2026-09-10T11:56:00+00:00",
         )
+
+
+def test_financing_observation_is_deeply_immutable():
+    observation = validated_observation(asset_classes=["industrial"], assumptions=["A"])
+    with pytest.raises(FrozenInstanceError):
+        observation.provider_id = "other-provider"
+    with pytest.raises(AttributeError):
+        observation.asset_classes.append("office")
+
+
+def test_invalid_ltv_and_ltc_are_rejected():
+    with pytest.raises(ValueError, match="loan_to_value"):
+        validated_observation(loan_to_value=100.1)
+    with pytest.raises(ValueError, match="loan_to_cost"):
+        validated_observation(loan_to_cost=-0.1)
 
 
 def test_financing_evidence_contains_no_authority_path():
