@@ -49,6 +49,7 @@ class InstitutionalInvestmentCase:
     perspectives: Any = None
     conflicts: Any = None
     contrarian_review: Any = None
+    capital_structure_analysis: Any = None
     decision_readiness: Any = None
     decision_options: List[str] = field(default_factory=list)
     governance: Dict[str, Any] = field(default_factory=dict)
@@ -97,6 +98,7 @@ class InstitutionalInvestmentCase:
             "perspectives": self.perspectives,
             "conflicts": self.conflicts,
             "contrarian_review": self.contrarian_review,
+            "capital_structure_analysis": self.capital_structure_analysis,
             "decision_readiness": self.decision_readiness,
             "decision_options": self.decision_options,
             "governance": self.governance,
@@ -157,6 +159,7 @@ def build_institutional_investment_case(
     perspectives: Any = None,
     conflicts: Any = None,
     contrarian_review: Any = None,
+    capital_structure_analysis: Any = None,
     decision_readiness: Any = None,
     decision_gate: Optional[Dict[str, Any]] = None,
     synthesis: Optional[Dict[str, Any]] = None,
@@ -174,7 +177,6 @@ def build_institutional_investment_case(
     governance_output = dict(governance or {})
     now = _now_iso()
 
-    # Preserve the existing authority boundary even if a caller supplies unsafe values.
     governance_output.update({
         "human_decision_required": True,
         "autonomous_execution": False,
@@ -204,6 +206,7 @@ def build_institutional_investment_case(
         perspectives=perspectives,
         conflicts=conflicts,
         contrarian_review=contrarian_review,
+        capital_structure_analysis=capital_structure_analysis,
         decision_readiness=decision_readiness,
         decision_options=[
             "INVESTIGATE",
