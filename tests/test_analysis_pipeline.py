@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from app.analysis_pipeline import run_analysis
+from app.capital_structure_pipeline import build_capital_structure_context
 
 
 NOW = datetime(2026, 9, 8, 12, 0, tzinfo=timezone.utc)
@@ -16,6 +17,18 @@ def evidence(claim="The observed condition is material."):
         "retrieved_at": "2026-09-08T11:05:00+00:00",
         "provenance": {"type": "primary", "point_in_time": True},
     }]
+
+
+def capital_structure_context():
+    return build_capital_structure_context([{
+        "scenario_id": "A",
+        "label": "Senior debt",
+        "financing_type": {"value": "senior_debt", "classification": "observed", "source_evidence_ids": ["E-FIN-1"], "assumption": None},
+        "loan_to_value": {"value": 70.0, "classification": "observed", "source_evidence_ids": ["E-FIN-1"], "assumption": None},
+        "loan_amount": {"value": 7_000_000, "classification": "derived", "source_evidence_ids": ["E-FIN-1"], "assumption": None},
+        "interest_rate": {"value": 7.0, "classification": "assumed", "source_evidence_ids": [], "assumption": "explicit sensitivity case"},
+        "amortization": {"value": None, "classification": "unknown", "source_evidence_ids": [], "assumption": None},
+    }])
 
 
 def test_full_pipeline_preserves_no_data_without_evidence():
@@ -105,3 +118,27 @@ def test_ready_gate_is_not_human_authorization():
     assert result["decision_gate"]["human_authorization"] is None
     assert result["decision_gate"]["approval"] is None
     assert result["decision_gate"]["investment_authority"] is False
+
+
+def test_capital_structure_context_reaches_perspectives_risk_and_investment_case():
+    context = capital_structure_context()
+    with patch("app.analysis_pipeline.append_record"):
+        result = run_analysis(
+            "Assess the financing implications",
+            evidence(),
+            now=NOW,
+            paths=100,
+            research_context={"asset": "Example Asset"},
+            capital_structure_analysis=context,
+        )
+
+    assert result["research_context"]["asset"] == "Example Asset"
+    assert result["research_context"]["capital_structure"]["source_evidence_ids"] == ["E-FIN-1"]
+    assert result["capital_structure_analysis"]["analytical_only"] is True
+    assert result["capital_structure_analysis"]["recommendation"] is None
+    assert all(agent["research_context_used"] is True for agent in result["agents"])
+    assert result["simulation"]["analytical_context"]["capital_structure"]["analytical_only"] is True
+    assert result["institutional_investment_case"]["capital_structure_analysis"]["epistemic_classes"] == ["observed", "derived", "assumed", "unknown"]
+    assert result["decision_gate"]["human_authorization"] is None
+    assert result["decision_gate"]["investment_authority"] is False
+    assert result["audit"]["capital_structure_integrated"] is True
