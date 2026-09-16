@@ -2,12 +2,15 @@
 
 Evidence integrity precedes reasoning. Independent perspectives feed typed conflict
 intelligence; risk simulation remains independent of agent conclusions. Research
-context remains distinct from evidence. Meta-Intelligence evaluates the reasoning
-process before synthesis. Institutional learning is advisory context only. No execution capability exists.
+context remains distinct from evidence. Capital-structure analysis is optional
+analytical context and never an authorization input. Meta-Intelligence evaluates
+the reasoning process before synthesis. Institutional learning is advisory context
+only. No execution capability exists.
 """
 
 from typing import Any, Dict, Iterable
 
+from app.capital_structure_pipeline import merge_research_context
 from app.conflict_intelligence import detect_conflict_intelligence
 from app.decision_gate import build_decision_gate
 from app.decision_readiness import build_decision_readiness
@@ -50,15 +53,32 @@ def synthesize(agents: list[Dict[str, Any]], conflict_data: Dict[str, list[Dict[
     return {"verdict": verdict, "conviction": round(abs(long_score - short_score) / total, 3) if total else 0.0, "long_evidence": round(long_score, 3), "short_evidence": round(short_score, 3), "conflict_count": len(conflict_data["conflicts"]), "key_risks": ["Financing sensitivity", "Valuation assumptions", "Downside scenario uncertainty"], "unresolved_questions": list(dict.fromkeys(unresolved)) or ["What evidence would invalidate the core thesis?", "Which assumptions are most sensitive?", "Does the downside case preserve an adequate margin of safety?"], "meta_intelligence": meta_intelligence or {}}
 
 
-def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1) -> Dict[str, Any]:
-    """Run the complete research loop and assemble a canonical Investment Case."""
+def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_value: float = 100.0, horizon_steps: int = 60, paths: int = 5000, seed: int = 42, now=None, max_age_seconds: float = 24 * 60 * 60, provider: ModelProvider | None = None, research_context: Dict[str, Any] | None = None, case_id: str | None = None, case_version: int = 1, capital_structure_analysis: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """Run the complete research loop with optional capital-structure analytical context."""
     prior_records = read_records()
     learning_context = build_learning_report(prior_records)
     evidence_items = list(evidence)
-    agent_stage = run_evidence_fed_agents(question, evidence_items, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context, research_context=research_context)
+    pipeline_context = merge_research_context(research_context, capital_structure_analysis)
+    agent_stage = run_evidence_fed_agents(question, evidence_items, now=now, max_age_seconds=max_age_seconds, provider=provider, learning_context=learning_context, research_context=pipeline_context)
     agents = agent_stage["agents"]
     conflict_data = detect_conflicts(agents)
-    simulation = run_monte_carlo(initial_value, horizon_steps, paths, seed, assumptions=[a for agent in agents for a in agent.get("assumptions", [])])
+
+    financing_context = pipeline_context.get("capital_structure") if pipeline_context else None
+    financing_assumptions = []
+    if financing_context:
+        for scenario in financing_context.get("scenarios", []):
+            for field_name, value in scenario.items():
+                if isinstance(value, dict) and value.get("classification") == "assumed":
+                    financing_assumptions.append(f"Capital structure assumption: {field_name}={value.get('value')}")
+
+    simulation = run_monte_carlo(
+        initial_value,
+        horizon_steps,
+        paths,
+        seed,
+        assumptions=[a for agent in agents for a in agent.get("assumptions", [])] + financing_assumptions,
+        analytical_context={"capital_structure": financing_context} if financing_context else None,
+    )
     skeptic = skeptic_review(agents, simulation)
     meta_intelligence = meta_intelligence_evaluate(agents=agents, evidence={"count": agent_stage["evidence_count"], "usable_count": agent_stage["usable_evidence_count"], "validation": agent_stage["validation"]}, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, learning_context=learning_context)
     synthesis = synthesize(agents, conflict_data, skeptic, meta_intelligence)
@@ -69,12 +89,13 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
         question,
         evidence=evidence_items,
         evidence_summary=evidence_state,
-        assumptions=[a for agent in agents for a in agent.get("assumptions", [])],
+        assumptions=[a for agent in agents for a in agent.get("assumptions", [])] + financing_assumptions,
         scenarios=simulation.get("scenarios"),
         risk=simulation,
         perspectives=agents,
         conflicts=conflict_data,
         contrarian_review=skeptic,
+        capital_structure_analysis=financing_context,
         synthesis=synthesis,
         governance=governance,
         domain="shared",
@@ -108,7 +129,8 @@ def run_analysis(question: str, evidence: Iterable[Dict[str, Any]], initial_valu
     record = build_record(question, agents, conflict_data, simulation, skeptic, synthesis, governance, seed, decision_gate=decision_gate, meta_intelligence=meta_intelligence)
     record["institutional_investment_case"] = institutional_case.to_dict()
     record["institutional_learning_context"] = {"resolved_prediction_count": learning_context.get("resolved_prediction_count", 0), "lessons": learning_context.get("lessons", []), "agent_metrics_ranked": learning_context.get("agent_metrics_ranked", []), "horizon_metrics": learning_context.get("horizon_metrics", {}), "informational_only": True}
-    record["research_context"] = research_context or {}
+    record["research_context"] = pipeline_context or {}
+    record["capital_structure_analysis"] = financing_context
     append_record(record)
     kaleidoscope = build_kaleidoscope_view(agents=agents, evidence=evidence_state, conflicts=conflict_data["conflicts"], horizon_divergences=conflict_data["horizon_divergences"], simulation=simulation, skeptic=skeptic, meta_intelligence=meta_intelligence, synthesis=synthesis, observer=observer, governance=governance)
-    return {"system": "AletheiaTelos", "question": question, "institutional_investment_case": institutional_case.to_dict(), "institutional_learning": learning_context, "research_context": research_context or {}, "evidence": evidence_state, "agents": agents, "active_perspectives": agent_stage["active_perspectives"], "reasoning_perspectives": agent_stage["reasoning_perspectives"], "registered_agent_count": agent_stage["registered_agent_count"], "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "meta_intelligence": meta_intelligence, "synthesis": synthesis, "decision_readiness": decision_readiness, "decision_gate": decision_gate, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->research_context->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->investment_case->decision_readiness->decision_gate->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "decision_gate_state": decision_gate["state"], "ready_for_human_authority": decision_gate["ready_for_human_authority"], "investment_case_id": institutional_case.case_id, "investment_case_version": institutional_case.case_version, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"], "research_context_supplied": agent_stage["research_context_supplied"], "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"], "meta_intelligence_directional_vote": False, "meta_intelligence_execution_capability": False}}
+    return {"system": "AletheiaTelos", "question": question, "institutional_investment_case": institutional_case.to_dict(), "institutional_learning": learning_context, "research_context": pipeline_context or {}, "capital_structure_analysis": financing_context, "evidence": evidence_state, "agents": agents, "active_perspectives": agent_stage["active_perspectives"], "reasoning_perspectives": agent_stage["reasoning_perspectives"], "registered_agent_count": agent_stage["registered_agent_count"], "conflicts": conflict_data["conflicts"], "horizon_divergences": conflict_data["horizon_divergences"], "conflict_intelligence": conflict_data["conflicts"] + conflict_data["horizon_divergences"], "simulation": simulation, "skeptic": skeptic, "meta_intelligence": meta_intelligence, "synthesis": synthesis, "decision_readiness": decision_readiness, "decision_gate": decision_gate, "observer": observer, "governance": governance, "kaleidoscope": kaleidoscope, "audit": {"pipeline": "prior_learning->evidence->capital_structure_analysis->independent_perspectives->conflict_intelligence->independent_risk->skeptic->meta_intelligence->synthesis->investment_case->decision_readiness->decision_gate->governance->observer->memory", "simulation_independent_of_agents": True, "simulation_seed": seed, "memory_recorded": True, "research_only": True, "human_decision_required": True, "decision_gate_state": decision_gate["state"], "ready_for_human_authority": decision_gate["ready_for_human_authority"], "investment_case_id": institutional_case.case_id, "investment_case_version": institutional_case.case_version, "provider": agent_stage["provider"], "learning_context_supplied": agent_stage["learning_context_supplied"], "research_context_supplied": agent_stage["research_context_supplied"], "perspectives_share_conclusions": agent_stage["perspectives_share_conclusions"], "meta_intelligence_directional_vote": False, "meta_intelligence_execution_capability": False, "capital_structure_integrated": financing_context is not None}}
