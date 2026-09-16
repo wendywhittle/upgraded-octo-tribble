@@ -1,7 +1,9 @@
 """Independent Monte Carlo risk engine.
 
 Agent conclusions provide assumptions, never the simulation result itself.
-The engine produces distributions across base, bull, bear, and adversarial paths.
+The engine produces distributions across the existing scenario taxonomy.
+Capital-structure context is carried as analytical metadata only; it does not
+alter the independent simulation unless an existing scenario explicitly uses it.
 """
 
 import math
@@ -47,6 +49,7 @@ def run_monte_carlo(
     paths: int = 5000,
     seed: int = 42,
     assumptions: List[str] | None = None,
+    analytical_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     rng = random.Random(seed)
     summaries: List[Dict[str, Any]] = []
@@ -88,4 +91,5 @@ def run_monte_carlo(
             "Scenario parameters are explicit and reproducible.",
             "Distributions are reviewed by the skeptic layer before synthesis.",
         ],
+        "analytical_context": analytical_context or {},
     }
