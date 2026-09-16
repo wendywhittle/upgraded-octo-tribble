@@ -7,7 +7,7 @@ using it as validated evidence.
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, Optional, Tuple
 
 
 VALIDATION_STATUSES = {
@@ -28,21 +28,23 @@ class FinancingObservation:
     source_uri: Optional[str] = None
     source_label: Optional[str] = None
     financing_type: Optional[str] = None
-    asset_classes: List[str] = field(default_factory=list)
-    geography: List[str] = field(default_factory=list)
+    asset_classes: Tuple[str, ...] = field(default_factory=tuple)
+    geography: Tuple[str, ...] = field(default_factory=tuple)
     loan_to_value: Optional[float] = None
     loan_to_cost: Optional[float] = None
     interest_rate: Optional[str] = None
     term: Optional[str] = None
     amortization: Optional[str] = None
-    covenants: List[str] = field(default_factory=list)
-    assumptions: List[str] = field(default_factory=list)
-    limitations: List[str] = field(default_factory=list)
+    covenants: Tuple[str, ...] = field(default_factory=tuple)
+    assumptions: Tuple[str, ...] = field(default_factory=tuple)
+    limitations: Tuple[str, ...] = field(default_factory=tuple)
     validation_status: str = "UNVALIDATED"
     evidence_id: Optional[str] = None
     notes: Optional[str] = None
 
     def __post_init__(self) -> None:
+        for name in ("asset_classes", "geography", "covenants", "assumptions", "limitations"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         if not self.observation_id.strip():
             raise ValueError("observation_id must not be empty")
         if not self.provider_id.strip():
