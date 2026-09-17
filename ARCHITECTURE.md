@@ -572,3 +572,59 @@ The governing principle remains:
 **AUTOMATION BETWEEN GATES. HUMAN AUTHORITY AT GATES.**
 
 The architecture should continue to prefer evidence over assertion, explicit uncertainty over false precision, dissent over manufactured consensus, and disciplined inaction over unjustified activity.
+
+## 19. External Market Interface Boundary
+
+AletheiaTelos may conceptually interface with external regulated or otherwise appropriately authorized market infrastructure in a future architecture. Such connectivity is an external architectural boundary and does not expand AletheiaTelos investment authority.
+
+The conceptual separation is:
+
+```text
+ALETHEIA TELOS
+────────────────────────────────────────────
+
+EVIDENCE
+   ↓
+COMPUTATIONAL KALEIDOSCOPE
+   ↓
+CONFLICT / COEXISTENCE
+   ↓
+INDEPENDENT RISK SIMULATION
+   ↓
+CONTRARIAN REVIEW
+   ↓
+INVESTMENT CASE
+   ↓
+DECISION READINESS
+   ↓
+DECISION GATE
+   ↓
+HUMAN AUTHORITY
+
+────────────────────────────────────────────
+EXTERNAL MARKET INTERFACE BOUNDARY
+────────────────────────────────────────────
+
+AUTHORIZED EXTERNAL SYSTEM
+   ↓
+EXECUTION / CLEARING / CUSTODY
+   ↓
+MARKET / REAL-WORLD OUTCOME
+```
+
+The external section is not part of AletheiaTelos autonomous authority.
+
+A future interface does not alter Decision Gate semantics, does not convert Decision Readiness into approval, and does not create autonomous execution authority. Any future implementation would require separate legal, regulatory, compliance, security, operational-risk, and governance review appropriate to the actual functionality.
+
+The governing distinction is:
+
+```text
+TECHNICAL CONNECTIVITY ≠ AUTHORITY
+READINESS ≠ AUTHORIZATION
+AUTHORIZATION ≠ EXECUTION
+EXECUTION ≠ ALETHEIA TELOS AUTHORITY
+```
+
+Any future external interface must remain subordinate to `CHARTER.md`, preserve explicit human authorization, follow least-privilege principles, and remain separable from intelligence, decision authority, custody, capital movement, and execution.
+
+See `EXTERNAL_MARKET_INTERFACE_BOUNDARY.md` for the detailed boundary definition and future implementation gate.
