@@ -30,7 +30,7 @@
       const host = document.getElementById("pipeline-stages");
       if (!host) return;
       host.innerHTML = canonicalStages.map((stage, index) => {
-        const state = states[stage.id] || {status: "NOT RUN", tone: ""};
+        const state = states[stage.id] || (stage.id === "investment_case" ? states.case : null) || {status: "NOT RUN", tone: ""};
         const target = stageTargets[stage.id] || "active-analysis";
         const icon = stageIcons[index] || "◇";
         const current = state.current ? " current" : "";
