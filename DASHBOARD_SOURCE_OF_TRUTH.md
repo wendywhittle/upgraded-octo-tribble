@@ -1,17 +1,20 @@
 # AletheiaTelos Interactive Dashboard Platform
 ## Canonical Source of Truth
 
-**Status: CANONICAL**
+**Status: CANONICAL / PIXEL-FAITHFUL REFERENCE**
 
-This document and the companion reference image define the authoritative visual and interaction contract for the AletheiaTelos interactive dashboard platform.
+The supplied AletheiaTelos dashboard screenshot is the **master visual reference** for the interactive dashboard platform. Future dashboard implementation must reproduce its composition, proportions, density, hierarchy, styling, navigation, status treatment, panel geometry, and interaction language as closely as the responsive viewport permits.
+
+This is not merely inspiration and is not a loose design direction. It is the canonical workstation presentation that subsequent dashboard work must implement.
 
 ### Normative artifacts
 
-1. `docs/dashboard/aletheia-telos-interactive-dashboard-source-of-truth.jpg` — the visual reference supplied by the system owner.
+1. `docs/dashboard/aletheia-telos-interactive-dashboard-source-of-truth.jpg` — the visual master supplied by the system owner.
 2. `web/dashboard-source-of-truth.json` — the machine-readable platform contract.
 3. This document — the human-readable implementation contract.
+4. `web/styles.css` — the production visual implementation of the canonical reference.
 
-If another dashboard mockup, screenshot, component arrangement, or styling direction conflicts with these artifacts, these artifacts control unless a later, explicitly governed dashboard source-of-truth replaces them.
+If another dashboard mockup, screenshot, component arrangement, styling direction, or generic UI convention conflicts with these artifacts, these artifacts control unless a later, explicitly governed dashboard source-of-truth replaces them.
 
 ## 1. Platform identity
 
@@ -26,7 +29,33 @@ Required identity language:
 
 The dashboard must communicate an institutional research workstation, not a trading terminal, consumer analytics product, CRE listing portal, or autonomous investment agent.
 
-## 2. Canonical information architecture
+## 2. Canonical visual implementation rule
+
+The supplied screenshot is the visual master. Implementations must preserve, rather than reinterpret, the following characteristics:
+
+- fixed institutional left navigation with compact spacing
+- compact top system bar with status chips and command controls
+- dense horizontal 11-stage pipeline with directional progression
+- compact card-based analytical workspace
+- right-side institutional rail
+- dark navy/black terminal background
+- thin blue-green structural borders
+- cyan system accents
+- violet analytical accents
+- green operational/completion states
+- amber warning/uncertainty states
+- red downside/adversarial states
+- compact monospaced information typography
+- small uppercase section labels
+- restrained glow and scanline treatment
+- dense information presentation with minimal wasted space
+- persistent human-authority boundary
+
+**Pixel-faithful means the page should visually read as the same workstation shown in the reference image, not merely as another dark dashboard.**
+
+Responsive behavior may reflow the composition for smaller screens, but must preserve the same visual system and hierarchy. Responsive adaptation must not become a separate design language.
+
+## 3. Canonical information architecture
 
 The dashboard is organized around a persistent institutional workstation:
 
@@ -45,7 +74,7 @@ The dashboard is organized around a persistent institutional workstation:
 
 The interface is interactive. Panels represent actual system state and should be data-bound wherever the backend exposes the corresponding state.
 
-## 3. Canonical 11-stage pipeline
+## 4. Canonical 11-stage pipeline
 
 The visible pipeline is fixed to the following institutional sequence:
 
@@ -67,7 +96,7 @@ The pipeline is not decorative. Each stage is an interactive entry point into th
 
 The stage ordering must not be silently changed by a UI redesign.
 
-## 4. Canonical dashboard regions
+## 5. Canonical dashboard regions
 
 ### Active Analysis
 
@@ -114,7 +143,7 @@ The canonical right rail contains:
 
 The Human Authority Boundary is permanent platform language.
 
-## 5. Human authority boundary
+## 6. Human authority boundary
 
 > AletheiaTelos provides research, analysis, simulation and decision intelligence.
 
@@ -124,7 +153,7 @@ The Human Authority Boundary is permanent platform language.
 
 No visual element may imply that analytical readiness is equivalent to authorization or execution.
 
-## 6. Interaction rules
+## 7. Interaction rules
 
 The dashboard should support:
 
@@ -146,24 +175,6 @@ The dashboard must not introduce:
 - autonomous investment approval
 - hidden authority through UI controls
 
-## 7. Visual language
-
-The reference image establishes the canonical visual direction:
-
-- dark institutional terminal aesthetic
-- dense but legible information hierarchy
-- restrained cyan system/navigation accents
-- violet analytical-intelligence accents
-- green operational/complete states
-- amber warning/uncertainty states
-- red adversarial/downside states
-- compact status badges
-- high-contrast data labels
-- persistent structural navigation
-- clear separation between analytical content and authority state
-
-Visual polish is subordinate to truthful system state.
-
 ## 8. Architecture relationship
 
 The dashboard is the interactive presentation and control surface for the existing AletheiaTelos architecture. It does not become a new authority layer.
@@ -176,9 +187,11 @@ The dashboard must expose this architecture rather than replace it.
 
 ## 9. Implementation rule
 
-Future dashboard work must start from this source of truth.
+Future dashboard work must start from this source of truth and the supplied screenshot.
 
 Do not create a competing dashboard concept, alternate primary pipeline, decorative mockup, or disconnected UI architecture without an explicit replacement of this source-of-truth contract.
+
+Do not progressively simplify the visual design into generic cards, large whitespace layouts, generic SaaS navigation, chat-first interfaces, or consumer-finance patterns.
 
 Backend capability remains authoritative for values and state. This source of truth is authoritative for the dashboard's information architecture, interaction model, visual language, and institutional boundary presentation.
 
