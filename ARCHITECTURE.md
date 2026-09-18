@@ -628,3 +628,217 @@ EXECUTION ≠ ALETHEIA TELOS AUTHORITY
 Any future external interface must remain subordinate to `CHARTER.md`, preserve explicit human authorization, follow least-privilege principles, and remain separable from intelligence, decision authority, custody, capital movement, and execution.
 
 See `EXTERNAL_MARKET_INTERFACE_BOUNDARY.md` for the detailed boundary definition and future implementation gate.
+
+## 20. Institutional Website Architecture
+
+The AletheiaTelos user experience is a first-class presentation layer over the institutional intelligence architecture.
+
+The website is intentionally **multi-page rather than dashboard-centric**. The purpose is to give each major institutional capability enough visual and interaction space to communicate what it does, what it produces, and where its authority boundary lies.
+
+### 20.1 Experience Architecture
+
+The intended experience is:
+
+```text
+WORLD / ASSETS
+      ↓
+CAPITAL + ASSET INTELLIGENCE
+      ↓
+EVIDENCE
+      ↓
+COMPUTATIONAL KALEIDOSCOPE
+      ↓
+CONFLICT / COEXISTENCE
+      ↓
+RISK / SCENARIOS
+      ↓
+INVESTMENT CASE
+      ↓
+DECISION GATE
+      ↓
+HUMAN DECISION
+      ↓
+OUTCOME / OBSERVATION
+      ↓
+EPISTEMIC MEMORY
+```
+
+This is a presentation mapping of the underlying architecture. It does not create new analytical stages or authority.
+
+### 20.2 Multi-Page Institutional Environments
+
+The intended website information architecture is:
+
+```text
+HOME
+ ├── ASSET INTELLIGENCE
+ ├── CAPITAL INTELLIGENCE
+ ├── EVIDENCE
+ ├── COMPUTATIONAL KALEIDOSCOPE
+ ├── RISK / SCENARIOS
+ ├── INVESTMENT CASE
+ ├── DECISION GATE
+ └── OUTCOMES / EPISTEMIC MEMORY
+```
+
+Each environment remains connected to the same underlying contracts, APIs, evidence boundaries, decision objects, and governance rules.
+
+The pages are **views into one system**, not independent applications.
+
+### 20.3 Visual System
+
+The intended visual language is:
+
+- deep black / cinematic backgrounds
+- commercial and industrial architecture
+- institutional real-estate imagery
+- restrained typography
+- generous whitespace
+- subtle cyan intelligence graphics
+- architectural linework and network visualizations
+- interactive controls rather than dense dashboard panels
+- responsive layouts for tablet and desktop
+- progressive disclosure of technical detail
+
+The visual environment should communicate institutional seriousness without becoming a terminal emulator.
+
+Commercial and industrial buildings provide the physical-world anchor for the Asset Engine. Capital intelligence can use market, network, quantitative, and capital-flow visualizations while maintaining the same design language.
+
+### 20.4 Outputs Must Be Visualized as Outputs
+
+Graphics should represent what the system produces rather than merely decorate the page.
+
+Examples:
+
+```text
+ASSET ENGINE
+building / asset
+      ↓
+asset intelligence
+
+EVIDENCE
+source network / provenance graph
+      ↓
+validated evidence
+
+KALEIDOSCOPE
+independent analytical lenses
+      ↓
+competing perspectives
+
+CONFLICT
+intersecting viewpoints
+      ↓
+agreement / disagreement / unresolved issues
+
+RISK
+scenario distributions
+      ↓
+BASE / BULL / BEAR / ADVERSARIAL / TAIL
+
+INVESTMENT CASE
+institutional deal representation
+      ↓
+synthesized case
+
+DECISION GATE
+compact boundary representation
+      ↓
+READY FOR HUMAN AUTHORITY
+
+OUTCOMES
+asset / capital performance
+      ↓
+observation / attribution / memory
+```
+
+These visualizations are communication surfaces. They must remain faithful to the underlying analytical contracts and must not manufacture certainty.
+
+### 20.5 Website / Workspace Boundary
+
+The website and the deeper analytical workspace have different purposes.
+
+The website provides:
+
+- orientation
+- institutional context
+- navigation
+- visual explanation
+- capability discovery
+- high-level analytical outputs
+
+The deeper workspace provides:
+
+- research inputs
+- evidence inspection
+- analytical execution
+- detailed simulations
+- conflict analysis
+- investment-case construction
+- decision-readiness evaluation
+- decision-gate inspection
+
+A large **Run Research Analysis** panel should not dominate the public-facing experience. Research execution remains available through an intentional interaction that opens or routes into the analytical workspace.
+
+### 20.6 Source-of-Truth and Governance Invariants
+
+The presentation layer must consume and respect the canonical system contracts.
+
+It must not:
+
+- invent analytical states
+- imply authorization
+- convert readiness into approval
+- represent connectivity as authority
+- imply execution capability that is disabled
+- bypass Decision Gate semantics
+- rewrite Decision Record history
+- turn Epistemic Memory into authority
+
+The governing distinctions remain:
+
+```text
+RECOMMENDATION
+      ≠
+READY FOR HUMAN AUTHORITY
+      ≠
+HUMAN DECISION
+      ≠
+AUTHORIZATION
+      ≠
+EXECUTION
+```
+
+And:
+
+```text
+TECHNICAL CONNECTIVITY ≠ AUTHORITY
+READINESS ≠ AUTHORIZATION
+AUTHORIZATION ≠ EXECUTION
+EXECUTION ≠ ALETHEIA TELOS AUTHORITY
+```
+
+The website may become more expressive as the system evolves, but the authority model must remain unchanged.
+
+### 20.7 Current vs Future Experience
+
+The multi-page website is an architectural direction for the institutional experience.
+
+The existence of a planned page does not mean every underlying capability is fully implemented.
+
+Current frontend work may establish the visual shell, navigation, interactive presentation, and existing analytical entry points first. Deeper page functionality should be connected only to capabilities supported by the underlying system.
+
+Future pages may therefore begin as presentation environments and progressively become richer as their corresponding analytical contracts and backend capabilities mature.
+
+### 20.8 Design Invariant
+
+The website should preserve the following experience principle:
+
+> **World → Assets → Intelligence → Risk → Investment Case → Human Decision → Outcomes → Institutional Memory**
+
+The objective is not to turn AletheiaTelos into a prettier dashboard.
+
+The objective is to give the institutional intelligence architecture a visual environment worthy of the system it represents.
+
+---
+
