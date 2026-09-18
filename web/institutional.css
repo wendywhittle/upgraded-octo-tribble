@@ -26,3 +26,26 @@
 @media(max-width:1000px){.site-header{padding:0 24px}.site-nav a{padding:8px 0;font-size:10px}.site-header.menu-open .site-nav{max-height:calc(100vh - 90px);overflow:auto;gap:2px}.home-hero{padding-top:115px}.hero-graphic{max-width:760px;margin-top:10px}.page-hero{gap:32px}.function-card{min-height:210px}}
 @media(max-width:620px){.site-header{height:70px;padding:0 18px}.site-brand b{font-size:10px}.site-nav a{font-size:10px;min-height:38px;display:flex;align-items:center;width:100%}.menu-button{min-width:64px;min-height:38px}.home-hero{min-height:auto;padding-top:105px}.hero-content h1,.page-hero h1,.gate-intro h1{letter-spacing:-.045em}.hero-actions{flex-direction:column;align-items:flex-start;gap:16px}.button{min-height:44px;display:inline-flex;align-items:center}.hero-graphic{height:320px}.hero-graphic .node{font-size:6px;padding:7px 8px}.statement{padding-top:72px}.function-section{padding-bottom:70px}.function-card{min-height:190px}.lifecycle-line{gap:7px}.insight-popover{left:16px!important;right:16px;bottom:16px;top:auto!important;max-width:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.function-card{transition:none}}
+
+/* Architectural visibility correction: make the built-environment layer unmistakable while preserving restraint. */
+.hero-photo{z-index:0;}
+.hero-photo:before{z-index:1;bottom:0;height:58%;background:
+ linear-gradient(90deg,transparent 0 3%,rgba(99,221,236,.18) 3.2% 3.7%,transparent 3.9% 13%,rgba(99,221,236,.16) 13.2% 13.7%,transparent 13.9% 27%,rgba(99,221,236,.17) 27.2% 27.7%,transparent 27.9% 42%,rgba(99,221,236,.15) 42.2% 42.7%,transparent 42.9% 58%,rgba(99,221,236,.17) 58.2% 58.7%,transparent 58.9% 74%,rgba(99,221,236,.14) 74.2% 74.7%,transparent 74.9% 88%,rgba(99,221,236,.16) 88.2% 88.7%,transparent 88.9%),
+ linear-gradient(180deg,rgba(8,24,31,.12),rgba(3,10,14,.97));
+ clip-path:polygon(0 38%,7% 38%,7% 17%,23% 17%,23% 30%,36% 30%,36% 5%,55% 5%,55% 22%,70% 22%,70% 0,91% 0,91% 13%,100% 13%,100% 100%,0 100%);opacity:1;}
+.hero-vignette{z-index:1;}
+.hero-photo:after{z-index:2;}
+.hero-graphic{z-index:3;}
+.architecture-image{position:relative;overflow:hidden;background:
+ linear-gradient(180deg,rgba(4,12,16,.02),rgba(2,5,8,.72)),
+ repeating-linear-gradient(90deg,transparent 0 7.5%,rgba(99,221,236,.17) 7.7% 8%,transparent 8.2% 15%),
+ linear-gradient(145deg,#0a2029 0%,#06131a 52%,#020608 100%);}
+.architecture-image:before{content:"";position:absolute;inset:0;opacity:.9;background:
+ repeating-linear-gradient(90deg,transparent 0 4.8%,rgba(99,221,236,.16) 5% 5.35%,transparent 5.55% 10.2%),
+ linear-gradient(180deg,transparent 0 31%,rgba(99,221,236,.14) 31.2% 31.7%,transparent 32% 47%,rgba(99,221,236,.11) 47.2% 47.7%,transparent 48%);
+ clip-path:polygon(0 73%,6% 61%,18% 61%,18% 37%,34% 37%,34% 50%,49% 50%,49% 23%,68% 23%,68% 41%,82% 41%,82% 15%,100% 15%,100% 100%,0 100%);}
+.building-outline{position:relative;overflow:hidden;box-shadow:inset 0 0 70px rgba(99,221,236,.06);}
+.building-outline:after{content:"";position:absolute;inset:0;background:
+ repeating-linear-gradient(90deg,transparent 0 5.8%,rgba(99,221,236,.13) 6% 6.35%,transparent 6.55% 12%),
+ linear-gradient(180deg,transparent 0 36%,rgba(99,221,236,.12) 36.2% 36.7%,transparent 37% 61%,rgba(99,221,236,.1) 61.2% 61.7%,transparent 62%);clip-path:polygon(0 80%,10% 67%,25% 67%,25% 42%,39% 42%,39% 56%,54% 56%,54% 29%,72% 29%,72% 47%,87% 47%,87% 20%,100% 20%,100% 100%,0 100%);}
+@media(max-width:620px){.hero-photo:before{height:52%;}.architecture-image:before{clip-path:polygon(0 76%,10% 63%,25% 63%,25% 40%,40% 40%,40% 54%,55% 54%,55% 29%,72% 29%,72% 45%,88% 45%,88% 19%,100% 19%,100% 100%,0 100%);}}
