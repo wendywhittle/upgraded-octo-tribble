@@ -755,6 +755,124 @@ It is to ensure that increasing capability does not silently become increasing a
 
 ---
 
+## Institutional Website and Intelligence Experience
+
+AletheiaTelos is also being developed as a **multi-page institutional intelligence website**, not as a single dashboard that attempts to expose every capability on one screen.
+
+The website is the human-facing presentation and navigation layer over the institutional intelligence architecture. It should make the system understandable through visual hierarchy, physical-world context, and interactive exploration without weakening the underlying governance model.
+
+The intended experience is:
+
+```text
+WORLD / ASSETS
+      ↓
+CAPITAL + ASSET INTELLIGENCE
+      ↓
+EVIDENCE
+      ↓
+COMPUTATIONAL KALEIDOSCOPE
+      ↓
+CONFLICT / COEXISTENCE
+      ↓
+RISK / SCENARIOS
+      ↓
+INVESTMENT CASE
+      ↓
+DECISION GATE
+      ↓
+HUMAN DECISION
+      ↓
+OUTCOME / MEMORY
+```
+
+### Visual Direction
+
+The primary visual language is:
+
+- deep black / cinematic background
+- commercial and industrial architecture
+- institutional real-estate imagery
+- restrained typography and generous whitespace
+- subtle cyan intelligence graphics
+- interactive visual representations of analytical outputs
+- minimal interface chrome
+- responsive behavior suitable for tablet, desktop, and mobile use
+
+Commercial and industrial buildings provide the physical-world anchor for the Asset Engine. Graphics should not be decorative alone. Where practical, each visual should communicate an actual system concept, analytical output, relationship, scenario, or boundary.
+
+### Multi-Page Information Architecture
+
+The website is intended to become a set of connected institutional environments:
+
+1. **Home / Institutional Intelligence**  
+   The public-facing entry point explaining what AletheiaTelos is and how its intelligence architecture operates.
+
+2. **Asset Intelligence**  
+   Commercial real estate, industrial, NNN, infrastructure, development, private assets, operations, and capital structure.
+
+3. **Capital Intelligence**  
+   Public markets, quantitative research, alternative data, macro, factors, regimes, risk, and capital-allocation research.
+
+4. **Evidence**  
+   Provenance, freshness, validation, corroboration, source quality, and the distinction between observation and evidence.
+
+5. **Computational Kaleidoscope**  
+   Independent analytical perspectives and the structured representation of agreement, disagreement, uncertainty, and dissent.
+
+6. **Risk and Scenario Intelligence**  
+   Independent scenario analysis across BASE, BULL, BEAR, ADVERSARIAL, and TAIL / stress conditions.
+
+7. **Investment Case**  
+   Institutional synthesis of evidence, assumptions, analytical perspectives, conflicts, simulations, and unresolved uncertainty.
+
+8. **Decision Gate**  
+   A deliberately compact human-authority boundary showing readiness without implying approval or execution.
+
+9. **Outcomes and Epistemic Memory**  
+   Observation, attribution, institutional learning, and the relationship between prior decisions and subsequent real-world outcomes.
+
+These pages are not separate systems. They are views into one institutional intelligence architecture.
+
+### Website-to-Workspace Principle
+
+The website should follow:
+
+```text
+VISUAL INSTITUTIONAL ENVIRONMENT
+              ↓
+INTERACTIVE FUNCTION
+              ↓
+ANALYTICAL OUTPUT
+              ↓
+DEEPER WORKSPACE
+```
+
+The current research-analysis workflow remains available, but **Run Research Analysis** should be treated as an entry point into the deeper analytical workspace rather than as the dominant visual structure of the homepage.
+
+The presentation layer must not hard-code states that contradict the canonical dashboard source-of-truth contract.
+
+### Authority Preservation
+
+The website is a presentation and interaction layer. Visual polish, interactive controls, animations, or navigation must never imply capabilities the underlying architecture does not possess.
+
+In particular:
+
+**READY ≠ AUTHORIZED ≠ EXECUTED**
+
+The website must continue to communicate:
+
+- research-only posture
+- explicit human investment authority
+- no autonomous execution
+- no brokerage authority
+- no portfolio mutation
+- no autonomous capital transfer
+- no inference of human authorization from analytical readiness
+
+The website can make AletheiaTelos easier to understand without making AletheiaTelos more autonomous.
+
+---
+
 ## The Vision
 
 AletheiaTelos is not an AI that makes investments.
