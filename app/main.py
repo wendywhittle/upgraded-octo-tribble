@@ -1,7 +1,10 @@
 from pathlib import Path
 from typing import Any
+import hashlib
+import hmac
+import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
@@ -9,8 +12,8 @@ from app.deal_flow import STATUSES, build_excel, create_deal, get_deal, list_dea
 
 app = FastAPI(
     title="AletheiaTelos Deal Flow Engine",
-    version="2.0.0",
-    description="Real-estate deal intake, deterministic underwriting, records, Excel models, and pipeline.",
+    version="2.1.0",
+    description="Public deal intake with protected internal deal processing.",
 )
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -40,14 +43,66 @@ class StatusChange(BaseModel):
     status: str
 
 
+def access_key() -> str:
+    return os.getenv("ALETHEIA_INTERNAL_ACCESS_KEY", "")
+
+
+def session_token() -> str:
+    key = access_key()
+    if not key:
+        return ""
+    return hmac.new(key.encode(), b"aletheiatelos-internal-session", hashlib.sha256).hexdigest()
+
+
+def require_internal_session(internal_session: str | None = Cookie(default=None)) -> None:
+    expected = session_token()
+    if not expected or not internal_session or not hmac.compare_digest(internal_session, expected):
+        raise HTTPException(status_code=401, detail="Internal access required")
+
+
 @app.get("/")
 def root() -> FileResponse:
     return FileResponse(WEB_DIR / "index.html")
 
 
+@app.get("/internal")
+def internal() -> FileResponse:
+    return FileResponse(WEB_DIR / "internal.html")
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "healthy", "product": "deal-flow-engine"}
+
+
+@app.post("/internal/login")
+def internal_login(request: Request, payload: dict[str, str]) -> Response:
+    key = access_key()
+    if not key or not hmac.compare_digest(payload.get("access_key", ""), key):
+        raise HTTPException(status_code=401, detail="Access denied")
+    response = Response(content='{"authenticated":true}', media_type="application/json")
+    response.set_cookie(
+        "internal_session",
+        session_token(),
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="strict",
+        max_age=28800,
+        path="/",
+    )
+    return response
+
+
+@app.get("/internal/session")
+def internal_session(_: None = Depends(require_internal_session)) -> dict[str, bool]:
+    return {"authenticated": True}
+
+
+@app.post("/internal/logout")
+def internal_logout() -> Response:
+    response = Response(content='{"authenticated":false}', media_type="application/json")
+    response.delete_cookie("internal_session", path="/")
+    return response
 
 
 @app.post("/api/deals")
@@ -56,12 +111,12 @@ def submit_deal(deal: DealInput) -> dict[str, Any]:
 
 
 @app.get("/api/deals")
-def deals() -> list[dict[str, Any]]:
+def deals(_: None = Depends(require_internal_session)) -> list[dict[str, Any]]:
     return list_deals()
 
 
 @app.get("/api/deals/{deal_id}")
-def deal(deal_id: str) -> dict[str, Any]:
+def deal(deal_id: str, _: None = Depends(require_internal_session)) -> dict[str, Any]:
     record = get_deal(deal_id)
     if not record:
         raise HTTPException(status_code=404, detail="Deal not found")
@@ -69,7 +124,7 @@ def deal(deal_id: str) -> dict[str, Any]:
 
 
 @app.patch("/api/deals/{deal_id}/status")
-def status(deal_id: str, change: StatusChange) -> dict[str, Any]:
+def status(deal_id: str, change: StatusChange, _: None = Depends(require_internal_session)) -> dict[str, Any]:
     if change.status not in STATUSES:
         raise HTTPException(status_code=400, detail="Invalid pipeline status")
     record = update_status(deal_id, change.status)
@@ -79,7 +134,7 @@ def status(deal_id: str, change: StatusChange) -> dict[str, Any]:
 
 
 @app.get("/api/deals/{deal_id}/excel")
-def excel(deal_id: str) -> Response:
+def excel(deal_id: str, _: None = Depends(require_internal_session)) -> Response:
     record = get_deal(deal_id)
     if not record:
         raise HTTPException(status_code=404, detail="Deal not found")
