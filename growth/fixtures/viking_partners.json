@@ -1,0 +1,56 @@
+{
+  "prospect_id": "ATG-VIKING-000001",
+  "account": "Viking Partners",
+  "current_state": "QUALIFY",
+  "next_action": "Prepare a human-reviewed acquisition introduction focused on small-bay industrial opportunities",
+  "people": [
+    {
+      "name": "Aaron Werbel",
+      "title": "Vice President of Acquisitions",
+      "email": "awerbel@vikingprt.com",
+      "source": "https://www.vikingprt.com/investment-strategy/"
+    },
+    {
+      "name": "Michael Arnovitz",
+      "title": "Director of Acquisitions",
+      "email": "marnovitz@vikingprt.com",
+      "source": "https://www.vikingprt.com/contact-us/"
+    }
+  ],
+  "evidence": [
+    {
+      "fact": "Viking says it is actively seeking investments through direct ownership or joint ventures.",
+      "source": "https://www.vikingprt.com/investment-strategy/"
+    },
+    {
+      "fact": "Published acquisition size is $10M to $75M+.",
+      "source": "https://www.vikingprt.com/investment-strategy/"
+    },
+    {
+      "fact": "Published target markets include the Midwest, Southeast, and Southwest.",
+      "source": "https://www.vikingprt.com/investment-strategy/"
+    },
+    {
+      "fact": "Published target property types include industrial, retail, office, flex, multifamily and development.",
+      "source": "https://www.vikingprt.com/investment-strategy/"
+    },
+    {
+      "fact": "Viking announced a $50.4M off-market acquisition of four small-bay industrial parks in Florida on August 6, 2025.",
+      "source": "https://www.vikingprt.com/viking-partners-acquires-four-small-bay-industrial-parks-in-florida-in-an-off-market-transaction/"
+    }
+  ],
+  "qualification": {
+    "status": "QUALIFIED",
+    "rationale": [
+      "Documented active acquisition appetite",
+      "Documented acquisition range overlaps institutional commercial opportunities",
+      "Industrial is explicitly within stated investment criteria",
+      "Recent small-bay industrial acquisition provides a concrete relevance signal"
+    ]
+  },
+  "outreach": {
+    "status": "NOT_SENT",
+    "approval_required": true
+  },
+  "source_checked_at": "2026-09-21"
+}
