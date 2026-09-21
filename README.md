@@ -1,898 +1,493 @@
 # AletheiaTelos
 
-## Institutional Investment Intelligence
+## Institutional Intelligence for Investment Decisions
 
-AletheiaTelos is an AI-native institutional investment intelligence system designed to combine institutional CRE and real-asset investment discipline, public-market and quantitative research, multi-perspective computational reasoning, independent risk simulation, and persistent organizational learning.
+AletheiaTelos is an institutional intelligence system for finding, evaluating, challenging, documenting, and learning from investment opportunities across real assets and capital markets.
 
-### The Goal
+It is not a trading bot.
+It is not a property scraper.
+It is not a chatbot with a finance skin.
+It is not an autonomous investor.
 
-The goal is **not** to build another multi-agent trading demo, another CRE scraper, or an AI that spits out investment recommendations.
-
-The goal is to build **AletheiaTelos as an institutional intelligence system**.
-
-The AI is the intelligence layer around the institutional investment process.
-
-It is:
-
-* not the owner of the capital
-* not the Investment Committee
-* not the trader
-* not the principal
-* not the thing that decides what reality means after the fact
-
-Human investment authority remains explicit.
+It is a system for making complex investment work more rigorous, visible, comparable, auditable, and learnable.
 
 ---
 
-## The North Star
+## The Point
 
-> **Build an investment intelligence organization that gets smarter because it remembers what actually happened.**
-
-At the highest level:
-
-```text
-CAPITAL ENGINE + ASSET ENGINE
-            ↓
-OPPORTUNITY ACQUISITION
-            ↓
-EVIDENCE
-            ↓
-COMPUTATIONAL KALEIDOSCOPE
-            ↓
-CONFLICT / COEXISTENCE
-            ↓
-INDEPENDENT RISK SIMULATION
-            ↓
-CONTRARIAN REVIEW
-            ↓
-INVESTMENT CASE
-            ↓
-DECISION GATE
-            ↓
-HUMAN INVESTMENT IC
-            ↓
-DECISION RECORD
-            ↓
-CAPITAL / ASSET
-            ↓
-OUTCOME
-            ↓
-OBSERVATION
-            ↓
-EPISTEMIC MEMORY
-            ↓
-BETTER NEXT DECISION
-```
-
-This is the architecture's governing direction.
-
-The system is **decision-centric, not agent-centric**.
-
-Agents are reasoning components. They are not the institutional unit of truth, authority, or memory.
-
-The durable institutional object is the **Decision Record**. Evidence, reasoning, assumptions, simulations, dissent, decisions, outcomes, and lessons should converge on a versioned, auditable record of what was believed, why it was believed, what humans decided, and what actually happened.
-
----
-
-## The Economic Objective
-
-Underneath the intelligence architecture is the economic objective of an institutional investment organization:
+The economic objective is simple:
 
 > **Find, evaluate, acquire, improve, operate, finance, and ultimately compound capital through superior investment decisions.**
 
-The system therefore supports the full capital and asset cycle rather than optimizing for isolated predictions, trades, or property discoveries.
+Everything in the system exists to support that objective.
+
+The system should make it easier to answer questions such as:
+
+- What are we actually looking at?
+- What do we know?
+- What do we not know?
+- Which claims are supported?
+- Which assumptions are doing the work?
+- What happens if the thesis is wrong?
+- Where do independent perspectives disagree?
+- Is this sufficiently understood to reach a human decision gate?
+- What did we decide?
+- What actually happened?
+- What should the institution learn from it?
+
+If the answer is not useful to those questions, it probably does not belong in the product.
+
+---
+
+## The Operating Loop
 
 ```text
 FIND
-  ↓
-EVALUATE
-  ↓
-ACQUIRE
-  ↓
-IMPROVE
-  ↓
-OPERATE
-  ↓
-FINANCE / RECYCLE
-  ↓
-REALIZE OUTCOME
-  ↓
-RETURN / REINVEST CAPITAL
-  ↓
-COMPOUND
+ ↓
+UNDERSTAND
+ ↓
+EVIDENCE
+ ↓
+CHALLENGE
+ ↓
+MODEL
+ ↓
+SIMULATE
+ ↓
+SYNTHESIZE
+ ↓
+HUMAN DECISION
+ ↓
+ACT
+ ↓
+OBSERVE
+ ↓
+LEARN
+ ↓
+BETTER NEXT DECISION
 ```
 
-This includes the institutional logic of funds, SPVs, joint ventures, debt, sponsor capital, asset operations, refinancing, disposition, and reinvestment.
+The system is **decision-centric, not agent-centric**.
 
-AletheiaTelos is intended to improve the quality of decisions throughout that cycle.
+Agents, models, tools, databases, prompts, and interfaces are implementation components. They are not the institutional source of truth.
 
 ---
 
-## Opportunity Acquisition Layer
+## Two Engines
 
-The **Opportunity Acquisition Layer** is the conceptual institutional front door for discovering potential opportunities across capital and real assets.
+### Asset Engine
 
-Its purpose is to automate discovery without confusing discovery with evidence, analysis, authorization, or execution.
+Real-world assets and their economics:
 
-The intended acquisition flow is:
+- CRE
+- industrial
+- NNN
+- infrastructure
+- development
+- private assets
+- operations
+- financing
+- capital structure
+- value creation
 
-```text
-SOURCE
-  ↓
-ACQUISITION ADAPTER
-  ↓
-RAW OBSERVATION
-  ↓
-NORMALIZATION
-  ↓
-DEDUPLICATION
-  ↓
-PROVENANCE
-  ↓
-OPPORTUNITY OBJECT
-  ↓
-EVIDENCE VALIDATION
-  ↓
-OPPORTUNITY QUEUE
-  ↓
-ALETHEIA INTELLIGENCE PIPELINE
-```
+### Capital Engine
 
-**OPPORTUNITY ≠ EVIDENCE**
+Capital markets and allocation research:
 
-A listing, filing, market observation, lender indication, capital source, or other external observation is not automatically validated evidence and is not automatically an investment conclusion.
+- public markets
+- quantitative research
+- alternative data
+- macro
+- factors
+- regimes
+- risk
+- portfolio research
+- capital allocation
 
-### Asset Opportunity Acquisition
-
-The future acquisition architecture can support permitted and authorized discovery across domains such as:
-
-* CRE
-* Industrial
-* NNN
-* Infrastructure
-* Development
-* Private assets
-* Other permitted asset classes
-
-### Capital Opportunity Acquisition
-
-The future acquisition architecture can also support permitted and authorized discovery across capital intelligence domains such as:
-
-* Public-market intelligence
-* Quantitative research
-* Alternative data
-* Macro
-* Factors
-* Risk information
-* Lender and debt sources
-* Private capital sources
-* Institutional capital
-* Other permitted capital intelligence
-
-External sources are treated as public, licensed, permitted, or otherwise authorized inputs. The architecture does not assume unrestricted scraping or access.
-
-Named external platforms may become source adapters where access is legally and contractually permitted, but the current system should not be interpreted as claiming active scraping of any particular platform.
-
-The governing principle is:
-
-**AUTOMATION DISCOVERS.**  
-**EVIDENCE VALIDATES.**  
-**INTELLIGENCE ANALYZES.**  
-**THE SYSTEM CHALLENGES ITSELF.**  
-**HUMANS AUTHORIZE.**
-
-The Opportunity Acquisition Layer is therefore a front door into the institutional intelligence architecture, not an autonomous deal-making system.
+The domains differ. The intelligence discipline does not.
 
 ---
 
-## Two Investment Engines
-
-### CAPITAL ENGINE
-
-* Public markets
-* Quantitative strategies and research
-* Alternative data
-* Macro
-* Factors
-* Market regimes
-* Risk
-* Portfolio construction
-* Capital allocation research
-
-The Capital Engine is research and decision intelligence. It does not execute trades, transfer capital, mutate portfolios, or possess investment authority.
-
-### ASSET ENGINE
-
-* CRE
-* Industrial
-* NNN
-* Infrastructure
-* Development
-* Private assets
-* Operations
-* Capital structure
-* Value creation
-
-The Asset Engine is research and decision intelligence for real and private assets. It does not possess autonomous acquisition authority.
-
-The two engines share one institutional intelligence substrate:
-
-**Opportunity Acquisition → Evidence → Computational Reasoning → Conflict / Coexistence → Independent Simulation → Contrarian Review → Human Authority → Decision Record → Outcome → Epistemic Memory**
-
-Capital markets and real assets are different domains connected by a common architecture.
-
-### Capital Universe and Instrument Discovery
-
-The Capital Engine may use external universe and classification sources to identify and normalize financial instruments before evidence acquisition.
-
-One potential research/reference source is **FinanceDatabase**, an open-source financial product universe providing broad instrument coverage and classification across equities, ETFs, funds, indices, currencies, cryptocurrencies, and money markets.
-
-Where permitted and appropriate, such a source may support:
-
-* instrument discovery
-* universe construction
-* exchange / market classification
-* sector / industry classification
-* identifier normalization
-* research routing
-* deduplication across listings
-
-A universe or classification source is not an evidence authority.
-
-Presence within a universe does not imply investment eligibility, investment merit, valuation, liquidity, suitability, or recommendation.
-
-External universe sources remain subject to provenance, freshness, licensing, identifier validation, source authority, and corroboration requirements.
-
-FinanceDatabase is therefore considered a **potential external Capital Engine universe / classification source**, not a required system dependency and not a source of investment authority.
-
-The Capital Engine must preserve the distinction:
+## The Intelligence Stack
 
 ```text
-UNIVERSE
-   ↓
 OPPORTUNITY
+    ↓
+EVIDENCE
+    ↓
+INDEPENDENT PERSPECTIVES
+    ↓
+CONFLICT / COEXISTENCE
+    ↓
+INDEPENDENT RISK / SCENARIOS
+    ↓
+CONTRARIAN REVIEW
+    ↓
+INVESTMENT CASE
+    ↓
+DECISION READINESS
+    ↓
+DECISION GATE
+    ↓
+HUMAN AUTHORITY
+    ↓
+DECISION RECORD
+    ↓
+OUTCOME
+    ↓
+OBSERVATION
+    ↓
+EPISTEMIC MEMORY
+```
+
+Each boundary has a job.
+
+The system must not quietly collapse them into one opaque "AI answer."
+
+---
+
+## Evidence Before Story
+
+AletheiaTelos distinguishes:
+
+```text
+OBSERVATION
    ↓
 EVIDENCE
    ↓
-ANALYSIS
+INTERPRETATION
    ↓
-DECISION READINESS
+HYPOTHESIS
    ↓
-HUMAN AUTHORITY
+ASSUMPTION
+   ↓
+SCENARIO
+   ↓
+SIMULATION
+   ↓
+DECISION SUPPORT
 ```
 
-**Discovery does not become evidence merely because an external source identifies an instrument.**
+A source is not automatically evidence.
+Evidence is not automatically a conclusion.
+A model output is not automatically reality.
+
+Material claims should retain provenance, freshness, and context where practical.
+
+Unknown is a valid state.
+
+Unavailable is a valid state.
+
+Contradiction is a valid state.
+
+The system must never manufacture certainty to make an interface look complete.
 
 ---
 
 ## Computational Kaleidoscope
 
-At the center of AletheiaTelos is the Computational Kaleidoscope.
+The Computational Kaleidoscope is the system's method for examining an investment question through genuinely different analytical lenses.
 
-A shared investment question is examined through multiple independent reasoning perspectives:
+Possible perspectives include:
 
-* **Researcher** — market, property, industry, and external intelligence
-* **Quant** — quantitative analysis, probabilities, sensitivity, and signal evaluation
-* **Investor** — investment thesis, risk/reward, capital allocation, and returns
-* **Scientist** — hypothesis formation, testing, evidence, and causal reasoning
-* **Systems** — dependencies, interactions, second-order effects, and system behavior
-* **Contrarian** — disconfirming evidence, failure modes, and reasons the thesis may be wrong
-* **Philosopher** — assumptions, definitions, epistemology, and conceptual integrity
-* **Observer** — real-world outcomes and post-decision observation
-* **Epistemic Memory** — accumulated institutional knowledge and prior experience
-* **Meta-Intelligence** — evaluation of the reasoning process itself
-* **Governance / CHARTER** — boundaries, authority, accountability, and system constraints
+- Research
+- Quant
+- Investor
+- Systems
+- Scientist
+- Macro
+- Contrarian
+- Governance
+- Observer
+- Epistemic Memory
+- Meta-Intelligence
 
-These perspectives are intentionally independent.
+The purpose is not to create a pile of personalities.
 
-They are not merely cosmetic agents or a UI representation of reasoning. Their purpose is to expose disagreement, competing interpretations, conflicting assumptions, horizon divergence, risk, uncertainty, missing evidence, and dissent.
+The purpose is to expose:
 
-**Agreement is not the objective. Better judgment is.**
+- different evidence
+- different assumptions
+- different models
+- different time horizons
+- different failure modes
+- different interpretations
+- meaningful disagreement
 
-Dissent is information. Consensus must not be manufactured merely to produce a cleaner answer.
+Consensus is not the objective.
 
----
+**Better judgment is.**
 
-## Institutional Investment Process
-
-### CRE / Real Assets
-
-```text
-MARKET / OPPORTUNITY
-        ↓
-INITIAL SCREEN
-        ↓
-UNDERWRITE
-        ↓
-DUE DILIGENCE
-        ↓
-SCENARIO ANALYSIS
-        ↓
-CAPITAL STRUCTURE
-        ↓
-VALUE CREATION PLAN
-        ↓
-INVESTMENT MEMO
-        ↓
-HUMAN INVESTMENT COMMITTEE
-```
-
-The institutional question is not merely:
-
-> Does this property look interesting?
-
-It is:
-
-> **Is this actually a deal?**
-
-### Capital Markets
-
-The Capital Engine evaluates securities, quantitative strategies, factors, regimes, alternative-data signals, risk, portfolio hypotheses, and capital-allocation questions before human review.
-
-In both engines, **NO-GO** is a legitimate outcome.
+If the perspectives cannot be reconciled, the system should preserve the disagreement rather than manufacture agreement.
 
 ---
 
-## Evidence Architecture
+## Risk Is a Separate Question
 
-External data is never treated as investment authority.
+A thesis and a risk distribution are not the same thing.
 
-```text
-DATA PROVIDERS
-      ↓
-NORMALIZATION
-      ↓
-EVIDENCE REGISTRY
-      ↓
-INTEGRITY / PROVENANCE / FRESHNESS
-      ↓
-CORROBORATION
-      ↓
-REASONING
-```
+Independent scenario analysis should be able to examine conditions such as:
 
-The provider boundary is intentionally vendor-neutral. External providers can feed the evidence layer without becoming a hard dependency or decision authority.
+- BASE
+- BULL
+- BEAR
+- ADVERSARIAL
+- TAIL RISK
 
-The epistemic boundary remains:
+Simulation is not prediction.
 
-```text
-OBSERVATION
-    ↓
-EVIDENCE
-    ↓
-INTERPRETATION
-    ↓
-HYPOTHESIS
-    ↓
-SCENARIO ASSUMPTION
-    ↓
-SIMULATION
-```
+The system should expose distributions, sensitivity, downside, uncertainty, and model limitations rather than presenting a single number as destiny.
 
-A proposed relationship is not an observation merely because an agent proposes it.
+The risk layer must remain analytically independent enough to challenge the assumptions that produced the thesis.
 
 ---
 
-## Conflict / Coexistence
+## The Discipline to Say No
 
-AletheiaTelos does not treat disagreement as an error to be averaged away.
+A serious investment system must be able to stop.
 
-Conflicting perspectives may reflect different:
+Legitimate outcomes include:
 
-* time horizons
-* assumptions
-* regimes
-* evidence sets
-* risk tolerances
-* causal models
-* liquidity conditions
-* definitions of success
+- NO-GO
+- NO DEAL
+- NO ACTION
+- HOLD
+- INVESTIGATE
+- INSUFFICIENT EVIDENCE
+- CONDITIONAL GO
 
-The Conflict / Coexistence layer makes those differences explicit.
+A system that always produces a positive answer is not intelligent. It is optimized for activity.
 
-The objective is not forced consensus.
-
-The objective is to understand **why perspectives agree, why they disagree, and whether they can coexist under different conditions**.
-
-Independent perspectives may remain unresolved when evidence does not justify resolution.
-
----
-
-## Independent Risk Simulation
-
-Simulation is an independent analytical boundary, not an extension of agent opinion.
-
-The intended risk engine should generate thousands of plausible paths across competing scenarios such as:
-
-* Base
-* Bull
-* Bear
-* Adversarial
-* Tail Risk
-
-It should report distributions, downside probabilities, drawdowns, uncertainty, and sensitivity rather than treating a single predicted outcome as truth.
-
-Agents provide assumptions and competing hypotheses to the simulator. They do not determine its results.
-
-The simulator should remain independently parameterized and account for relevant sources of fragility such as liquidity, transaction costs, market impact, regime variation, volatility, gaps, stale evidence, capacity constraints, and microstructure effects where applicable.
-
-**Simulation ≠ prediction.**
-
-The Contrarian / Skeptic layer reviews the resulting distributions and challenges both the thesis and the assumptions underlying the scenarios.
-
----
-
-## Contrarian Review
-
-The Contrarian is not a decorative opposing opinion.
-
-Its purpose is to actively search for reasons the investment thesis could fail:
-
-* disconfirming evidence
-* hidden assumptions
-* asymmetric downside
-* adverse regime changes
-* liquidity and execution problems
-* structural fragility
-* resolution risk
-* model risk
-* evidence-quality problems
-* reasons the apparent opportunity should be rejected
-
-The system must be capable of reaching **NO** after substantial analytical work.
+AletheiaTelos is designed to optimize for **decision quality, not decision volume**.
 
 ---
 
 ## Investment Case
 
-AletheiaTelos assembles an institutional investment case from validated evidence, explicit assumptions, calculations, scenarios, simulations, independent perspectives, conflicts, dissent, and unresolved uncertainty.
+The Investment Case is the structured analytical package assembled from:
 
-An investment case is an analytical package. It is not authorization to transact.
+- validated evidence
+- explicit assumptions
+- calculations
+- scenarios
+- independent perspectives
+- conflict
+- risk analysis
+- contrarian objections
+- unresolved uncertainty
 
-The distinction between evidence, assumption, calculation, scenario, simulation, interpretation, decision readiness, and human authorization is preserved throughout the process.
+It is an analytical package.
 
----
-
-## Decision Gate and Human Authority
-
-The **Decision Gate** is a first-class institutional boundary between analytical readiness and human authority.
-
-The gate explicitly distinguishes:
-
-```text
-CLOSED
-
-CLOSED_BLOCKED
-
-OPEN_READY_FOR_HUMAN_AUTHORITY
-```
-
-**OPEN_READY_FOR_HUMAN_AUTHORITY does not mean approved.**
-
-**READY ≠ AUTHORIZED ≠ EXECUTED**
-
-The Decision Gate determines whether the analytical package is sufficiently complete to be presented to a human authority. It does not grant investment authority, approve a transaction, or execute anything.
-
-Legitimate analytical outcomes include:
-
-* **NO-GO**
-* **NO DEAL**
-* **INSUFFICIENT EVIDENCE**
-* **HOLD**
-* **INVESTIGATE**
-* **CONDITIONAL GO**
-
-Hard stops can prevent readiness. Lack of usable evidence, failed evidence validation, invalid independent simulation or review, prohibited governance conditions, and other material blockers must remain capable of closing the gate.
-
-The gate is therefore a readiness boundary, not an approval mechanism.
-
-### Human Authority
-
-AletheiaTelos supports institutional decision-making. It does not replace the Investment Committee, principal, authorized investment professional, legal counsel, lender, broker, escrow, title company, or other human-authorized execution functions.
-
-The governing principle is:
-
-**automation between gates, human authority at gates.**
+It is not authorization.
 
 ---
 
-## Contract / Close Lifecycle
+## Decision Gate
 
-The longer-term institutional lifecycle extends beyond analytical readiness:
+The Decision Gate separates analytical readiness from human authority.
 
 ```text
+ANALYSIS
+   ↓
+DECISION READINESS
+   ↓
 DECISION GATE
-      ↓
+   ↓
 HUMAN AUTHORITY
-      ↓
-CONTRACT / EXECUTION PREPARATION
-      ↓
-HUMAN-AUTHORIZED LEGAL / FINANCIAL EXECUTION
-      ↓
-CLOSE
-      ↓
-OWN / OPERATE
-      ↓
-OUTCOME
-      ↓
-OBSERVATION
-      ↓
-EPISTEMIC MEMORY
+   ↓
+EXECUTION
 ```
 
-Future versions of AletheiaTelos could prepare institutional execution packages containing items such as:
+The governing distinction is:
 
-* approved deal terms
-* diligence status
-* outstanding conditions
-* financing conditions
-* closing checklist
-* unresolved risks
-* responsible parties
-* deadlines
-* decision record
+**READY FOR HUMAN AUTHORITY ≠ AUTHORIZED ≠ EXECUTED**
 
-These are preparation and coordination capabilities, not autonomous authority.
+The system may determine that an analytical package is ready for human review.
 
-AletheiaTelos must not autonomously sign contracts, move money, close transactions, execute trades, or otherwise exercise legal or financial authority.
-
-Human-authorized systems and professionals remain responsible for execution.
+It may not turn that readiness into approval.
 
 ---
 
 ## Decision Record
 
-The **Decision Record is the central durable institutional object**.
+The Decision Record preserves institutional history without rewriting it.
 
-It is not:
+It should retain, as applicable:
 
-* the agent
-* the trade
-* the portfolio
-* the prompt
+- what was considered
+- what evidence existed
+- what assumptions were made
+- what perspectives said
+- where disagreement existed
+- what simulations showed
+- what objections were raised
+- what the investment case said
+- what humans decided
+- what happened afterward
+- what was learned
 
-A Decision Record should preserve, as applicable:
+The original decision remains intact even when reality proves it wrong.
 
-* decision identity and versioning
-* opportunity / subject
-* evidence references and provenance
-* claims and interpretations
-* perspective / agent provenance
-* explicit assumptions
-* competing hypotheses
-* simulation request and independent results
-* adversarial objections
-* conflict / coexistence analysis
-* synthesis
-* recommendation or **NO ACTION**
-* human authorization state
-* Investment Committee decision
-* eventual outcome
-* observation and attribution
-* lessons and memory links
-* timestamps and audit history
+That is essential.
 
-The Decision Record preserves both **the decision and the reasoning that produced it**.
+Otherwise the institution is not learning. It is rewriting history.
 
 ---
 
-## Outcome, Observation, and Epistemic Memory
+## Outcomes and Epistemic Memory
 
-The system does not end when the Investment Committee makes a decision.
+The system continues after a decision.
 
 ```text
 DECISION
-   ↓
-CAPITAL / ASSET
-   ↓
+ ↓
 REAL WORLD
-   ↓
+ ↓
+OUTCOME
+ ↓
 OBSERVATION
-   ↓
+ ↓
 ATTRIBUTION
-   ↓
+ ↓
 EPISTEMIC MEMORY
-   ↓
+ ↓
 BETTER NEXT DECISION
 ```
 
-The Observer captures what actually happened.
+Memory is not a permission system.
+Memory is not authority.
+Memory is not a mechanism for silently changing historical records.
 
-Outcome Attribution compares reality with the original thesis, evidence, assumptions, and expectations.
+Memory exists so the institution can distinguish:
 
-Epistemic Memory preserves institutional history including prior observations, outcomes, forecast/resolution relationships, attribution, and lessons with provenance.
+**what we thought, why we thought it, what happened, and what we learned.**
 
-Memory is not authority, permission, automatic policy, or autonomous decision-making.
+---
 
-The original decision remains intact. The system does not rewrite history simply because the outcome disagreed with the thesis.
+## Human Authority
 
-The conceptual learning loop is:
+AletheiaTelos is designed to support human institutional decision-making.
+
+It may research, calculate, compare, challenge, simulate, synthesize, document, monitor, and learn.
+
+It does not independently:
+
+- execute trades
+- acquire assets
+- transfer capital
+- mutate portfolios
+- sign contracts
+- exercise legal authority
+- exercise investment authority
+
+Technical connectivity does not create authority.
+
+---
+
+## Website Philosophy
+
+The website is the front door to the intelligence system.
+
+It should feel like an institutional product, not a developer console.
+
+The experience should move from:
 
 ```text
-FORECAST
-   ↓
-RESOLUTION
-   ↓
-OBSERVER
-   ↓
-ATTRIBUTION
-   ↓
-EPISTEMIC MEMORY
-   ↓
-BETTER NEXT DECISION
-```
-
-The objective is not merely to accumulate information.
-
-It is to accumulate **validated institutional knowledge**.
-
----
-
-## Capital Preservation and the Discipline to Say No
-
-AletheiaTelos is designed to optimize for **decision quality, not activity**.
-
-If the evidence does not justify committing capital, AletheiaTelos should be able to say:
-
-* **NO TRADE**
-* **NO DEAL**
-* **NO ACTION**
-* insufficient evidence
-* defer / monitor
-
-That is not failure.
-
-**That is intelligence.**
-
-Capital preservation can take precedence over forced activity when the margin of safety is inadequate.
-
----
-
-## Cross-Asset Intelligence
-
-AletheiaTelos is designed to eventually connect observations across capital markets and real assets.
-
-For example:
-
-```text
-company activity
-→ government contracts
-→ capital expenditure
-→ infrastructure
-→ geography
-→ industrial demand
-→ CRE opportunity
-```
-
-And in the reverse direction:
-
-```text
-CRE / infrastructure / industrial activity
-→ companies / suppliers
-→ public securities
-→ macro implications
-→ capital allocation hypotheses
-```
-
-These relationships must remain evidence-backed and testable. The system should not infer unsupported causality merely because two observations appear related.
-
----
-
-## Human Authority and Governance
-
-AletheiaTelos is an investment intelligence system, not an autonomous investment agent.
-
-The governing runtime posture is:
-
-```text
-research_only = true
-human_decision_required = true
-autonomous_execution = false
-brokerage_connectivity = false
-portfolio_mutation = false
-investment_authority = false
-```
-
-The architecture does not assume autonomous brokerage connectivity, live trading, autonomous portfolio mutation, or independent investment execution.
-
-The system can research, analyze, challenge, compare, model, document, observe, and learn.
-
-**Investment authority remains with humans.**
-
-The Investment Committee is an explicit decision boundary within the architecture.
-
-Tool access is capability, not permission.
-
----
-
-## Engineering Principles
-
-AletheiaTelos can borrow useful engineering patterns from modern agent runtimes and trading research systems without inheriting their assumptions.
-
-Useful infrastructure patterns include:
-
-* explicit agent contracts
-* execution / orchestration graphs
-* typed traces and audit logs
-* evaluator layers
-* stress-testing interfaces
-* isolated runtimes
-* observability
-* reproducible experiments
-* environment and tool boundaries
-* standardized adapters
-
-These are implementation mechanisms, not the governing philosophy of the system.
-
-**Steal the good engineering. Leave the ideology.**
-
-AletheiaTelos remains decision-centric, human-authorized, evidence-bound, and institutionally oriented.
-
----
-
-## Governance Framework
-
-The system operates under the explicit governing framework represented by `CHARTER.md` and the project's proprietary directives.
-
-The Charter takes precedence over agents, prompts, workflows, tools, models, and optimization objectives.
-
-Governance defines boundaries surrounding:
-
-* agency
-* tools
-* persistence
-* self-modification
-* data and evidence
-* decision authority
-* human oversight
-* independent challenge
-* auditability
-* security
-
-The purpose of governance is not to constrain intelligence unnecessarily.
-
-It is to ensure that increasing capability does not silently become increasing authority.
-
----
-
-## Institutional Website and Intelligence Experience
-
-AletheiaTelos is also being developed as a **multi-page institutional intelligence website**, not as a single dashboard that attempts to expose every capability on one screen.
-
-The website is the human-facing presentation and navigation layer over the institutional intelligence architecture. It should make the system understandable through visual hierarchy, physical-world context, and interactive exploration without weakening the underlying governance model.
-
-The intended experience is:
-
-```text
-WORLD / ASSETS
-      ↓
-CAPITAL + ASSET INTELLIGENCE
-      ↓
-EVIDENCE
-      ↓
-COMPUTATIONAL KALEIDOSCOPE
-      ↓
-CONFLICT / COEXISTENCE
-      ↓
-RISK / SCENARIOS
-      ↓
+WORLD
+ ↓
+ASSETS / CAPITAL
+ ↓
+INTELLIGENCE
+ ↓
+RISK
+ ↓
 INVESTMENT CASE
-      ↓
-DECISION GATE
-      ↓
+ ↓
 HUMAN DECISION
-      ↓
-OUTCOME / MEMORY
+ ↓
+OUTCOMES
+ ↓
+MEMORY
 ```
 
-### Visual Direction
+Visuals should communicate real system outputs.
 
-The primary visual language is:
+No fake dashboards.
+No decorative "AI agent" theater.
+No meaningless graphs.
+No invented numbers.
+No giant architecture diagram pretending to be functionality.
 
-- deep black / cinematic background
-- commercial and industrial architecture
-- institutional real-estate imagery
-- restrained typography and generous whitespace
-- subtle cyan intelligence graphics
-- interactive visual representations of analytical outputs
-- minimal interface chrome
-- responsive behavior suitable for tablet, desktop, and mobile use
+**If a panel is clickable, it should do something real.**
 
-Commercial and industrial buildings provide the physical-world anchor for the Asset Engine. Graphics should not be decorative alone. Where practical, each visual should communicate an actual system concept, analytical output, relationship, scenario, or boundary.
+**If a number is displayed, it should have a source.**
 
-### Multi-Page Information Architecture
-
-The website is intended to become a set of connected institutional environments:
-
-1. **Home / Institutional Intelligence**  
-   The public-facing entry point explaining what AletheiaTelos is and how its intelligence architecture operates.
-
-2. **Asset Intelligence**  
-   Commercial real estate, industrial, NNN, infrastructure, development, private assets, operations, and capital structure.
-
-3. **Capital Intelligence**  
-   Public markets, quantitative research, alternative data, macro, factors, regimes, risk, and capital-allocation research.
-
-4. **Evidence**  
-   Provenance, freshness, validation, corroboration, source quality, and the distinction between observation and evidence.
-
-5. **Computational Kaleidoscope**  
-   Independent analytical perspectives and the structured representation of agreement, disagreement, uncertainty, and dissent.
-
-6. **Risk and Scenario Intelligence**  
-   Independent scenario analysis across BASE, BULL, BEAR, ADVERSARIAL, and TAIL / stress conditions.
-
-7. **Investment Case**  
-   Institutional synthesis of evidence, assumptions, analytical perspectives, conflicts, simulations, and unresolved uncertainty.
-
-8. **Decision Gate**  
-   A deliberately compact human-authority boundary showing readiness without implying approval or execution.
-
-9. **Outcomes and Epistemic Memory**  
-   Observation, attribution, institutional learning, and the relationship between prior decisions and subsequent real-world outcomes.
-
-These pages are not separate systems. They are views into one institutional intelligence architecture.
-
-### Website-to-Workspace Principle
-
-The website should follow:
-
-```text
-VISUAL INSTITUTIONAL ENVIRONMENT
-              ↓
-INTERACTIVE FUNCTION
-              ↓
-ANALYTICAL OUTPUT
-              ↓
-DEEPER WORKSPACE
-```
-
-The current research-analysis workflow remains available, but **Run Research Analysis** should be treated as an entry point into the deeper analytical workspace rather than as the dominant visual structure of the homepage.
-
-The presentation layer must not hard-code states that contradict the canonical dashboard source-of-truth contract.
-
-### Authority Preservation
-
-The website is a presentation and interaction layer. Visual polish, interactive controls, animations, or navigation must never imply capabilities the underlying architecture does not possess.
-
-In particular:
-
-**READY ≠ AUTHORIZED ≠ EXECUTED**
-
-The website must continue to communicate:
-
-- research-only posture
-- explicit human investment authority
-- no autonomous execution
-- no brokerage authority
-- no portfolio mutation
-- no autonomous capital transfer
-- no inference of human authorization from analytical readiness
-
-The website can make AletheiaTelos easier to understand without making AletheiaTelos more autonomous.
+**If data does not exist, say so.**
 
 ---
 
-## The Vision
+## Source of Truth
 
-AletheiaTelos is not an AI that makes investments.
+The architecture defines the contracts.
+The application implements them.
+The UI presents them.
+The Decision Record preserves them.
 
-It is not a dashboard that merely displays information.
+No presentation layer is allowed to become a competing source of truth.
 
-It is not a collection of disconnected agents.
+No generated artifact is allowed to silently override application state.
 
-It is not another multi-agent trading demo.
+No memory layer is allowed to rewrite history.
 
-It is not merely a CRE scraper.
+---
 
-It is not an AI recommendation engine.
+## Engineering Standard
 
-It is an **institutional intelligence system** designed to put computational intelligence around the full investment process and make the organization better through accumulated experience.
+AletheiaTelos favors:
 
-The north star remains:
+- deterministic calculations
+- explicit contracts
+- small composable components
+- provider independence
+- observable state
+- real failure states
+- testable boundaries
+- least privilege
+- boring infrastructure where boring is safer
 
-> **Build an investment intelligence organization that gets smarter because it remembers what actually happened.**
+It rejects:
 
-The domain can change.
+- speculative complexity
+- fake functionality
+- opaque magic
+- unnecessary microservices
+- agent theater
+- hidden assumptions
+- silent fallbacks
+- decorative state
+- architecture for architecture's sake
 
-The institutional intelligence loop remains.
+**Make the workflow real before making it sophisticated.**
+
+---
+
+## The Standard
+
+The product is successful when a real opportunity can move through the system and a human can reconstruct:
+
+```text
+WHAT WAS FOUND
+→ WHAT WAS KNOWN
+→ WHAT WAS ASSUMED
+→ WHAT WAS CHALLENGED
+→ WHAT WAS MODELED
+→ WHAT COULD GO WRONG
+→ WHAT THE SYSTEM CONCLUDED
+→ WHAT THE HUMAN DECIDED
+→ WHAT HAPPENED
+→ WHAT WAS LEARNED
+```
+
+That is AletheiaTelos.
+
+**Institutional intelligence that compounds through experience.**
