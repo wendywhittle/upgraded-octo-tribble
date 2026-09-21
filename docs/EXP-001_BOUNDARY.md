@@ -1,1 +1,0 @@
-EXP-001 empirical execution requires an authorized historical SPX/VIX/SKEW dataset. The repository validates point-in-time provenance and immutable dataset identity before results are accepted as evidence.

@@ -1,1 +1,0 @@
-EXP-001 runner: implemented on kaleidoscope-final3. Empirical execution awaits authorized historical data.

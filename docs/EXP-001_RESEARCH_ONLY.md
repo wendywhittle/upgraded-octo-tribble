@@ -1,1 +1,0 @@
-EXP-001 remains research-only. It produces empirical statistics for human review and never authorizes execution.

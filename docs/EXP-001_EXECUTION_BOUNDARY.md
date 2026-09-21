@@ -1,3 +1,0 @@
-# EXP-001 Execution Boundary
-
-Empirical execution requires an authorized historical SPX/VIX/SKEW export or licensed feed. Preserve acquisition metadata, point-in-time availability, source and methodology versions, and immutable dataset identity. Synthetic fixtures are mechanics-only and are not empirical evidence. The experiment remains research-only; consequential decisions require human authorization.

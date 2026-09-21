@@ -1,1 +1,0 @@
-CI gate for EXP-001 runner: tests must pass before merge to protected main.

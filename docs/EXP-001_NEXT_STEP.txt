@@ -1,1 +1,0 @@
-Next: supply authorized historical SPX/VIX/SKEW CSV; execute locked experiment; review results adversarially; do not treat synthetic fixtures as evidence.

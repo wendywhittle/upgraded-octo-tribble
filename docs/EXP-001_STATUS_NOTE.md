@@ -1,1 +1,0 @@
-EXP-001 is at the empirical-data boundary. The remaining required input is an authorized historical SPX/VIX/SKEW dataset. No empirical conclusion should be drawn from synthetic fixtures.

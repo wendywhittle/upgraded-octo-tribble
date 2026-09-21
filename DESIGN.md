@@ -1,506 +1,98 @@
-# AletheiaTelos Design System
+# AletheiaTelos Design
 
-## 1. Design Objective
+## Product experience
 
-AletheiaTelos should look like the institution it is becoming.
+AletheiaTelos should feel like a serious deal workspace.
 
-Not a terminal.
-Not a generic SaaS dashboard.
-Not a crypto trading interface.
-Not an "AI agents" demo.
+Not a command center. Not a crypto dashboard. Not AI-agent theater. Not an architecture diagram pretending to be a product.
 
-The visual language should communicate:
+The first screen should answer one question:
 
-**serious capital + real assets + intelligence + restraint.**
+**Have a deal?**
 
-The interface should feel expensive because it is disciplined, not because it is decorated.
+Then make entering it easy.
 
----
+## Primary flow
 
-## 2. Primary Experience
+LANDING → ENTER DEAL → SEE NUMBERS → INSPECT DEAL → EXPORT MODEL → MOVE THROUGH PIPELINE
 
-The user should understand the product within seconds.
+## Landing page
 
-The visual hierarchy is:
+The landing page has:
+- clear proposition
+- one primary action
+- short explanation
+- no wall of system terminology
+- no fake live feeds
+- no decorative intelligence panels
 
-```text
-WHAT IS THIS?
-      ↓
-WHAT CAN I DO HERE?
-      ↓
-WHAT DOES THE SYSTEM KNOW?
-      ↓
-WHAT DOES THE SYSTEM THINK?
-      ↓
-WHERE DOES IT DISAGREE?
-      ↓
-WHAT COULD GO WRONG?
-      ↓
-IS IT READY FOR HUMAN REVIEW?
-```
+Primary CTA: ENTER A DEAL
 
-The interface should never force a user to understand the architecture before they can use the product.
+## Deal intake
 
----
+The intake form is the heart of the product.
 
-## 3. The Front Door
+Required:
+- deal/property name
+- asset type
+- location
+- purchase price
+- annual NOI
 
-The landing page has one job:
+Optional inputs remain visibly optional.
 
-**orient and invite action.**
+The interface distinguishes supplied, calculated, unavailable, and unknown.
 
-Primary action:
+The form never punishes a user for not knowing a number that is genuinely unavailable.
 
-**Start an Analysis**
+## Results
 
-Secondary navigation can introduce:
+After submission, immediately show:
+- Deal ID
+- purchase price
+- NOI
+- cap rate when computable
+- other supported underwriting outputs
+- missing information
+- pipeline status
 
-- Asset Intelligence
-- Capital Intelligence
-- Evidence
-- Risk
-- Investment Case
-- Decision Gate
-- Outcomes
+The result should be understandable in seconds.
 
-The homepage should not become an architecture museum.
+## Deal detail
 
----
+A deal detail page is a real record:
+1. original inputs
+2. calculated outputs
+3. missing information
+4. contact
+5. status
+6. Excel download
+7. timestamps
 
-## 4. Visual Language
+## Pipeline
 
-### Atmosphere
+NEW | REVIEWING | PURSUE | HOLD | PASS
 
-- deep, restrained backgrounds
-- architectural photography
-- real assets and real environments
-- strong negative space
-- restrained cyan as an intelligence accent
-- subtle grid and linework
-- crisp typography
-- controlled motion
+A deal belongs to one status at a time.
 
-### Avoid
+## Visual language
 
-- glowing everything
-- excessive neon
-- fake holograms
-- gratuitous particle fields
-- endless cards
-- tiny unreadable labels
-- terminal-wall layouts
-- decorative charts with no analytical meaning
-- fake "live" activity
+Use dark institutional base, strong typography, generous whitespace, restrained cyan accent, clear cards, responsive layouts, large touch targets, useful tables, and obvious primary actions.
 
-The system should feel **quietly powerful**.
+Avoid terminal-wall interfaces, excessive monospace, glowing everything, fake charts, particle effects, unexplained numbers, decorative intelligence environments, and click targets that only reveal another graphic.
 
----
+## Mobile and tablet
 
-## 5. Typography
+The product must be useful on an iPad and phone. The intake form is designed for touch. The result view is readable without zooming. Pipeline cards collapse cleanly. Excel remains an export, not a requirement for understanding the deal.
 
-Use a highly legible modern sans-serif for primary interface text.
+## Truth rule
 
-Typography hierarchy should be obvious:
+**The interface may never imply that the backend did something it did not actually do.**
 
-```text
-DISPLAY
-Page / institutional statement
+If a calculation is unavailable, say so. If data was supplied by the user, label it. If data is missing, show the missing field. If a workflow step is not implemented, do not simulate it.
 
-HEADING
-Environment / analytical section
+## Product hierarchy
 
-LABEL
-Metric / state / category
+DEAL → NUMBERS → RECORD → WORKFLOW
 
-BODY
-Explanation / evidence / context
-
-DATA
-Numbers / calculations / structured outputs
-```
-
-Monospace may be used selectively for:
-
-- IDs
-- timestamps
-- technical values
-- provenance
-- structured data
-
-It should not dominate the interface.
-
----
-
-## 6. Layout
-
-The layout should use generous whitespace and a strong grid.
-
-Prefer:
-
-- one dominant idea per viewport
-- wide analytical surfaces
-- clear section breaks
-- progressive disclosure
-- large touch targets
-- responsive columns
-- persistent but quiet navigation
-
-Avoid:
-
-- six competing primary panels
-- dense dashboard mosaics
-- important information hidden in hover states
-- tiny click targets
-- scroll mazes
-
----
-
-## 7. Interaction Model
-
-The core interaction pattern is:
-
-```text
-SEE
- ↓
-UNDERSTAND
- ↓
-INSPECT
- ↓
-ACT
-```
-
-Not:
-
-```text
-CLICK EVERYTHING
- ↓
-DISCOVER WHAT IT DOES
-```
-
-Every interactive element needs a clear consequence.
-
-If a panel is clickable, it should open a meaningful state, record, analysis, or detail view.
-
-If the underlying capability does not exist, do not fake the interaction.
-
----
-
-## 8. Analytical Environments
-
-### Asset Intelligence
-
-The physical-world anchor.
-
-Use:
-
-- property / infrastructure imagery
-- asset attributes
-- market context
-- operating signals
-- valuation inputs
-- acquisition context
-
-The design should make the asset feel real before the analytical layer becomes dense.
-
-### Capital Intelligence
-
-Use:
-
-- market structure
-- instrument relationships
-- quantitative outputs
-- macro context
-- factor and regime views
-
-The visual language remains consistent with Asset Intelligence.
-
-### Evidence
-
-Evidence should feel inspectable.
-
-Useful visual concepts:
-
-- source trails
-- provenance
-- freshness
-- corroboration
-- contradiction
-- evidence status
-
-The point is not a pretty graph.
-
-The point is being able to answer:
-
-**Where did this come from?**
-
-### Computational Kaleidoscope
-
-This should be visually distinctive.
-
-Represent independent perspectives as separate analytical lenses.
-
-The design should make it immediately obvious that:
-
-**different views are allowed to disagree.**
-
-Do not present ten colorful AI avatars.
-
-### Conflict / Coexistence
-
-Show the structure of disagreement.
-
-Useful states:
-
-- agreement
-- partial agreement
-- contradiction
-- unresolved
-- evidence needed
-
-The visualization should explain why perspectives differ.
-
-### Risk / Scenarios
-
-This environment should feel quantitative.
-
-Use real distributions, ranges, sensitivities, and scenario comparisons.
-
-The design should emphasize uncertainty rather than theatrical certainty.
-
-### Investment Case
-
-This is the institutional synthesis.
-
-It should feel like the point where research becomes a coherent decision package.
-
-Use strong hierarchy:
-
-```text
-THESIS
- ↓
-EVIDENCE
- ↓
-ECONOMICS
- ↓
-RISK
- ↓
-DISSENT
- ↓
-UNRESOLVED QUESTIONS
-```
-
-### Decision Gate
-
-This is deliberately compact.
-
-The user should immediately understand:
-
-- current state
-- blockers
-- readiness
-- what remains unresolved
-- that human authority is next
-
-The visual distinction must be unmistakable:
-
-**READY FOR HUMAN AUTHORITY**
-
-not:
-
-**APPROVED**
-
-### Outcomes / Memory
-
-This environment should feel longitudinal.
-
-Show:
-
-- decisions
-- outcomes
-- observations
-- attribution
-- lessons
-
-The purpose is institutional continuity.
-
----
-
-## 9. State Design
-
-State is part of the visual system.
-
-Use explicit states:
-
-- AVAILABLE
-- NO DATA
-- NOT AVAILABLE
-- INSUFFICIENT EVIDENCE
-- BLOCKED
-- HOLD
-- INVESTIGATE
-- READY FOR HUMAN AUTHORITY
-
-Never replace missing information with:
-
-- zero
-- placeholder numbers
-- fake charts
-- artificial activity
-- "loading" forever
-
-A blank space with an honest explanation is better design than fabricated information.
-
----
-
-## 10. Data Display
-
-Every number should answer:
-
-**Where did this number come from?**
-
-Where useful, display:
-
-- value
-- unit
-- timestamp
-- source
-- status
-- calculation basis
-
-For derived metrics, allow inspection of the inputs.
-
-For example:
-
-```text
-CAP RATE
-6.50%
-
-Calculated from:
-NOI: $650,000
-Purchase Price: $10,000,000
-```
-
-The interface should teach the user what the system actually did.
-
----
-
-## 11. Motion
-
-Motion should explain transitions.
-
-Good uses:
-
-- reveal detail
-- move between analytical layers
-- show a state change
-- establish hierarchy
-- make navigation feel continuous
-
-Bad uses:
-
-- permanent floating particles
-- random pulsing
-- fake live feeds
-- animations that compete with numbers
-- motion for its own sake
-
-The product should feel alive because the system is useful, not because the CSS is moving.
-
----
-
-## 12. Mobile and Tablet
-
-The experience must be designed for touch first, then expanded.
-
-Requirements:
-
-- large controls
-- readable type
-- no hover-dependent information
-- no tiny tables without responsive treatment
-- collapsible detail
-- horizontal overflow only when genuinely appropriate
-- clear primary actions
-
-The product should feel natural on an iPad, not like a desktop page squeezed into a tablet.
-
----
-
-## 13. Public vs Institutional Workspace
-
-The public site explains the system.
-
-The workspace operates the system.
-
-Public:
-
-- orientation
-- capability discovery
-- high-level outputs
-- trust
-- entry points
-
-Workspace:
-
-- evidence inspection
-- analysis
-- calculations
-- scenarios
-- conflict
-- investment case
-- readiness
-- decision records
-
-Do not overload the homepage with the entire machine.
-
----
-
-## 14. Visual Truth Rule
-
-The strongest design rule is:
-
-> **Never make the interface look more capable than the system actually is.**
-
-If the backend has real data, show it.
-
-If it has no data, say so.
-
-If a capability is planned, label it as planned.
-
-If a result is calculated, expose the basis.
-
-If a decision requires a human, make that boundary visible.
-
----
-
-## 15. The AletheiaTelos Feel
-
-The final experience should feel like walking into a serious investment institution where the systems are unusually transparent.
-
-Not loud.
-
-Not gimmicky.
-
-Not cluttered.
-
-Not trying to prove that AI exists.
-
-The product should communicate:
-
-**We found something.**
-
-**Here is what we know.**
-
-**Here is what we think.**
-
-**Here is where we disagree.**
-
-**Here is what could break.**
-
-**Here is what remains unknown.**
-
-**Here is whether the work is ready for human judgment.**
-
-**Here is what happened last time.**
-
-That is the design.
+Everything else earns its way in.
