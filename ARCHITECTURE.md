@@ -1,844 +1,695 @@
 # AletheiaTelos Architecture
 
-## Institutional Intelligence Architecture
+## 1. Architectural Objective
 
-AletheiaTelos is organized as an institutional intelligence system with two primary engines and a shared decision-governance substrate.
+AletheiaTelos is a decision-support system for institutional investment work.
+
+The architecture exists to preserve four things:
+
+1. **Evidence integrity**
+2. **Analytical independence**
+3. **Human authority**
+4. **Institutional memory**
+
+Everything else is implementation detail.
+
+The system must remain understandable enough that a human can reconstruct how an analytical conclusion was produced and what happened after it.
+
+---
+
+## 2. System Shape
 
 ```text
-                    ALETHEIAT ELOS
-               INSTITUTIONAL INTELLIGENCE
+                    OPPORTUNITY
+                         │
+                         ▼
+                      EVIDENCE
                          │
              ┌───────────┴───────────┐
-             │                       │
-       CAPITAL ENGINE           ASSET ENGINE
-             │                       │
-       Public Markets              CRE
-       Quant Research           Industrial
-       Alternative Data          NNN
-       Macro                     Infrastructure
-       Factors                   Private Assets
-       Risk                      Development
+             ▼                       ▼
+      ASSET INTELLIGENCE      CAPITAL INTELLIGENCE
              │                       │
              └───────────┬───────────┘
-                         ↓
-                COMPUTATIONAL
-                  KALEIDOSCOPE
-                         ↓
+                         ▼
+             COMPUTATIONAL KALEIDOSCOPE
+                         │
+                         ▼
               CONFLICT / COEXISTENCE
-                         ↓
-                 RISK SIMULATION
-                         ↓
+                         │
+                         ▼
+               INDEPENDENT RISK
+                  / SCENARIOS
+                         │
+                         ▼
                 CONTRARIAN REVIEW
-                         ↓
-              HUMAN INVESTMENT IC
-                         ↓
+                         │
+                         ▼
+                  INVESTMENT CASE
+                         │
+                         ▼
+               DECISION READINESS
+                         │
+                         ▼
+                   DECISION GATE
+                         │
+                         ▼
+                 HUMAN AUTHORITY
+                         │
+                         ▼
                  DECISION RECORD
-                         ↓
-                OUTCOME OBSERVER
-                         ↓
-               EPISTEMIC MEMORY
+                         │
+                         ▼
+                    OUTCOME
+                         │
+                         ▼
+                    OBSERVER
+                         │
+                         ▼
+                EPISTEMIC MEMORY
+                         │
+                         └──────► BETTER NEXT DECISION
 ```
 
-This architecture is foundational. It should be preserved as the system evolves.
+This is a logical architecture, not a requirement that every box become a microservice.
 
-## 1. Two Engines
+**Prefer the simplest implementation that preserves the boundary.**
 
-### Capital Engine
+---
 
-The Capital Engine provides intelligence for financial-capital research, including:
+## 3. Canonical Objects
 
-- Public markets
-- Quantitative research
-- Alternative data
-- Macro
-- Factors
-- Market regimes
-- Risk
-- Portfolio research
+The architecture is organized around durable institutional objects, not agents.
 
-It is a research and decision-intelligence engine, not an autonomous trading engine.
+### Opportunity
+
+A candidate subject discovered through an authorized source or entered by a human.
+
+Opportunity is not evidence.
+
+### Evidence
+
+A sourced, normalized, provenance-aware observation that can support analysis.
+
+Evidence is not a decision.
+
+### Analytical Perspective
+
+A structured output from one independent reasoning lens.
+
+A perspective is not authority.
+
+### Scenario / Simulation
+
+A defined analytical model exploring possible conditions and outcomes.
+
+Simulation is not prediction.
+
+### Investment Case
+
+The assembled analytical package.
+
+Investment Case is not authorization.
+
+### Decision Readiness
+
+A determination that the analytical package satisfies defined completeness and integrity conditions for human review.
+
+Readiness is not approval.
+
+### Decision Gate
+
+The explicit boundary between analytical readiness and human authority.
+
+### Decision Record
+
+The durable historical record of the decision process and human decision.
+
+The Decision Record is the authoritative historical record.
+
+### Outcome / Observation
+
+What actually happened after the decision.
+
+### Epistemic Memory
+
+Validated institutional learning derived from historical decisions and outcomes.
+
+Memory does not rewrite the Decision Record.
+
+---
+
+## 4. Opportunity Acquisition Boundary
+
+The acquisition path is:
+
+```text
+SOURCE
+ ↓
+ADAPTER
+ ↓
+RAW OBSERVATION
+ ↓
+NORMALIZATION
+ ↓
+DEDUPLICATION
+ ↓
+PROVENANCE
+ ↓
+OPPORTUNITY
+ ↓
+VALIDATION
+```
+
+Sources may be public, licensed, permitted, manually entered, or otherwise authorized.
+
+The architecture must not assume unrestricted scraping.
+
+A source can identify something worth investigating without establishing that it is true.
+
+---
+
+## 5. Evidence Boundary
+
+Evidence enters through a controlled boundary.
+
+Each material evidence item should preserve, where available:
+
+- source
+- retrieval time
+- effective date
+- subject
+- raw representation
+- normalized representation
+- provenance
+- freshness
+- validation state
+- corroboration state
+
+The system must distinguish:
+
+```text
+OBSERVED
+SUPPORTED
+CALCULATED
+ASSUMED
+HYPOTHESIZED
+PREDICTED
+UNKNOWN
+CONTRADICTED
+UNAVAILABLE
+```
+
+These states must not be silently collapsed.
+
+---
+
+## 6. Asset Engine and Capital Engine
+
+The engines are domain adapters over the same institutional intelligence discipline.
 
 ### Asset Engine
 
-The Asset Engine provides intelligence for real assets and private investment opportunities, including:
+Handles real and private assets, including:
 
-- Commercial real estate
-- Industrial
-- Triple-net / NNN
-- Infrastructure
-- Development
-- Private assets
-- Operations
-- Capital structure
-- Value creation
+- property
+- industrial
+- NNN
+- infrastructure
+- development
+- operations
+- financing
+- capital structure
+- value creation
 
-The Asset Engine preserves the institutional CRE workflow rather than treating CRE as a secondary application of a trading architecture.
+### Capital Engine
 
-## 2. Shared Intelligence Substrate
+Handles financial and capital-market research, including:
 
-The two engines converge on a common reasoning and governance architecture.
+- instruments
+- markets
+- quantitative research
+- factors
+- macro
+- regimes
+- alternative data
+- risk
+- portfolio research
 
-The shared substrate is responsible for:
+Provider-specific integrations must remain behind adapters.
 
-1. Evidence integrity and provenance
-2. Independent perspectives
-3. Conflict analysis
-4. Scenario construction
-5. Independent risk simulation
-6. Adversarial / contrarian review
-7. Human investment-committee review
-8. Decision recording
-9. Outcome observation and attribution
-10. Persistent epistemic memory
+No vendor becomes the architecture.
 
-The engines share intelligence infrastructure without being forced into a single asset-class-specific model.
+---
 
-## 3. Computational Kaleidoscope
+## 7. Computational Kaleidoscope
 
-The Computational Kaleidoscope is the central multi-perspective reasoning layer.
+The Kaleidoscope receives a common analytical question and common governed inputs.
 
-It examines investment questions through intentionally differentiated lenses, including:
+Each perspective produces structured output.
 
-- Researcher
-- Quant
-- Investor
-- Scientist
-- Systems
-- Contrarian
-- Philosopher
-- Observer
-- Epistemic Memory
-- Meta-Intelligence
-- Governance / CHARTER
+Minimum conceptual contract:
 
-The Kaleidoscope is not a consensus engine.
+```text
+QUESTION
+EVIDENCE
+ASSUMPTIONS
+ANALYSIS
+SUPPORTING REASONS
+COUNTER-EVIDENCE
+UNCERTAINTY
+CONDITIONS THAT WOULD CHANGE THE VIEW
+```
 
-Its purpose is to expose different assumptions, evidence, interpretations, failure modes, causal hypotheses, and possible consequences.
+Perspectives may include Research, Quant, Investor, Systems, Macro, Scientist, Contrarian, Governance, Observer, and Meta-Intelligence.
 
-Agreement is not the objective. Better judgment is.
+Independence means more than different labels.
 
-## 4. Conflict / Coexistence
+Where practical, perspectives should have separable prompts, assumptions, calculations, or analytical methods so that disagreement carries information.
 
-Disagreement is treated as information rather than noise.
+The system must preserve dissent.
 
-When perspectives differ, the system should identify whether the disagreement arises from:
+---
+
+## 8. Conflict / Coexistence
+
+When perspectives disagree, the system asks why.
+
+Possible causes include:
 
 - different evidence
-- different evidence quality or freshness
 - different assumptions
 - different time horizons
 - different definitions
 - different causal models
 - different risk tolerances
-- different regime assumptions
-- genuinely unresolved uncertainty
+- different regimes
 
-The system should preserve irreducible disagreement rather than averaging it away.
+The conflict layer must expose the disagreement rather than average it away.
 
-## 5. Independent Risk Simulation
+Valid result:
 
-Simulation is an independent analytical boundary.
+**UNRESOLVED**
 
-Agents provide hypotheses, assumptions, parameter ranges, and competing scenarios. They do not determine the simulation outcome.
+A system that cannot say "we do not know" is structurally unsafe for consequential analysis.
 
-The risk engine should be capable of generating distributions across scenarios such as:
+---
 
-- Base
-- Bull
-- Bear
-- Adversarial
-- Tail / stress
+## 9. Independent Risk and Scenarios
 
-Where appropriate, simulation should incorporate:
+Risk analysis is deliberately separated from thesis generation.
 
+Core scenarios may include:
+
+- BASE
+- BULL
+- BEAR
+- ADVERSARIAL
+- TAIL RISK
+
+The risk system should expose:
+
+- distributions
+- sensitivity
+- downside
+- drawdown
 - uncertainty
+- assumption dependence
+- model limitations
+
+Where simulation is used, its parameters and outputs must be independently inspectable.
+
+**SIMULATION ≠ PREDICTION**
+
+The simulator does not inherit authority from an upstream agent.
+
+---
+
+## 10. Contrarian Review
+
+The Contrarian layer actively searches for reasons the case should fail.
+
+It should challenge:
+
+- thesis assumptions
+- evidence quality
+- missing evidence
+- asymmetric downside
+- regime dependence
 - liquidity
-- transaction costs
-- financing conditions
-- drawdowns
-- regime variation
-- sensitivity to assumptions
-- path dependence
-- downside probability
-- fragility
+- financing
+- structural fragility
+- model risk
+- implementation risk
 
-Simulation is not prediction. A simulated distribution is evidence about a modeled assumption set, not a guarantee about the future.
+Its purpose is not to be negative.
 
-## 6. Contrarian Review
+Its purpose is to prevent the system from treating a coherent story as proof.
 
-The Contrarian / Skeptic layer has an explicit thesis-destruction mandate.
+---
 
-It should ask:
+## 11. Investment Case
 
-- Why might this opportunity fail?
-- What evidence has been discounted?
-- Which assumptions are weakest?
-- What would make the downside materially worse?
-- What has the underwriting omitted?
-- What could make the apparent margin of safety illusory?
-- What evidence would invalidate the thesis?
-
-The system must be capable of recommending NO TRADE, NO DEAL, or NO ACTION.
-
-Avoiding a bad investment is a successful outcome.
-
-## 7. Human Investment Committee
-
-The Human Investment Committee is an explicit authority boundary.
-
-The system can research, model, challenge, synthesize, and recommend.
-
-It does not convert analytical output into capital authority.
-
-The architectural sequence is:
+The Investment Case is assembled from governed inputs:
 
 ```text
-analysis → recommendation → human authorization → execution
+EVIDENCE
++
+CALCULATIONS
++
+ASSUMPTIONS
++
+PERSPECTIVES
++
+CONFLICT
++
+RISK
++
+CONTRARIAN REVIEW
++
+UNRESOLVED QUESTIONS
 ```
 
-These stages remain separate.
+Every material conclusion should be traceable to its underlying inputs where practical.
 
-## 8. Decision Record
+The Investment Case may contain a recommendation or NO ACTION.
 
-The **Decision Record** is the central durable object of the architecture.
+It does not authorize execution.
 
-Agents are not the primary institutional object. Trades are not the primary institutional object. Prompts are not the primary institutional object.
+---
 
-A Decision Record should preserve, where applicable:
+## 12. Decision Readiness
+
+Decision Readiness answers:
+
+> Is the analytical package sufficiently complete and internally coherent to reach the human decision boundary?
+
+It may consider:
+
+- required evidence
+- unresolved blockers
+- calculation integrity
+- scenario integrity
+- independent review
+- material contradictions
+- missing information
+- governance conditions
+
+Readiness must be deterministic where the underlying checks are deterministic.
+
+Readiness is not a prediction of what the human will decide.
+
+---
+
+## 13. Decision Gate
+
+The Decision Gate is a hard architectural boundary.
+
+```text
+NOT READY
+   │
+   ├── insufficient evidence
+   ├── material blocker
+   ├── invalid analysis
+   └── unresolved required condition
+
+READY FOR HUMAN AUTHORITY
+   ↓
+HUMAN DECISION
+```
+
+The invariant is:
+
+**RECOMMENDATION ≠ READINESS ≠ AUTHORIZATION ≠ EXECUTION**
+
+No component downstream of the analytical stack may infer human authorization merely because readiness is true.
+
+---
+
+## 14. Human Authority and Execution
+
+AletheiaTelos may support human-authorized execution workflows in the future, but authority must remain explicit.
+
+The system does not autonomously:
+
+- trade
+- purchase
+- sell
+- transfer capital
+- mutate portfolios
+- sign legal agreements
+- close transactions
+- exercise investment authority
+
+Technical connectivity is not permission.
+
+Permission is not authority.
+
+Authority is not execution.
+
+---
+
+## 15. Decision Record
+
+The Decision Record is the durable historical object.
+
+It should preserve:
 
 - decision identity
-- opportunity / asset / research subject
+- subject
 - evidence references
-- evidence provenance and freshness
+- evidence state at decision time
+- assumptions
 - analytical perspectives
-- competing claims
-- explicit assumptions
-- scenario definitions
+- conflicts
 - simulation inputs and outputs
-- conflicts and unresolved dissent
 - contrarian objections
-- recommendation
-- NO ACTION / NO TRADE / NO DEAL state where applicable
-- human authorization state
-- decision timestamp
-- responsible human authority
-- subsequent outcome
-- attribution
-- lessons
+- Investment Case
+- Decision Readiness state
+- Decision Gate state
+- human decision
+- timestamps
+- subsequent outcome references
 
-The Decision Record provides the bridge between intelligence, authority, and institutional memory.
+History must be append-oriented.
 
-## 9. Outcome Observer
+A later outcome must not rewrite what the institution originally believed.
 
-The Observer compares what the system believed with what actually happened.
+---
 
-Observation should preserve the original decision context rather than rewriting history with hindsight.
+## 16. Outcome and Observer
 
-The Observer evaluates:
+After a decision, the system observes reality.
 
-- thesis accuracy
-- assumption validity
-- evidence quality
-- simulation robustness
-- calibration where measurable
-- missed risks
+The Observer compares:
+
+```text
+THESIS
+vs.
+ASSUMPTIONS
+vs.
+EXPECTATIONS
+vs.
+REALITY
+```
+
+It should distinguish:
+
+- forecast error
+- assumption error
+- evidence error
+- execution effects
+- external events
+- model limitations
+- attribution uncertainty
+
+Outcome analysis must avoid hindsight rewriting.
+
+---
+
+## 17. Epistemic Memory
+
+Epistemic Memory stores validated lessons from experience.
+
+Memory may contain:
+
+- resolved observations
+- outcome relationships
+- calibration information
+- recurring failure patterns
 - successful dissent
-- unexpected outcomes
-- recurring failure modes
+- validated lessons
 
-Outcome attribution should distinguish bad decisions from bad outcomes and good decisions from lucky outcomes whenever the evidence permits.
+Memory must preserve provenance and context.
 
-## 10. Epistemic Memory
+Memory cannot:
 
-Epistemic Memory is the institutional learning layer.
+- grant authority
+- approve transactions
+- silently modify historical decisions
+- turn an uncertain belief into a fact
 
-It should preserve the distinction between:
+The learning loop is:
 
 ```text
-OBSERVATION
-    ↓
-EVIDENCE
-    ↓
-INTERPRETATION
-    ↓
-HYPOTHESIS
-    ↓
-ASSUMPTION
-    ↓
 DECISION
-    ↓
+ ↓
 OUTCOME
-    ↓
-LESSON
-```
-
-Memory is not authority and historical belief is not automatically truth.
-
-Memory should retain provenance, context, uncertainty, contradiction, and outcome where available.
-
-## 11. Institutional Learning Loop
-
-The full architecture forms a closed learning loop:
-
-```text
-REAL WORLD
-    ↓
-OPPORTUNITY / QUESTION
-    ↓
-EVIDENCE
-    ↓
-CAPITAL ENGINE / ASSET ENGINE
-    ↓
-COMPUTATIONAL KALEIDOSCOPE
-    ↓
-CONFLICT / COEXISTENCE
-    ↓
-INDEPENDENT RISK SIMULATION
-    ↓
-CONTRARIAN REVIEW
-    ↓
-HUMAN INVESTMENT IC
-    ↓
-DECISION RECORD
-    ↓
-CAPITAL / ASSET / RESEARCH ACTION
-    ↓
-OUTCOME
-    ↓
-OBSERVER / ATTRIBUTION
-    ↓
-EPISTEMIC MEMORY
-    ↓
-NEXT OPPORTUNITY / QUESTION
-```
-
-This loop is the institutional intelligence architecture. The objective is not merely to produce an answer or execute a trade. The objective is to improve future decision quality because the system remembers what actually happened.
-
-## 12. Engineering Implications
-
-External agent frameworks, orchestration systems, tracing systems, evaluators, sandbox runtimes, tool adapters, and simulation libraries may be incorporated as implementation components.
-
-They must remain subordinate to this architecture and to `CHARTER.md`.
-
-In particular:
-
-- agent orchestration must not become agent authority
-- memory must not become truth by accumulation
-- confidence must not be treated as calibrated probability without validation
-- generated code must not silently become execution authority
-- simulation must remain analytically independent from the agents supplying its assumptions
-- performance metrics must not replace decision-quality evaluation
-- autonomous trading must not become the architectural center
-
-The architecture is decision-centric, not agent-centric.
-
-## 13. Foundational Invariants
-
-The following invariants should remain stable unless explicitly changed through human governance:
-
-1. Two engines: Capital and Asset.
-2. Shared Computational Kaleidoscope.
-3. Conflict is information.
-4. Risk simulation is independent.
-5. Contrarian review is mandatory for consequential investment decisions.
-6. Human Investment Committee remains the authority boundary.
-7. Decision Record is the central durable institutional object.
-8. Outcome observation closes the loop.
-9. Epistemic Memory preserves institutional learning.
-10. NO ACTION is a valid successful result.
-11. Intelligence does not imply authority.
-12. The system learns from outcomes without rewriting historical decisions.
-
-These invariants define the working architecture of AletheiaTelos.
-
-## 14. Institutional Lifecycle and Boundary States
-
-The long-term institutional lifecycle is broader than the current analytical implementation. The conceptual lifecycle is:
-
-```text
-CAPITAL ENGINE + ASSET ENGINE
-            ↓
-OPPORTUNITY
-            ↓
-EVIDENCE
-            ↓
-UNDERWRITING / ANALYSIS
-            ↓
-COMPUTATIONAL KALEIDOSCOPE
-            ↓
-CONFLICT / COEXISTENCE
-            ↓
-INDEPENDENT RISK SIMULATION
-            ↓
-CONTRARIAN REVIEW
-            ↓
-DECISION GATE
-            ↓
-HUMAN INVESTMENT AUTHORITY
-            ↓
-DECISION RECORD
-            ↓
-CAPITAL / ASSET
-            ↓
-ACQUIRE
-            ↓
-IMPROVE / OPERATE / FINANCE
-            ↓
-HOLD / MANAGE
-            ↓
-REASSESS
-            ↓
-DISPOSITION
-            ↓
-OUTCOME
-            ↓
-OBSERVATION / ATTRIBUTION
-            ↓
-EPISTEMIC MEMORY
-            ↓
-BETTER NEXT DECISION
-```
-
-This is an architectural lifecycle, not a statement that every stage is currently implemented.
-
-Not every case reaches every downstream state. A case may terminate as NO-GO, NO DEAL, or INSUFFICIENT EVIDENCE. A case may become ready without receiving human authorization. A human-authorized decision may not result in execution. A holding may remain open for an extended period. An outcome may remain pending or unknown.
-
-### Disposition Boundary
-
-**Disposition** is a formal terminal boundary of the asset/capital holding phase. It is not merely an exit-strategy field, an underwriting assumption, a sale button, or an execution capability.
-
-The conceptual holding lifecycle is:
-
-```text
-ACQUIRE
-   ↓
-IMPROVE
-   ↓
-OPERATE
-   ↓
-FINANCE
-   ↓
-HOLD / MANAGE
-   ↓
-REASSESS
-   ↓
-DISPOSITION
-   ↓
-OUTCOME
-```
-
-Disposition remains a future institutional lifecycle boundary unless explicitly implemented and separately governed.
-
-Nothing in this architecture authorizes autonomous sale execution, brokerage, settlement, capital transfer, or portfolio mutation.
-
-## 15. Current vs Future Architecture
-
-Documentation must distinguish implemented analytical capabilities from future institutional lifecycle capabilities.
-
-### Current / Implemented
-
-The current system includes, to the extent supported by the implementation and tests:
-
-- evidence handling and validation boundaries
-- Capital and Asset domain foundations
-- Institutional Investment Case assembly
-- competing analytical perspectives
-- Conflict / Coexistence intelligence
-- independent risk simulation
-- skeptic / contrarian analysis
-- Decision Readiness
-- Decision Gate
-- explicit human-authority boundary
-- immutable Decision Record domain boundary
-- append-only analytical run history
-- typed Epistemic Memory contract / foundations
-
-Current implementation remains research and decision intelligence. The presence of a domain object or analytical boundary does not imply downstream transaction execution.
-
-### Future / Architecturally Defined
-
-The long-term architecture may include additional institutional lifecycle capabilities such as:
-
-- capital deployment
-- asset acquisition
-- operation
-- improvement
-- financing
-- hold / management
-- reassessment
-- disposition
-- outcome observation
-- outcome attribution
-- expanded epistemic learning infrastructure
-- broader Capital Engine universe, data, and research infrastructure
-- broader Asset Engine operating and lifecycle infrastructure
-
-These are architectural destinations or boundaries, not claims of current implementation.
-
-No future component may be introduced in documentation as though it already possesses execution authority.
-
-## 16. Engine Boundary
-
-The **Capital Engine** and **Asset Engine** are domain-specific intelligence engines feeding one institutional architecture.
-
-### Capital Engine
-
-The Capital Engine may address:
-
-- public markets
-- quantitative research
-- factors
-- macro
-- alternative data
-- market regimes
-- risk
-- portfolio and capital-allocation research
-- instrument identity and universe construction
-
-A universe, classification, market-data, or research source is not investment authority.
-
-### Asset Engine
-
-The Asset Engine may address:
-
-- commercial real estate
-- industrial
-- NNN
-- infrastructure
-- development
-- private assets
-- operations
-- financing
-- capital structure
-- value creation
-- acquisition and disposition economics
-
-The two engines converge on the same evidence, reasoning, risk, governance, decision, and learning architecture. They are not separate AI systems.
-
-The Capital Engine must not become an order-management system, execution engine, autonomous trader, brokerage interface, portfolio mutation layer, or capital-transfer mechanism.
-
-The Asset Engine must not acquire, sell, finance, or otherwise transact autonomously.
-
-## 17. Governance and Authority Separation
-
-The following distinctions are architectural invariants:
-
-```text
-ANALYTICAL RUN HISTORY
-        ≠
-INVESTMENT CASE
-        ≠
-DECISION READINESS
-        ≠
-DECISION GATE
-        ≠
-DECISION RECORD
-        ≠
-OUTCOME
-        ≠
+ ↓
+OBSERVATION
+ ↓
 ATTRIBUTION
-        ≠
-EPISTEMIC MEMORY
+ ↓
+MEMORY
+ ↓
+FUTURE ANALYSIS
 ```
 
-And:
+---
 
-```text
-RECOMMENDATION
-      ≠
-READY FOR HUMAN AUTHORITY
-      ≠
-HUMAN DECISION
-      ≠
-AUTHORIZATION
-      ≠
-EXECUTION
-```
+## 18. Presentation Architecture
 
-The Decision Record is created from explicit human decision input. Analytical readiness or gate state must never be used to infer authorization.
+The website is a presentation layer over the canonical system.
 
-Epistemic Memory records institutional history and learning. It does not grant permission or authority.
-
-## 18. Implementation Discipline
-
-Future infrastructure should be introduced only after its architectural boundary is explicit.
-
-In particular, the Capital Engine should first establish clear contracts for identity, classification, evidence, provenance, freshness, research routing, quantitative analysis, risk, and decision intelligence before any infrastructure is treated as a core dependency.
-
-External technologies remain replaceable implementation components. No provider, database, agent framework, market-data source, or orchestration system becomes the identity or authority of AletheiaTelos.
-
-The governing principle remains:
-
-**AUTOMATION BETWEEN GATES. HUMAN AUTHORITY AT GATES.**
-
-The architecture should continue to prefer evidence over assertion, explicit uncertainty over false precision, dissent over manufactured consensus, and disciplined inaction over unjustified activity.
-
-## 19. External Market Interface Boundary
-
-AletheiaTelos may conceptually interface with external regulated or otherwise appropriately authorized market infrastructure in a future architecture. Such connectivity is an external architectural boundary and does not expand AletheiaTelos investment authority.
-
-The conceptual separation is:
-
-```text
-ALETHEIA TELOS
-────────────────────────────────────────────
-
-EVIDENCE
-   ↓
-COMPUTATIONAL KALEIDOSCOPE
-   ↓
-CONFLICT / COEXISTENCE
-   ↓
-INDEPENDENT RISK SIMULATION
-   ↓
-CONTRARIAN REVIEW
-   ↓
-INVESTMENT CASE
-   ↓
-DECISION READINESS
-   ↓
-DECISION GATE
-   ↓
-HUMAN AUTHORITY
-
-────────────────────────────────────────────
-EXTERNAL MARKET INTERFACE BOUNDARY
-────────────────────────────────────────────
-
-AUTHORIZED EXTERNAL SYSTEM
-   ↓
-EXECUTION / CLEARING / CUSTODY
-   ↓
-MARKET / REAL-WORLD OUTCOME
-```
-
-The external section is not part of AletheiaTelos autonomous authority.
-
-A future interface does not alter Decision Gate semantics, does not convert Decision Readiness into approval, and does not create autonomous execution authority. Any future implementation would require separate legal, regulatory, compliance, security, operational-risk, and governance review appropriate to the actual functionality.
-
-The governing distinction is:
-
-```text
-TECHNICAL CONNECTIVITY ≠ AUTHORITY
-READINESS ≠ AUTHORIZATION
-AUTHORIZATION ≠ EXECUTION
-EXECUTION ≠ ALETHEIA TELOS AUTHORITY
-```
-
-Any future external interface must remain subordinate to `CHARTER.md`, preserve explicit human authorization, follow least-privilege principles, and remain separable from intelligence, decision authority, custody, capital movement, and execution.
-
-See `EXTERNAL_MARKET_INTERFACE_BOUNDARY.md` for the detailed boundary definition and future implementation gate.
-
-## 20. Institutional Website Architecture
-
-The AletheiaTelos user experience is a first-class presentation layer over the institutional intelligence architecture.
-
-The website is intentionally **multi-page rather than dashboard-centric**. The purpose is to give each major institutional capability enough visual and interaction space to communicate what it does, what it produces, and where its authority boundary lies.
-
-### 20.1 Experience Architecture
-
-The intended experience is:
-
-```text
-WORLD / ASSETS
-      ↓
-CAPITAL + ASSET INTELLIGENCE
-      ↓
-EVIDENCE
-      ↓
-COMPUTATIONAL KALEIDOSCOPE
-      ↓
-CONFLICT / COEXISTENCE
-      ↓
-RISK / SCENARIOS
-      ↓
-INVESTMENT CASE
-      ↓
-DECISION GATE
-      ↓
-HUMAN DECISION
-      ↓
-OUTCOME / OBSERVATION
-      ↓
-EPISTEMIC MEMORY
-```
-
-This is a presentation mapping of the underlying architecture. It does not create new analytical stages or authority.
-
-### 20.2 Multi-Page Institutional Environments
-
-The intended website information architecture is:
+It should expose real capabilities through a coherent experience:
 
 ```text
 HOME
  ├── ASSET INTELLIGENCE
  ├── CAPITAL INTELLIGENCE
  ├── EVIDENCE
- ├── COMPUTATIONAL KALEIDOSCOPE
+ ├── KALEIDOSCOPE
  ├── RISK / SCENARIOS
  ├── INVESTMENT CASE
  ├── DECISION GATE
- └── OUTCOMES / EPISTEMIC MEMORY
+ └── OUTCOMES / MEMORY
 ```
 
-Each environment remains connected to the same underlying contracts, APIs, evidence boundaries, decision objects, and governance rules.
+Pages are views into one system.
 
-The pages are **views into one system**, not independent applications.
+They are not separate sources of truth.
 
-### 20.3 Visual System
-
-The intended visual language is:
-
-- deep black / cinematic backgrounds
-- commercial and industrial architecture
-- institutional real-estate imagery
-- restrained typography
-- generous whitespace
-- subtle cyan intelligence graphics
-- architectural linework and network visualizations
-- interactive controls rather than dense dashboard panels
-- responsive layouts for tablet and desktop
-- progressive disclosure of technical detail
-
-The visual environment should communicate institutional seriousness without becoming a terminal emulator.
-
-Commercial and industrial buildings provide the physical-world anchor for the Asset Engine. Capital intelligence can use market, network, quantitative, and capital-flow visualizations while maintaining the same design language.
-
-### 20.4 Outputs Must Be Visualized as Outputs
-
-Graphics should represent what the system produces rather than merely decorate the page.
-
-Examples:
-
-```text
-ASSET ENGINE
-building / asset
-      ↓
-asset intelligence
-
-EVIDENCE
-source network / provenance graph
-      ↓
-validated evidence
-
-KALEIDOSCOPE
-independent analytical lenses
-      ↓
-competing perspectives
-
-CONFLICT
-intersecting viewpoints
-      ↓
-agreement / disagreement / unresolved issues
-
-RISK
-scenario distributions
-      ↓
-BASE / BULL / BEAR / ADVERSARIAL / TAIL
-
-INVESTMENT CASE
-institutional deal representation
-      ↓
-synthesized case
-
-DECISION GATE
-compact boundary representation
-      ↓
-READY FOR HUMAN AUTHORITY
-
-OUTCOMES
-asset / capital performance
-      ↓
-observation / attribution / memory
-```
-
-These visualizations are communication surfaces. They must remain faithful to the underlying analytical contracts and must not manufacture certainty.
-
-### 20.5 Website / Workspace Boundary
-
-The website and the deeper analytical workspace have different purposes.
-
-The website provides:
-
-- orientation
-- institutional context
-- navigation
-- visual explanation
-- capability discovery
-- high-level analytical outputs
-
-The deeper workspace provides:
-
-- research inputs
-- evidence inspection
-- analytical execution
-- detailed simulations
-- conflict analysis
-- investment-case construction
-- decision-readiness evaluation
-- decision-gate inspection
-
-A large **Run Research Analysis** panel should not dominate the public-facing experience. Research execution remains available through an intentional interaction that opens or routes into the analytical workspace.
-
-### 20.6 Source-of-Truth and Governance Invariants
-
-The presentation layer must consume and respect the canonical system contracts.
-
-It must not:
-
-- invent analytical states
-- imply authorization
-- convert readiness into approval
-- represent connectivity as authority
-- imply execution capability that is disabled
-- bypass Decision Gate semantics
-- rewrite Decision Record history
-- turn Epistemic Memory into authority
-
-The governing distinctions remain:
-
-```text
-RECOMMENDATION
-      ≠
-READY FOR HUMAN AUTHORITY
-      ≠
-HUMAN DECISION
-      ≠
-AUTHORIZATION
-      ≠
-EXECUTION
-```
-
-And:
-
-```text
-TECHNICAL CONNECTIVITY ≠ AUTHORITY
-READINESS ≠ AUTHORIZATION
-AUTHORIZATION ≠ EXECUTION
-EXECUTION ≠ ALETHEIA TELOS AUTHORITY
-```
-
-The website may become more expressive as the system evolves, but the authority model must remain unchanged.
-
-### 20.7 Current vs Future Experience
-
-The multi-page website is an architectural direction for the institutional experience.
-
-The existence of a planned page does not mean every underlying capability is fully implemented.
-
-Current frontend work may establish the visual shell, navigation, interactive presentation, and existing analytical entry points first. Deeper page functionality should be connected only to capabilities supported by the underlying system.
-
-Future pages may therefore begin as presentation environments and progressively become richer as their corresponding analytical contracts and backend capabilities mature.
-
-### 20.8 Design Invariant
-
-The website should preserve the following experience principle:
-
-> **World → Assets → Intelligence → Risk → Investment Case → Human Decision → Outcomes → Institutional Memory**
-
-The objective is not to turn AletheiaTelos into a prettier dashboard.
-
-The objective is to give the institutional intelligence architecture a visual environment worthy of the system it represents.
+A UI element must never imply a backend capability that does not exist.
 
 ---
 
+## 19. Runtime State
+
+The interface must represent actual state.
+
+At minimum:
+
+- AVAILABLE
+- NO DATA
+- NOT AVAILABLE
+- INSUFFICIENT EVIDENCE
+- BLOCKED
+- HOLD
+- INVESTIGATE
+- READY FOR HUMAN AUTHORITY
+
+Do not fill missing state with fake metrics, invented activity, or decorative numbers.
+
+---
+
+## 20. Provider Independence
+
+External services must be adapters.
+
+The architecture should survive replacement of:
+
+- model providers
+- data providers
+- memory providers
+- orchestration frameworks
+- databases
+- cloud infrastructure
+- browser/tool providers
+
+External technology is replaceable implementation.
+
+The institutional contracts are not.
+
+---
+
+## 21. Security and Least Privilege
+
+Default posture:
+
+```text
+RESEARCH
+  ↓
+ANALYSIS
+  ↓
+HUMAN AUTHORITY
+  ↓
+AUTHORIZED EXECUTION
+```
+
+Credentials, tools, databases, external APIs, and execution capabilities require explicit scope.
+
+Agents receive only the capabilities required for their role.
+
+Consequential external actions require stronger controls than analysis.
+
+---
+
+## 22. Failure Philosophy
+
+The system should fail visibly.
+
+Prefer:
+
+- unknown over invented
+- incomplete over fabricated
+- disagreement over false consensus
+- blocked over unsafe continuation
+- explicit limitation over hidden limitation
+- reversible behavior over irreversible behavior
+
+Failure states are part of the product.
+
+---
+
+## 23. Architectural Invariants
+
+These are non-negotiable:
+
+1. Canonical objects have one authoritative source.
+2. Evidence is distinct from interpretation.
+3. Assumptions are explicit.
+4. Independent perspectives may disagree.
+5. Simulation remains analytically distinct from prediction.
+6. Readiness never becomes authorization.
+7. Authorization never becomes autonomous execution.
+8. Decision history is not rewritten by hindsight.
+9. Memory does not become authority.
+10. UI state reflects actual system state.
+11. Missing data remains missing.
+12. Provider integrations remain replaceable.
+13. The simplest architecture that preserves these invariants is preferred.
+
+---
+
+## 24. Definition of Done
+
+A feature is not complete because the page exists.
+
+It is complete when:
+
+```text
+INPUT
+ ↓
+REAL PROCESSING
+ ↓
+CANONICAL STATE
+ ↓
+REAL OUTPUT
+ ↓
+VISIBLE STATE
+ ↓
+AUDITABLE HISTORY
+```
+
+The system should be able to demonstrate the complete path for a real analytical question.
+
+**Do not build theater. Build the system.**
