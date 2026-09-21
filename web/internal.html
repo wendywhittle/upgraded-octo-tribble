@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AletheiaTelos | Internal Deal Workspace</title>
+<link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+<header><a class="brand" href="/internal">ALETHEIA TELOS <span>INTERNAL DEAL WORKSPACE</span></a><nav><a href="/" target="_blank">Public intake</a><button id="logout" class="nav-button">Sign out</button></nav></header>
+<main>
+<section id="login" class="workspace">
+<div class="section-head"><p class="eyebrow">INTERNAL ACCESS</p><h1>Deal workspace.</h1><p>Authorized internal users only.</p></div>
+<form id="login-form" class="auth-form"><label>Access key<input name="access_key" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">SIGN IN</button><p id="login-error" class="error hidden"></p></form>
+</section>
+<section id="app" class="hidden">
+<section class="workspace"><div class="section-head"><p class="eyebrow">01 / INTERNAL PIPELINE</p><h2>Every deal has a place.</h2><p>NEW → REVIEWING → PURSUE / HOLD / PASS</p></div><div id="pipeline-list" class="pipeline"></div></section>
+<section id="detail" class="workspace hidden"></section>
+</section>
+</main>
+<footer>INTERNAL DEAL PROCESSING · HUMAN DECISION AUTHORITY · NO AUTONOMOUS EXECUTION</footer>
+<script src="/web/internal.js"></script>
+</body>
+</html>
