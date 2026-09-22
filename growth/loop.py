@@ -9,6 +9,8 @@ from .qualification import evaluate_qualification
 from .research import ResearchObservation, append_observation
 from .research_adapter import ResearchSignal, signal_categories
 from .state import GrowthStore
+from .task_planner import refresh_research_task
+from .task_store import ResearchTaskStore
 from .worker import WorkItem, next_work
 
 
@@ -25,6 +27,7 @@ def run_once(
     observation_path: str,
     observation: ResearchObservation | None = None,
     signals: tuple[ResearchSignal, ...] = (),
+    task_store: ResearchTaskStore | None = None,
 ) -> LoopResult:
     """Resume one prospect using explicitly supplied research and signals.
 
@@ -45,7 +48,12 @@ def run_once(
         raise ValueError("observation prospect_id does not match prospect")
 
     append_observation(observation_path, observation)
-    qualification = evaluate_qualification(signal_categories(signals))
+    categories = signal_categories(signals)
+    qualification = evaluate_qualification(categories)
+
+    if task_store is not None:
+        refresh_research_task(task_store, prospect_id, categories)
+
     result = advance_from_research(
         store,
         prospect_id,
