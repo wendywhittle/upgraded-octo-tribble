@@ -1,0 +1,11 @@
+{
+  "prospect_id": "ATG-VIKING-000001",
+  "source": "viking-public-strategy-fixture",
+  "observed_at": "2026-09-21T00:00:00+00:00",
+  "facts": [
+    "Actively seeking investments",
+    "Target acquisition size includes $10M to $75M+",
+    "Industrial is an identified investment type",
+    "Recent small-bay industrial acquisition provides a relevant activity signal"
+  ]
+}

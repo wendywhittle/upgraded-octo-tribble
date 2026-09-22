@@ -1,0 +1,39 @@
+name: Growth Engine Dry Run
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run deterministic worker check
+        run: |
+          python - <<'PY'
+          import json
+          import tempfile
+          from growth.state import GrowthStore
+          from growth.worker import next_work
+
+          with tempfile.TemporaryDirectory() as d:
+              store = GrowthStore(d + "/growth.db")
+              store.create(
+                  "ATG-SCHEDULE-CHECK",
+                  "Scheduled Worker Check",
+                  {},
+                  "Prepare next human-reviewed task",
+              )
+              item = next_work(store, "ATG-SCHEDULE-CHECK")
+              print(json.dumps({
+                  "prospect_id": item.prospect_id,
+                  "state": item.state,
+                  "action": item.action,
+                  "requires_human_approval": item.requires_human_approval,
+              }, sort_keys=True))
+          PY
