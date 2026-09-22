@@ -76,10 +76,10 @@ def test_internal_workspace_requires_authentication(client):
     ],
 )
 def test_internal_api_requires_authentication(client, method, path):
-    response = getattr(client, method)(
-        path,
-        json={"status": "HOLD"} if method == "patch" else None,
-    )
+    if method == "patch":
+        response = client.patch(path, json={"status": "HOLD"})
+    else:
+        response = client.get(path)
     assert response.status_code == 401
 
 
