@@ -1,45 +1,15 @@
-const login = document.getElementById("login");
 const app = document.getElementById("app");
-const form = document.getElementById("login-form");
-const error = document.getElementById("login-error");
 const pipeline = document.getElementById("pipeline-list");
 const detail = document.getElementById("detail");
-const logout = document.getElementById("logout");
-
-let authToken = sessionStorage.getItem("aletheia_internal_token") || "";
 
 async function api(url, options = {}) {
-  const headers = new Headers(options.headers || {});
-  if (authToken) headers.set("Authorization", "Bearer " + authToken);
-  const response = await fetch(url, { credentials: "same-origin", ...options, headers });
+  const response = await fetch(url, options);
   if (!response.ok) {
     let message = "Request failed";
     try { message = (await response.json()).detail || message; } catch {}
     throw new Error(message);
   }
   return response;
-}
-
-function showWorkspace() {
-  login.classList.add("hidden");
-  app.classList.remove("hidden");
-}
-
-function showLogin(message = "") {
-  app.classList.add("hidden");
-  login.classList.remove("hidden");
-  error.textContent = message;
-  error.classList.toggle("hidden", !message);
-}
-
-async function checkSession() {
-  try {
-    await api("/internal/session");
-    showWorkspace();
-    await loadDeals();
-  } catch {
-    showLogin();
-  }
 }
 
 async function loadDeals() {
@@ -86,35 +56,6 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 }
 
-form.addEventListener("submit", async event => {
-  event.preventDefault();
-  error.classList.add("hidden");
-  const accessKey = String(new FormData(form).get("access_key") || "").trim();
-  try {
-    const response = await fetch("/internal/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({access_key: accessKey})});
-    if (!response.ok) {
-      let message = "Access denied";
-      try { message = (await response.json()).detail || message; } catch {}
-      throw new Error(message);
-    }
-    const result = await response.json();
-    authToken = result.token || "";
-    if (!authToken) throw new Error("Internal session was not issued");
-    sessionStorage.setItem("aletheia_internal_token", authToken);
-    form.reset();
-    showWorkspace();
-    await loadDeals();
-  } catch (err) {
-    showLogin(err.message);
-  }
+loadDeals().catch(error => {
+  pipeline.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
 });
-
-logout.addEventListener("click", async () => {
-  try { await api("/internal/logout", {method:"POST"}); } finally {
-    authToken = "";
-    sessionStorage.removeItem("aletheia_internal_token");
-    showLogin();
-  }
-});
-
-checkSession();
