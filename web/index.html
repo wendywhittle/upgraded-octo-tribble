@@ -1,16 +1,40 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>AletheiaTelos | Deal Flow Engine</title><link rel="stylesheet" href="/web/styles.css"></head>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AletheiaTelos | Real Estate Investment Analysis &amp; Underwriting</title>
+<meta name="description" content="Real estate investment analysis and underwriting for deal review. Enter the information you have, calculate available underwriting metrics, identify missing information, and organize opportunities for further investment decision support.">
+<link rel="canonical" href="https://aletheiatelos.com/">
+<meta property="og:title" content="AletheiaTelos | Real Estate Investment Analysis &amp; Underwriting">
+<meta property="og:description" content="Analyze real estate deals, review investment underwriting, identify missing information, and organize opportunities for further investment decision support.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aletheiatelos.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AletheiaTelos | Real Estate Investment Analysis &amp; Underwriting">
+<meta name="twitter:description" content="Real estate deal analysis and underwriting for investment review and decision support.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AletheiaTelos",
+  "description": "A web application for real estate investment analysis, deal analysis, underwriting, and investment decision support.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web"
+}
+</script>
+<link rel="stylesheet" href="/web/styles.css">
+</head>
 <body>
-<header><a class="brand" href="/">ALETHEIA TELOS <span>DEAL FLOW ENGINE</span></a><nav><a href="#intake">Enter a Deal</a></nav></header>
+<header><a class="brand" href="/">ALETHEIA TELOS <span>INVESTMENT ANALYSIS</span></a><nav><a href="#intake">Enter a Deal</a></nav></header>
 <main>
-<section class="hero"><div><p class="eyebrow">REAL ESTATE DEAL FLOW</p><h1>Have a deal?<br><em>Put the numbers in.</em></h1><p class="lede">Enter what you know. AletheiaTelos preserves the original deal and routes the opportunity into our internal deal workflow.</p><a class="primary" href="#intake">ENTER A DEAL</a></div><div class="hero-card"><span>DEAL INTAKE</span><strong>Enter the opportunity. We'll take it from there.</strong></div></section>
-<section id="intake" class="workspace"><div class="section-head"><p class="eyebrow">01 / DEAL INTAKE</p><h2>Start with the opportunity.</h2><p>Only enter information you actually have. Missing data stays missing.</p></div>
+<section class="hero"><div><p class="eyebrow">REAL ESTATE INVESTMENT ANALYSIS</p><h1>Have a deal?<br><em>Put the numbers in.</em></h1><p class="lede">Enter the information you have. Review real estate underwriting metrics, identify what is missing, and organize the opportunity for further investment decision support.</p><a class="primary" href="#intake">ENTER A DEAL</a></div><div class="hero-card"><span>DEAL ANALYSIS</span><strong>Start with the opportunity. The system preserves your inputs, calculates available underwriting metrics, and identifies missing information.</strong></div></section>
+<section id="intake" class="workspace"><div class="section-head"><p class="eyebrow">01 / DEAL ANALYSIS</p><h2>Start with the opportunity.</h2><p>Use the information you have to begin real estate deal analysis and investment underwriting. Missing data stays missing rather than being invented.</p></div>
 <form id="deal-form"><div class="grid two">
 <label>Deal / property name<input name="name" required placeholder="Example Industrial"></label><label>Asset type<select name="asset_type" required><option value="">Select</option><option>Multifamily</option><option>Industrial</option><option>Office</option><option>Retail</option><option>Hospitality</option><option>Self Storage</option><option>NNN</option><option>Development</option><option>Land</option><option>Other</option></select></label>
 <label>Location<input name="location" required placeholder="Dallas, TX"></label><label>Purchase price<input name="purchase_price" type="number" min="0" step="0.01" placeholder="10000000"></label><label>Annual NOI<input name="noi" type="number" step="0.01" placeholder="650000"></label><label>Annual EGI<input name="egi" type="number" step="0.01" placeholder="Optional"></label><label>Annual operating expenses<input name="operating_expenses" type="number" step="0.01" placeholder="Optional"></label><label>Occupancy<input name="occupancy" type="number" min="0" max="1" step="0.001" placeholder="0.95"></label></div>
 <details><summary>Financing and return assumptions</summary><div class="grid three"><label>LTV<input name="ltv" type="number" min="0" max="1" step="0.001" placeholder="0.70"></label><label>Interest rate<input name="interest_rate" type="number" min="0" step="0.0001" placeholder="0.065"></label><label>Amortization years<input name="amortization_years" type="number" min="1" step="1" placeholder="30"></label><label>Hold years<input name="hold_years" type="number" min="1" step="1" placeholder="5"></label><label>Exit cap rate<input name="exit_cap_rate" type="number" min="0" step="0.0001" placeholder="0.065"></label><label>Closing costs<input name="closing_costs" type="number" min="0" step="0.01" placeholder="Optional"></label></div></details>
 <details><summary>Contact</summary><div class="grid three"><label>Name<input name="contact_name"></label><label>Email<input name="contact_email" type="email"></label><label>Phone<input name="contact_phone"></label></div></details>
 <button class="primary" type="submit">SUBMIT DEAL</button><p id="submit-message" class="muted"></p></form></section>
-</main><footer>DEAL INTAKE · INTERNAL PROCESSING · HUMAN DECISION AUTHORITY</footer><script src="/web/app.js"></script>
+</main><footer>REAL ESTATE INVESTMENT ANALYSIS · HUMAN DECISION AUTHORITY</footer><script src="/web/app.js"></script>
 </body></html>
