@@ -54,9 +54,16 @@ def session_token() -> str:
     return hmac.new(key.encode(), b"aletheiatelos-internal-session", hashlib.sha256).hexdigest()
 
 
-def require_internal_session(internal_session: str | None = Cookie(default=None)) -> None:
+def require_internal_session(
+    request: Request,
+    internal_session: str | None = Cookie(default=None),
+) -> None:
     expected = session_token()
-    if not expected or not internal_session or not hmac.compare_digest(internal_session, expected):
+    bearer = request.headers.get("authorization", "")
+    presented = internal_session
+    if bearer.lower().startswith("bearer "):
+        presented = bearer[7:].strip()
+    if not expected or not presented or not hmac.compare_digest(presented, expected):
         raise HTTPException(status_code=401, detail="Internal access required")
 
 
@@ -80,10 +87,14 @@ def internal_login(request: Request, payload: dict[str, str]) -> Response:
     key = access_key()
     if not key or not hmac.compare_digest(str(payload.get("access_key", "")).strip(), key.strip()):
         raise HTTPException(status_code=401, detail="Access denied")
-    response = Response(content='{"authenticated":true}', media_type="application/json")
+    token = session_token()
+    response = Response(
+        content='{"authenticated":true,"token":"' + token + '"}',
+        media_type="application/json",
+    )
     response.set_cookie(
         "internal_session",
-        session_token(),
+        token,
         httponly=True,
         secure=request.url.scheme == "https",
         samesite="strict",
