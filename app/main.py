@@ -78,7 +78,7 @@ def health() -> dict[str, str]:
 @app.post("/internal/login")
 def internal_login(request: Request, payload: dict[str, str]) -> Response:
     key = access_key()
-    if not key or not hmac.compare_digest(payload.get("access_key", ""), key):
+    if not key or not hmac.compare_digest(str(payload.get("access_key", "")).strip(), key.strip()):
         raise HTTPException(status_code=401, detail="Access denied")
     response = Response(content='{"authenticated":true}', media_type="application/json")
     response.set_cookie(
