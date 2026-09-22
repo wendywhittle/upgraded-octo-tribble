@@ -6,8 +6,12 @@ const pipeline = document.getElementById("pipeline-list");
 const detail = document.getElementById("detail");
 const logout = document.getElementById("logout");
 
+let authToken = sessionStorage.getItem("aletheia_internal_token") || "";
+
 async function api(url, options = {}) {
-  const response = await fetch(url, { credentials: "same-origin", ...options });
+  const headers = new Headers(options.headers || {});
+  if (authToken) headers.set("Authorization", "Bearer " + authToken);
+  const response = await fetch(url, { credentials: "same-origin", ...options, headers });
   if (!response.ok) {
     let message = "Request failed";
     try { message = (await response.json()).detail || message; } catch {}
@@ -87,8 +91,16 @@ form.addEventListener("submit", async event => {
   error.classList.add("hidden");
   const accessKey = String(new FormData(form).get("access_key") || "").trim();
   try {
-    const response = await api("/internal/login", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({access_key: accessKey})});
-    if (!response.ok) throw new Error("Access denied");
+    const response = await fetch("/internal/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({access_key: accessKey})});
+    if (!response.ok) {
+      let message = "Access denied";
+      try { message = (await response.json()).detail || message; } catch {}
+      throw new Error(message);
+    }
+    const result = await response.json();
+    authToken = result.token || "";
+    if (!authToken) throw new Error("Internal session was not issued");
+    sessionStorage.setItem("aletheia_internal_token", authToken);
     form.reset();
     showWorkspace();
     await loadDeals();
@@ -98,7 +110,11 @@ form.addEventListener("submit", async event => {
 });
 
 logout.addEventListener("click", async () => {
-  try { await api("/internal/logout", {method:"POST"}); } finally { showLogin(); }
+  try { await api("/internal/logout", {method:"POST"}); } finally {
+    authToken = "";
+    sessionStorage.removeItem("aletheia_internal_token");
+    showLogin();
+  }
 });
 
 checkSession();
