@@ -28,6 +28,20 @@ Each prospect records:
 
 The original evidence and outreach history are append-only. Current state is explicit and deterministic.
 
+## Research continuation
+
+RESEARCH is an active state, not a failure state.
+
+When supplied evidence is insufficient, the engine evaluates the remaining evidence gaps:
+
+1. If the prospect is sufficiently qualified, transition to QUALIFY.
+2. If a valid next research task exists, remain in RESEARCH and persist that task as next_action.
+3. Only stop when the evidence is insufficient and no valid research task remains.
+
+Creating or refreshing a research task is not itself a lifecycle transition and does not count as progression.
+
+The worker resumes from the persisted research task after a process restart. This makes the research loop durable rather than dependent on in-memory execution.
+
 ## Safety boundary
 
 This experiment does not send email, make calls, submit forms, or otherwise contact external parties. It produces state and a next action only.
@@ -38,4 +52,4 @@ The Growth Engine must never authorize an investment, move capital, execute a tr
 
 Given the same prospect record and event sequence, the resulting state must be deterministic.
 
-The next infrastructure step, only after this state model proves useful, is a queue/worker that wakes up and processes one eligible next action.
+The next infrastructure step is to validate the worker against durable tasks and then introduce a real queue only if that proves necessary. External outreach remains explicitly gated and is not part of this experiment.
