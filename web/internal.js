@@ -1,15 +1,32 @@
+let csrfToken = "";
+
 const app = document.getElementById("app");
 const pipeline = document.getElementById("pipeline-list");
 const detail = document.getElementById("detail");
 
 async function api(url, options = {}) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, {...options, credentials: "same-origin"});
+  if (response.status === 401) {
+    window.location.href = "/internal/login";
+    throw new Error("Authentication required");
+  }
   if (!response.ok) {
     let message = "Request failed";
     try { message = (await response.json()).detail || message; } catch {}
     throw new Error(message);
   }
   return response;
+}
+
+async function loadSession() {
+  const response = await api("/api/internal/session");
+  const session = await response.json();
+  csrfToken = session.csrf_token;
+}
+
+async function logout() {
+  await fetch("/internal/logout", {method: "POST", credentials: "same-origin"});
+  window.location.href = "/internal/login";
 }
 
 async function loadDeals() {
@@ -91,7 +108,7 @@ async function loadDeal(id) {
     const status = document.getElementById("status-select").value;
     await api("/api/deals/" + encodeURIComponent(deal.deal_id) + "/status", {
       method: "PATCH",
-      headers: {"Content-Type": "application/json"},
+      headers: {"Content-Type": "application/json", "X-CSRF-Token": csrfToken},
       body: JSON.stringify({status})
     });
     await loadDeals();
@@ -138,6 +155,13 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 }
 
-loadDeals().catch(error => {
-  pipeline.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
-});
+document.getElementById("logout")?.addEventListener("click", logout);
+
+(async () => {
+  try {
+    await loadSession();
+    await loadDeals();
+  } catch (error) {
+    pipeline.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+  }
+})();
