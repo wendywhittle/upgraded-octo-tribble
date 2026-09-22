@@ -94,6 +94,39 @@ New functionality must answer a concrete deal-flow need. A new abstraction, serv
 
 Build the workflow first. Add intelligence where it removes real friction.
 
+## Internal Access Control
+
+The public deal-intake surface remains unauthenticated:
+
+- GET /
+- POST /api/deals
+- GET /health
+
+Internal processing surfaces require an authenticated INTERNAL_OPERATOR session:
+
+- GET /internal
+- GET /api/deals
+- GET /api/deals/{deal_id}
+- PATCH /api/deals/{deal_id}/status
+- GET /api/deals/{deal_id}/excel
+
+Authentication is enforced server-side. Possession of a Deal ID does not grant access. Browser UI visibility is not a security boundary.
+
+Authenticated browser sessions use secure HttpOnly cookies with finite expiration. State-changing internal requests require CSRF validation. Credentials and signing secrets are supplied through deployment environment configuration and are not stored in the repository.
+
+The access-control layer is separate from the Deal Record and underwriting repository. It does not grant investment authority, execution authority, brokerage access, custody, capital-transfer capability, or portfolio mutation.
+
+Required production environment variables:
+
+- TYR_INTERNAL_USERNAME
+- TYR_INTERNAL_PASSWORD_HASH
+- TYR_INTERNAL_AUTH_SECRET
+
+Optional:
+
+- TYR_SESSION_MAX_AGE_SECONDS
+- TYR_AUTH_COOKIE_SECURE
+
 ## User Data and Privacy Boundary
 
 The public application accepts information submitted directly by users through the deal-intake interface. User-submitted information is governed by the dedicated USER_DATA_AND_PRIVACY_BOUNDARY.md document.
