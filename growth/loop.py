@@ -29,21 +29,14 @@ def run_once(
     signals: tuple[ResearchSignal, ...] = (),
     task_store: ResearchTaskStore | None = None,
 ) -> LoopResult:
-    """Resume one prospect using explicitly supplied research and signals.
-
-    No web access, messaging, or external side effects occur here. Progression
-    requires typed evidence so free-form text alone cannot qualify a prospect.
-    """
+    """Resume one prospect using explicitly supplied research and signals."""
     work = next_work(store, prospect_id, task_store)
     if work is None:
         return LoopResult(None, False)
-
     if work.state != "RESEARCH":
         return LoopResult(work, False)
-
     if observation is None:
         return LoopResult(work, False)
-
     if observation.prospect_id != prospect_id:
         raise ValueError("observation prospect_id does not match prospect")
 
@@ -51,17 +44,19 @@ def run_once(
     categories = signal_categories(signals)
     qualification = evaluate_qualification(categories)
 
+    task = None
     if task_store is not None:
-        refresh_research_task(task_store, prospect_id, categories)
+        task = refresh_research_task(task_store, prospect_id, categories)
 
     result = advance_from_research(
         store,
         prospect_id,
         sufficient_evidence=qualification.qualified,
+        next_research_action=task.purpose if task is not None else None,
     )
 
     return LoopResult(
         next_work(store, prospect_id, task_store),
-        result.current_state != "RESEARCH",
+        result.current_state != "RESEARCH" or task is not None,
         observation,
     )
