@@ -55,8 +55,9 @@ def run_once(
         next_research_action=task.purpose if task is not None else None,
     )
 
+    progressed = result.current_state != "RESEARCH"
     return LoopResult(
         next_work(store, prospect_id, task_store),
-        result.current_state != "RESEARCH" or task is not None,
+        progressed,
         observation,
     )
