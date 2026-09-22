@@ -85,7 +85,7 @@ function escapeHtml(value) {
 form.addEventListener("submit", async event => {
   event.preventDefault();
   error.classList.add("hidden");
-  const accessKey = new FormData(form).get("access_key");
+  const accessKey = String(new FormData(form).get("access_key") || "").trim();
   try {
     const response = await api("/internal/login", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({access_key: accessKey})});
     if (!response.ok) throw new Error("Access denied");
