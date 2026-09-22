@@ -1,9 +1,21 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Annotated
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
+
+from app.auth import (
+    InternalSession,
+    clear_session_cookie,
+    login,
+    login_page,
+    login_response,
+    read_session,
+    require_csrf,
+    require_internal_operator,
+    unauthorized_internal_redirect,
+)
 
 from app.deal_flow import STATUSES, build_excel, create_deal, get_deal, list_deals, update_status
 
@@ -40,14 +52,65 @@ class StatusChange(BaseModel):
     status: str
 
 
+class LoginInput(BaseModel):
+    username: str
+    password: str
+
+
+def require_internal_mutation(
+    request: Request,
+    session: Annotated[InternalSession, Depends(require_internal_operator)],
+) -> InternalSession:
+    require_csrf(request, session)
+    return session
+
+
 @app.get("/")
 def root() -> FileResponse:
     return FileResponse(WEB_DIR / "index.html")
 
 
 @app.get("/internal")
-def internal() -> FileResponse:
+def internal(request: Request) -> Response:
+    if read_session(request) is None:
+        return unauthorized_internal_redirect()
     return FileResponse(WEB_DIR / "internal.html")
+
+
+@app.get("/internal/login")
+def internal_login() -> Response:
+    return login_page()
+
+
+@app.post("/internal/login")
+def internal_login_submit(credentials: LoginInput) -> Response:
+    try:
+        token = login(credentials.username, credentials.password)
+    except PermissionError:
+        raise HTTPException(status_code=429, detail="Authentication temporarily unavailable")
+    except (ValueError, RuntimeError):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return login_response(token)
+
+
+@app.post("/internal/logout")
+def internal_logout() -> Response:
+    response = Response(status_code=204)
+    clear_session_cookie(response)
+    return response
+
+
+@app.get("/api/internal/session")
+def internal_session(
+    session: Annotated[InternalSession, Depends(require_internal_operator)],
+) -> dict[str, Any]:
+    return {
+        "authenticated": True,
+        "username": session.username,
+        "role": session.role,
+        "csrf_token": session.csrf_token,
+        "expires_at": session.expires_at,
+    }
 
 
 @app.get("/health")
@@ -61,12 +124,17 @@ def submit_deal(deal: DealInput) -> dict[str, Any]:
 
 
 @app.get("/api/deals")
-def deals() -> list[dict[str, Any]]:
+def deals(
+    _: Annotated[InternalSession, Depends(require_internal_operator)],
+) -> list[dict[str, Any]]:
     return list_deals()
 
 
 @app.get("/api/deals/{deal_id}")
-def deal(deal_id: str) -> dict[str, Any]:
+def deal(
+    deal_id: str,
+    _: Annotated[InternalSession, Depends(require_internal_operator)],
+) -> dict[str, Any]:
     record = get_deal(deal_id)
     if not record:
         raise HTTPException(status_code=404, detail="Deal not found")
@@ -74,7 +142,11 @@ def deal(deal_id: str) -> dict[str, Any]:
 
 
 @app.patch("/api/deals/{deal_id}/status")
-def status(deal_id: str, change: StatusChange) -> dict[str, Any]:
+def status(
+    deal_id: str,
+    change: StatusChange,
+    _: Annotated[InternalSession, Depends(require_internal_mutation)],
+) -> dict[str, Any]:
     if change.status not in STATUSES:
         raise HTTPException(status_code=400, detail="Invalid pipeline status")
     record = update_status(deal_id, change.status)
@@ -84,7 +156,10 @@ def status(deal_id: str, change: StatusChange) -> dict[str, Any]:
 
 
 @app.get("/api/deals/{deal_id}/excel")
-def excel(deal_id: str) -> Response:
+def excel(
+    deal_id: str,
+    _: Annotated[InternalSession, Depends(require_internal_operator)],
+) -> Response:
     record = get_deal(deal_id)
     if not record:
         raise HTTPException(status_code=404, detail="Deal not found")
