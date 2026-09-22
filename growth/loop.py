@@ -34,7 +34,7 @@ def run_once(
     No web access, messaging, or external side effects occur here. Progression
     requires typed evidence so free-form text alone cannot qualify a prospect.
     """
-    work = next_work(store, prospect_id)
+    work = next_work(store, prospect_id, task_store)
     if work is None:
         return LoopResult(None, False)
 
@@ -61,7 +61,7 @@ def run_once(
     )
 
     return LoopResult(
-        next_work(store, prospect_id),
+        next_work(store, prospect_id, task_store),
         result.current_state != "RESEARCH",
         observation,
     )
