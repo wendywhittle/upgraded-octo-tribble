@@ -10,12 +10,9 @@ def advance_from_research(
     prospect_id: str,
     *,
     sufficient_evidence: bool,
+    next_research_action: str | None = None,
 ) -> Prospect:
-    """Advance a prospect using an explicit evidence decision.
-
-    The decision is supplied as a factual evaluation result. This function
-    performs no external research and no external communication.
-    """
+    """Advance research without terminating solvable evidence gaps."""
     prospect = store.get(prospect_id)
     if prospect is None:
         raise KeyError(prospect_id)
@@ -31,8 +28,11 @@ def advance_from_research(
             "Evaluate fit and prepare the next human-reviewed task",
         )
 
+    if next_research_action is not None:
+        return store.set_next_action(prospect_id, next_research_action)
+
     return store.transition(
         prospect_id,
         "STOPPED",
-        "Insufficient evidence; no further action",
+        "Insufficient evidence; no further research task available",
     )
