@@ -5,7 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .engine import advance_from_research
+from .qualification import evaluate_qualification
 from .research import ResearchObservation, append_observation
+from .research_adapter import ResearchSignal, signal_categories
 from .state import GrowthStore
 from .worker import WorkItem, next_work
 
@@ -22,12 +24,12 @@ def run_once(
     prospect_id: str,
     observation_path: str,
     observation: ResearchObservation | None = None,
+    signals: tuple[ResearchSignal, ...] = (),
 ) -> LoopResult:
-    """Resume one prospect using only explicitly supplied research.
+    """Resume one prospect using explicitly supplied research and signals.
 
-    No web access, messaging, or external side effects occur here. Research
-    must be supplied as an observation, then the state transition is
-    deterministic from that observation.
+    No web access, messaging, or external side effects occur here. Progression
+    requires typed evidence so free-form text alone cannot qualify a prospect.
     """
     work = next_work(store, prospect_id)
     if work is None:
@@ -43,8 +45,12 @@ def run_once(
         raise ValueError("observation prospect_id does not match prospect")
 
     append_observation(observation_path, observation)
-    sufficient = bool(observation.facts)
-    result = advance_from_research(store, prospect_id, sufficient_evidence=sufficient)
+    qualification = evaluate_qualification(signal_categories(signals))
+    result = advance_from_research(
+        store,
+        prospect_id,
+        sufficient_evidence=qualification.qualified,
+    )
 
     return LoopResult(
         next_work(store, prospect_id),
