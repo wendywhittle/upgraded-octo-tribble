@@ -93,3 +93,23 @@ The human remains the decision authority.
 New functionality must answer a concrete deal-flow need. A new abstraction, service, agent, provider, dashboard, or model does not enter the architecture merely because it is technically possible.
 
 Build the workflow first. Add intelligence where it removes real friction.
+
+## User Data and Privacy Boundary
+
+The public application accepts information submitted directly by users through the deal-intake interface. User-submitted information is governed by the dedicated USER_DATA_AND_PRIVACY_BOUNDARY.md document.
+
+The core principle is:
+
+**USER SUBMISSION ≠ AUTHORIZATION**
+
+Submission of information does not authorize an investment, transaction, external action, movement of capital, brokerage activity, custody, representation of the user, or action over the user's assets or affairs.
+
+The data-processing chain remains separate from consequential decision authority:
+
+USER SUBMISSION → DATA PROCESSING → ANALYSIS
+
+ANALYSIS → RECOMMENDATION → AUTHORIZATION → EXECUTION
+
+The application should minimize unnecessary collection, distinguish user-submitted information from system-generated and derived information, preserve uncertainty, and apply appropriate security, retention, privacy, and third-party-processing controls. This boundary establishes architectural requirements and does not represent legal compliance certification or imply that every control is currently implemented.
+
+See USER_DATA_AND_PRIVACY_BOUNDARY.md for the full boundary.
