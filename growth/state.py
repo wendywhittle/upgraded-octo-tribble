@@ -108,8 +108,6 @@ class GrowthStore:
         return Prospect(prospect_id, account, "DISCOVER", next_action, timestamp, timestamp)
 
     def transition(self, prospect_id: str, new_state: str, next_action: str) -> Prospect:
-        import json
-
         if new_state not in STATES:
             raise ValueError(f"Unknown state: {new_state}")
 
@@ -141,6 +139,38 @@ class GrowthStore:
                 prospect_id,
                 row["account"],
                 new_state,
+                next_action,
+                row["created_at"],
+                timestamp,
+            )
+
+    def set_next_action(self, prospect_id: str, next_action: str) -> Prospect:
+        """Update the durable next action without changing lifecycle state."""
+        if not next_action.strip():
+            raise ValueError("next_action must not be blank")
+
+        with self._connect() as db:
+            row = db.execute(
+                "SELECT * FROM prospects WHERE prospect_id = ?", (prospect_id,)
+            ).fetchone()
+            if row is None:
+                raise KeyError(prospect_id)
+
+            timestamp = now_iso()
+            db.execute(
+                """
+                UPDATE prospects
+                SET next_action = ?, updated_at = ?
+                WHERE prospect_id = ?
+                """,
+                (next_action, timestamp, prospect_id),
+            )
+            db.commit()
+
+            return Prospect(
+                prospect_id,
+                row["account"],
+                row["current_state"],
                 next_action,
                 row["created_at"],
                 timestamp,
